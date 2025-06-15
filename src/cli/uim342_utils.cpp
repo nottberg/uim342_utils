@@ -13,7 +13,9 @@
 #include <linux/can.h>
 #include <linux/can/raw.h>
 
-/* Flag set by ‘--verbose’. */
+#include "UIM342RR.h"
+
+// Flag set by ‘--verbose’.
 static int verbose_flag;
 
 #define MAX_EVENTS 10
@@ -133,12 +135,23 @@ App::receiveCANFrame()
         APP_RESULT_FAILURE;
     }
 
-    printf( "0x%03X [%d] ", frame.can_id, frame.can_dlc );
+    UIM342ReqRsp tmpRsp;
+
+    tmpRsp.processRsp( &frame );
+    tmpRsp.debugPrint();
+
+    /*
+    uint producerID = ( (frame.can_id & 0x1f000000) >> 24 ) | ( ( frame.can_id & 0x30000 ) >> (16 - 5) );
+    uint consumerID = ( (frame.can_id & 0xf80000) >> 19 ) | ( ( frame.can_id & 0xc000 ) >> (14 - 5) );
+    uint ctrlWord = frame.can_id & 0xFF;
+
+    printf( "0x%03X producerID: 0x%02X consumerID: 0x%02X ctrlWord: 0x%02X dlen: %d -- ", frame.can_id, producerID, consumerID, ctrlWord, frame.can_dlc );
 
     for( int i = 0; i < frame.can_dlc; i++ )
         printf( "%02X ",frame.data[i] );
 
     printf( "\r\n" );
+*/
 
     return APP_RESULT_SUCCESS;
 }

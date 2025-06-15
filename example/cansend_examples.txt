@@ -1,0 +1,2 @@
+# Get Serial Number ( ProducerID: 4, ConsumerID: 5, CW: 0x8C )
+cansend can0 0428008C#

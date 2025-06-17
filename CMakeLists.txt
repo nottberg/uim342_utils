@@ -20,7 +20,8 @@ ADD_DEFINITIONS( -DVERSION=${VERSION} )
 
 SET( UIM342_UTILS_SRC
      ${CMAKE_SOURCE_DIR}/src/cli/uim342_utils.cpp
-     ${CMAKE_SOURCE_DIR}/src/cli/UIM342RR.cpp
+     ${CMAKE_SOURCE_DIR}/src/cli/CANRR.cpp
+     ${CMAKE_SOURCE_DIR}/src/cli/UIM342Msg.cpp
 )
 
 SET(CMAKE_BUILD_TYPE Debug)

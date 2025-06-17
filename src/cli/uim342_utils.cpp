@@ -13,7 +13,7 @@
 #include <linux/can.h>
 #include <linux/can/raw.h>
 
-#include "UIM342RR.h"
+#include "CANRR.h"
 
 // Flag set by ‘--verbose’.
 static int verbose_flag;
@@ -43,10 +43,7 @@ class App
     private:
 
         struct epoll_event m_ev;
-        struct epoll_event m_events[MAX_EVENTS];
-        //int m_listen_sock;
-        //int m_conn_sock;
-        int m_nfds;
+
         int m_epollFD;
 
         int m_canFD;
@@ -82,7 +79,6 @@ APP_RESULT_T
 App::initCANSocket()
 {
 	int s; 
-	//struct sockaddr_can addr;
 	struct ifreq ifr;
 	struct can_frame frame;
 
@@ -135,23 +131,10 @@ App::receiveCANFrame()
         APP_RESULT_FAILURE;
     }
 
-    UIM342ReqRsp tmpRsp;
+    CANReqRsp tmpRsp;
 
     tmpRsp.processRsp( &frame );
     tmpRsp.debugPrint();
-
-    /*
-    uint producerID = ( (frame.can_id & 0x1f000000) >> 24 ) | ( ( frame.can_id & 0x30000 ) >> (16 - 5) );
-    uint consumerID = ( (frame.can_id & 0xf80000) >> 19 ) | ( ( frame.can_id & 0xc000 ) >> (14 - 5) );
-    uint ctrlWord = frame.can_id & 0xFF;
-
-    printf( "0x%03X producerID: 0x%02X consumerID: 0x%02X ctrlWord: 0x%02X dlen: %d -- ", frame.can_id, producerID, consumerID, ctrlWord, frame.can_dlc );
-
-    for( int i = 0; i < frame.can_dlc; i++ )
-        printf( "%02X ",frame.data[i] );
-
-    printf( "\r\n" );
-*/
 
     return APP_RESULT_SUCCESS;
 }
@@ -159,18 +142,21 @@ App::receiveCANFrame()
 APP_RESULT_T
 App::executeEPoll()
 {
+    struct epoll_event events[MAX_EVENTS];
+    uint nfds = 0;
+
     for( ;; )
     {
-        m_nfds = epoll_wait( m_epollFD, m_events, MAX_EVENTS, -1 );
-        if( m_nfds == -1 )
+        nfds = epoll_wait( m_epollFD, events, MAX_EVENTS, -1 );
+        if( nfds == -1 )
         {
             perror( "epoll_wait" );
             return APP_RESULT_FAILURE;
         }
 
-        for( int n = 0; n < m_nfds; ++n )
+        for( int n = 0; n < nfds; ++n )
         {
-            if( m_events[n].data.fd == m_canFD )
+            if( events[n].data.fd == m_canFD )
             {
                 receiveCANFrame();
             } 

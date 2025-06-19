@@ -42,16 +42,11 @@ class App
 
         APP_RESULT_T initCANSocket();
 
-        APP_RESULT_T receiveCANFrame();
+        APP_RESULT_T queueDeviceInfoRequests();
 
     private:
 
-//        struct epoll_event m_ev;
-
         int m_epollFD;
-
-        //int m_canFD;
-       	//struct sockaddr_can m_canAddr;
 
         CANBus m_bus;
 };
@@ -99,71 +94,22 @@ App::AddFDToEPoll( int fd )
 APP_RESULT_T
 App::initCANSocket()
 {
-	int s; 
-//	struct ifreq ifr;
-//	struct can_frame frame;
-
 	printf("CAN Socket\r\n");
 
-  m_bus.open();
+    m_bus.open();
 
-  AddFDToEPoll( m_bus.getBusFD() );
-  AddFDToEPoll( m_bus.getPendingFD() );
-
-  /*
-    m_canFD = socket( PF_CAN, SOCK_RAW, CAN_RAW );
-	if( m_canFD < 0 )
-    {
-		perror( "Socket" );
-		return APP_RESULT_FAILURE;
-	}
-
-	strcpy( ifr.ifr_name, "can0" );
-	ioctl( m_canFD, SIOCGIFINDEX, &ifr );
-
-	memset( &m_canAddr, 0, sizeof(m_canAddr) );
-	m_canAddr.can_family = AF_CAN;
-	m_canAddr.can_ifindex = ifr.ifr_ifindex;
-
-	if( bind( m_canFD, (struct sockaddr *)&m_canAddr, sizeof(m_canAddr) ) < 0 )
-    {
-		perror( "Bind" );
-		return APP_RESULT_FAILURE;
-	}
-
-    m_ev.events = EPOLLIN;
-    m_ev.data.fd = m_canFD;
-    if( epoll_ctl( m_epollFD, EPOLL_CTL_ADD, m_canFD, &m_ev ) == -1 )
-    {
-        perror( "epoll_ctl: CAN socket" );
-        return APP_RESULT_FAILURE;
-    }
-*/
+    AddFDToEPoll( m_bus.getBusFD() );
+    AddFDToEPoll( m_bus.getPendingFD() );
 
     return APP_RESULT_SUCCESS;
 }
 
 APP_RESULT_T
-App::receiveCANFrame()
+App::queueDeviceInfoRequests()
 {
-   	int nbytes;
-    //struct sockaddr_can addr;
-    //struct ifreq ifr;
-    //struct can_frame frame;
-/*
-    nbytes = read( m_canFD, &frame, sizeof(struct can_frame) );
+    CANReqRsp *request = new CANReqRsp();
+    m_bus.appendRequest( request );
 
-    if( nbytes < 0 )
-    {
-        perror( "Read" );
-        APP_RESULT_FAILURE;
-    }
-
-    CANReqRsp tmpRsp;
-
-    tmpRsp.processRsp( &frame );
-    tmpRsp.debugPrint();
-*/
     return APP_RESULT_SUCCESS;
 }
 
@@ -186,8 +132,15 @@ App::executeEPoll()
         {
             if( events[n].data.fd == m_bus.getBusFD() )
             {
-                receiveCANFrame();
-            } 
+                // Receive frame
+                //receiveCANFrame();
+                m_bus.receiveFrame();
+            }
+            else if( events[n].data.fd == m_bus.getPendingFD() )
+            {
+                // Send frame
+                m_bus.processPending();
+            }
             else
             {
                 //do_use_fd(events[n].data.fd);
@@ -288,7 +241,10 @@ main (int argc, char **argv)
 
     context.initEPoll();
     context.initCANSocket();
-    context.executeEPoll();  
+
+    context.queueDeviceInfoRequests();
+
+    context.executeEPoll();
 
     exit (0);
 }

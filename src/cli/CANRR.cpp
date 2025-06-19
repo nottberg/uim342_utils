@@ -166,6 +166,8 @@ CANReqRsp::isMyResponse( struct can_frame *framePtr )
 CANRR_RESULT_T
 CANReqRsp::processRsp( struct can_frame *framePtr )
 {
+    printf("Process Response\n");
+
     m_rspProducerID = ( (framePtr->can_id & 0x1f000000) >> 24 ) | ( ( framePtr->can_id & 0x30000 ) >> (16 - 5) );
     m_rspConsumerID = ( (framePtr->can_id & 0xf80000) >> 19 ) | ( ( framePtr->can_id & 0xc000 ) >> (14 - 5) );
     m_rspCtrlWord   = framePtr->can_id & 0xFF;
@@ -177,6 +179,24 @@ CANReqRsp::processRsp( struct can_frame *framePtr )
     memcpy( m_rspData, framePtr->data, m_rspDataLen );
 
     // 
+
+    return CANRR_RESULT_SUCCESS;
+}
+
+CANRR_ACTION_T
+CANReqRsp::getNextAction()
+{
+    return CANRR_ACTION_SENDFRAME;
+}
+
+CANRR_RESULT_T
+CANReqRsp::getFrameToSend( struct can_frame &frame, uint &frameSize )
+{
+    frame.can_id = 0x04280081;
+	frame.can_dlc = 1;
+	frame.data[0] = 0x7;
+
+    frameSize = sizeof(frame);
 
     return CANRR_RESULT_SUCCESS;
 }
@@ -231,6 +251,8 @@ CANBus::CANBus()
     m_deviceName = "can0";
 
     m_busFD = -1;
+
+    m_curRR = NULL;
 }
 
 CANBus::~CANBus()
@@ -275,6 +297,88 @@ CANBus::open()
 		perror( "Bind" );
 		return CANRR_RESULT_FAILURE;
 	}
+
+    return CANRR_RESULT_SUCCESS;
+}
+
+CANRR_RESULT_T
+CANBus::receiveFrame()
+{
+   	int nbytes;
+    struct sockaddr_can addr;
+    struct ifreq ifr;
+    struct can_frame frame;
+
+    nbytes = read( m_busFD, &frame, sizeof(struct can_frame) );
+
+    if( nbytes < 0 )
+    {
+        perror( "Read" );
+        return CANRR_RESULT_FAILURE;
+    }
+
+    CANReqRsp tmpRsp;
+
+    tmpRsp.processRsp( &frame );
+    tmpRsp.debugPrint();
+
+    return CANRR_RESULT_SUCCESS;
+}
+
+CANRR_RESULT_T
+CANBus::processPending()
+{
+    uint64_t u;
+
+    printf("processPending\n");
+
+    // Clear the pending flag
+    read( m_pendingFD, &u, sizeof(u) );
+
+    // Error check
+    if( m_curRR != NULL )
+        return CANRR_RESULT_FAILURE;    
+
+    // Activate the command
+    m_curRR = m_pendingQueue.front();
+    m_pendingQueue.pop_front(); 
+
+    switch( m_curRR->getNextAction() )
+    {
+        case CANRR_ACTION_SENDFRAME:
+        {
+            struct can_frame frame;
+            uint frameSize;
+
+            // Get the frame
+            m_curRR->getFrameToSend( frame, frameSize );
+	        //frame.can_id = 0x04280081;
+	        //frame.can_dlc = 1;
+	        //frame.data[0] = 0x7;
+
+	        if( write( m_busFD, &frame, frameSize ) != frameSize )
+            {
+		        perror("Write");
+		        return CANRR_RESULT_FAILURE;
+	        }
+        }
+        break;
+    }
+
+
+    return CANRR_RESULT_SUCCESS;
+}
+
+CANRR_RESULT_T
+CANBus::appendRequest( CANReqRsp *rrObj )
+{
+    m_pendingQueue.push_back( rrObj );
+
+    if( m_curRR == NULL )
+    {
+        uint64_t u = 1;
+        write( m_pendingFD, &u, sizeof(u) );
+    }
 
     return CANRR_RESULT_SUCCESS;
 }

@@ -5,6 +5,7 @@
 
 #include <string>
 #include <vector>
+#include <list>
 
 #include <linux/can.h>
 #include <linux/can/raw.h>
@@ -18,6 +19,11 @@ typedef enum CANRRResultCodes
     CANRR_RESULT_SUCCESS,
     CANRR_RESULT_FAILURE
 }CANRR_RESULT_T;
+
+typedef enum CANRRActions
+{
+    CANRR_ACTION_SENDFRAME,
+}CANRR_ACTION_T;
 
 class CANReqRsp
 {
@@ -40,6 +46,10 @@ class CANReqRsp
 
         CANRR_RESULT_T processRsp( struct can_frame *framePtr );
 
+        CANRR_ACTION_T getNextAction();
+
+        CANRR_RESULT_T getFrameToSend( struct can_frame &frame, uint &frameSize );
+        
         void debugPrint();
 
     private:
@@ -90,6 +100,12 @@ class CANBus
 
         CANRR_RESULT_T open();
 
+        CANRR_RESULT_T receiveFrame();
+
+        CANRR_RESULT_T processPending();
+
+        CANRR_RESULT_T appendRequest( CANReqRsp *rrObj );
+
     private:
 
         int m_pendingFD;
@@ -100,6 +116,9 @@ class CANBus
        	struct sockaddr_can m_canAddr;
 
         uint m_producerID;
+
+        CANReqRsp *m_curRR;
+        std::list< CANReqRsp* > m_pendingQueue; 
 };
 
 class CANDevice

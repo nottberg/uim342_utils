@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 
+#include <string>
 #include <vector>
 
 #include <linux/can.h>
@@ -67,19 +68,50 @@ class CANRRSequence
         CANRRSequence();
        ~CANRRSequence();
 
-        int getSendFD();
-
         void calculateTimeout( uint curTime );
         uint getTimeout();
 
-        CANRR_RESULT_T addStep( CANReqRsp *newRR );
+        CANRR_RESULT_T appendStep( CANReqRsp *rrObj );
 
     private:
 
-        int m_sendFD;
-
         std::vector< CANReqRsp* > m_sequence;
 
+};
+
+class CANBus
+{
+    public:
+        CANBus();
+       ~CANBus();
+
+        int getPendingFD();
+        int getBusFD();
+
+        CANRR_RESULT_T open();
+
+    private:
+
+        int m_pendingFD;
+
+        std::string m_deviceName;
+
+        int m_busFD;
+       	struct sockaddr_can m_canAddr;
+
+        uint m_producerID;
+};
+
+class CANDevice
+{
+    public:
+        CANDevice();
+       ~CANDevice();
+
+    private:
+
+        uint m_nodeID;
+        uint m_groupID;
 };
 
 #endif // _CANRR_H_

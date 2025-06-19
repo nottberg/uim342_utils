@@ -1,6 +1,16 @@
 #include <cstring>
 #include <cstdio>
 
+#include <unistd.h>
+#include <sys/eventfd.h>
+
+#include <net/if.h>
+#include <sys/ioctl.h>
+#include <sys/socket.h>
+
+#include <linux/can.h>
+#include <linux/can/raw.h>
+
 #include "CANRR.h"
 
 CANReqRsp::CANReqRsp()
@@ -180,4 +190,102 @@ CANReqRsp::debugPrint()
         printf( "%02X ",m_rspData[i] );
 
     printf( "\r\n" );
+}
+
+CANRRSequence::CANRRSequence()
+{
+}
+
+CANRRSequence::~CANRRSequence()
+{
+}
+
+
+
+void
+CANRRSequence::calculateTimeout( uint curTime )
+{
+
+}
+
+uint
+CANRRSequence::getTimeout()
+{
+    return -1;
+}
+
+CANRR_RESULT_T
+CANRRSequence::appendStep( CANReqRsp *rrObj )
+{
+    m_sequence.push_back( rrObj );
+
+    return CANRR_RESULT_SUCCESS;
+}
+
+CANBus::CANBus()
+{
+    m_producerID = 4;
+
+    m_pendingFD =  eventfd(0, EFD_SEMAPHORE);
+
+    m_deviceName = "can0";
+
+    m_busFD = -1;
+}
+
+CANBus::~CANBus()
+{
+    if( m_pendingFD )
+        close( m_pendingFD );
+}
+
+int
+CANBus::getPendingFD()
+{
+    return m_pendingFD;
+}
+
+int
+CANBus::getBusFD()
+{
+    return m_busFD;
+}
+
+CANRR_RESULT_T
+CANBus::open()
+{
+    struct ifreq ifr;
+
+    m_busFD = socket( PF_CAN, SOCK_RAW, CAN_RAW );
+	if( m_busFD < 0 )
+    {
+		perror( "Socket" );
+		return CANRR_RESULT_FAILURE;
+	}
+
+	strcpy( ifr.ifr_name, m_deviceName.c_str() );
+	ioctl( m_busFD, SIOCGIFINDEX, &ifr );
+
+	memset( &m_canAddr, 0, sizeof(m_canAddr) );
+	m_canAddr.can_family = AF_CAN;
+	m_canAddr.can_ifindex = ifr.ifr_ifindex;
+
+	if( bind( m_busFD, (struct sockaddr *)&m_canAddr, sizeof(m_canAddr) ) < 0 )
+    {
+		perror( "Bind" );
+		return CANRR_RESULT_FAILURE;
+	}
+
+    return CANRR_RESULT_SUCCESS;
+}
+
+CANDevice::CANDevice()
+{
+    m_nodeID  = 5;
+    m_groupID = 0;
+}
+
+CANDevice::~CANDevice()
+{
+
 }

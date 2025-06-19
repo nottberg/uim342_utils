@@ -6,12 +6,14 @@
 #include <getopt.h>
 #include <sys/epoll.h>
 
+/*
 #include <net/if.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 
 #include <linux/can.h>
 #include <linux/can/raw.h>
+*/
 
 #include "CANRR.h"
 
@@ -34,6 +36,8 @@ class App
 
         APP_RESULT_T executeEPoll();
 
+        APP_RESULT_T AddFDToEPoll( int fd );
+
         APP_RESULT_T initEPoll();
 
         APP_RESULT_T initCANSocket();
@@ -42,13 +46,14 @@ class App
 
     private:
 
-        struct epoll_event m_ev;
+//        struct epoll_event m_ev;
 
         int m_epollFD;
 
-        int m_canFD;
-       	struct sockaddr_can m_canAddr;
+        //int m_canFD;
+       	//struct sockaddr_can m_canAddr;
 
+        CANBus m_bus;
 };
 
 App::App()
@@ -76,14 +81,36 @@ App::initEPoll()
 }
 
 APP_RESULT_T
+App::AddFDToEPoll( int fd )
+{
+    struct epoll_event ev;
+
+    ev.events = EPOLLIN;
+    ev.data.fd = fd;
+    if( epoll_ctl( m_epollFD, EPOLL_CTL_ADD, fd, &ev ) == -1 )
+    {
+        perror( "epoll_ctl: CAN socket" );
+        return APP_RESULT_FAILURE;
+    }
+
+    return APP_RESULT_SUCCESS;
+}
+
+APP_RESULT_T
 App::initCANSocket()
 {
 	int s; 
-	struct ifreq ifr;
-	struct can_frame frame;
+//	struct ifreq ifr;
+//	struct can_frame frame;
 
 	printf("CAN Socket\r\n");
 
+  m_bus.open();
+
+  AddFDToEPoll( m_bus.getBusFD() );
+  AddFDToEPoll( m_bus.getPendingFD() );
+
+  /*
     m_canFD = socket( PF_CAN, SOCK_RAW, CAN_RAW );
 	if( m_canFD < 0 )
     {
@@ -111,6 +138,7 @@ App::initCANSocket()
         perror( "epoll_ctl: CAN socket" );
         return APP_RESULT_FAILURE;
     }
+*/
 
     return APP_RESULT_SUCCESS;
 }
@@ -119,10 +147,10 @@ APP_RESULT_T
 App::receiveCANFrame()
 {
    	int nbytes;
-    struct sockaddr_can addr;
-    struct ifreq ifr;
-    struct can_frame frame;
-
+    //struct sockaddr_can addr;
+    //struct ifreq ifr;
+    //struct can_frame frame;
+/*
     nbytes = read( m_canFD, &frame, sizeof(struct can_frame) );
 
     if( nbytes < 0 )
@@ -135,7 +163,7 @@ App::receiveCANFrame()
 
     tmpRsp.processRsp( &frame );
     tmpRsp.debugPrint();
-
+*/
     return APP_RESULT_SUCCESS;
 }
 
@@ -156,7 +184,7 @@ App::executeEPoll()
 
         for( int n = 0; n < nfds; ++n )
         {
-            if( events[n].data.fd == m_canFD )
+            if( events[n].data.fd == m_bus.getBusFD() )
             {
                 receiveCANFrame();
             } 

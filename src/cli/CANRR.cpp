@@ -45,6 +45,36 @@ CANReqRsp::setRequest( uint consumerID, uint producerID, uint ctrlWord, uint exp
     return CANRR_RESULT_SUCCESS;
 }
 
+uint
+CANReqRsp::getReqProducerID()
+{
+    return m_reqProducerID;
+}
+
+uint
+CANReqRsp::getReqConsumerID()
+{
+    return m_reqConsumerID;
+}
+
+uint
+CANReqRsp::getReqControlWord()
+{
+    return m_reqCtrlWord;
+}
+
+uint
+CANReqRsp::getReqDataLength()
+{
+    return 0;
+}
+
+void
+CANReqRsp::getReqData( uint8_t *bufPtr )
+{
+    return;
+}
+
 CANRR_RESULT_T
 CANReqRsp::appendReqData( uint8_t *dataBuf, uint dataLen )
 {
@@ -192,9 +222,24 @@ CANReqRsp::getNextAction()
 CANRR_RESULT_T
 CANReqRsp::getFrameToSend( struct can_frame &frame, uint &frameSize )
 {
-    frame.can_id = 0x04280081;
-	frame.can_dlc = 1;
-	frame.data[0] = 0x7;
+    frame.can_id  = CAN_EFF_FLAG;
+
+    frame.can_id |= (( getReqProducerID() & 0x1F ) << 24 );
+    frame.can_id |= ((( getReqProducerID() & 0x20 ) >> 4 ) << 16 );
+
+    frame.can_id |= (( getReqConsumerID() & 0x1F ) << 19 );
+    frame.can_id |= ((( getReqConsumerID() & 0x20 ) << 4 ) << 14 );
+
+    frame.can_id |= ( getReqControlWord() & 0xFF );
+
+
+	frame.can_dlc = getReqDataLength();
+
+    if( frame.can_dlc > 0 )
+        getReqData( frame.data );
+
+    printf( "getFRameToSend - canID: 0x%x\n", frame.can_id );
+    printf( "getFRameToSend -  dLen: %d\n", frame.can_dlc );
 
     frameSize = sizeof(frame);
 
@@ -352,15 +397,16 @@ CANBus::processPending()
 
             // Get the frame
             m_curRR->getFrameToSend( frame, frameSize );
-	        //frame.can_id = 0x04280081;
-	        //frame.can_dlc = 1;
-	        //frame.data[0] = 0x7;
+
+            printf( "canid: 0x%x, dlc: %d, data0: 0x%x, len: %d\n", frame.can_id, frame.can_dlc, frame.data[0], frameSize );
 
 	        if( write( m_busFD, &frame, frameSize ) != frameSize )
             {
 		        perror("Write");
 		        return CANRR_RESULT_FAILURE;
 	        }
+
+            printf( "frameSent\n" );
         }
         break;
     }

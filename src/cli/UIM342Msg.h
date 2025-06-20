@@ -11,11 +11,14 @@ typedef enum UIM342MessageTypeEnum
 
 CANReqRsp *createUIM342Msg( UIM342_MSG_TYPE_T type, uint producerID, uint consumerID );
 
-class UIM342MsgSerialNumber : public CANReqRsp
+class UIM342MsgGetSerialNumber : public CANReqRsp
 {
     public:
-        UIM342MsgSerialNumber( uint producerID, uint consumerID );
-       ~UIM342MsgSerialNumber();
+        UIM342MsgGetSerialNumber( uint producerID, uint consumerID );
+       ~UIM342MsgGetSerialNumber();
+
+        virtual uint getReqDataLength();
+        virtual void getReqData( uint8_t *bufPtr );
 
     private:
 

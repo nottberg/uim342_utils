@@ -31,6 +31,12 @@ class CANReqRsp
         CANReqRsp();
        ~CANReqRsp();
 
+        virtual uint getReqProducerID();
+        virtual uint getReqConsumerID();
+        virtual uint getReqControlWord();
+        virtual uint getReqDataLength();
+        virtual void getReqData( uint8_t *bufPtr );
+
         CANRR_RESULT_T setRequest( uint consumerID, uint producerID, uint ctrlWord, uint expectedResponseCtrlWord );
         CANRR_RESULT_T appendReqData( uint8_t *dataBuf, uint dataLen );
         CANRR_RESULT_T append32( uint32_t value );

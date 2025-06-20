@@ -15,7 +15,7 @@
 #include <linux/can/raw.h>
 */
 
-#include "CANRR.h"
+#include "UIM342Msg.h"
 
 // Flag set by ‘--verbose’.
 static int verbose_flag;
@@ -107,7 +107,7 @@ App::initCANSocket()
 APP_RESULT_T
 App::queueDeviceInfoRequests()
 {
-    CANReqRsp *request = new CANReqRsp();
+    CANReqRsp *request = createUIM342Msg( UIM342_MSG_8C_GET_SERIAL_NUMBER, 4, 5 );
     m_bus.appendRequest( request );
 
     return APP_RESULT_SUCCESS;

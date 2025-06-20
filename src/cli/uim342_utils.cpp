@@ -15,7 +15,9 @@
 #include <linux/can/raw.h>
 */
 
+#include "CmdSequence.h"
 #include "UIM342Msg.h"
+#include "UIM342Cmd.h"
 
 // Flag set by ‘--verbose’.
 static int verbose_flag;
@@ -42,18 +44,27 @@ class App
 
         APP_RESULT_T initCANSocket();
 
-        APP_RESULT_T queueDeviceInfoRequests();
+        APP_RESULT_T initTargetMachineSingleAxes();
 
+        APP_RESULT_T startSequence( CmdSequence *execSeq );
+
+        CNCMachine *getTargetMachine() { return m_curMachine; }
+        
     private:
 
         int m_epollFD;
+
+        CmdSequence *m_curSeq;
+
+        CNCMachine *m_curMachine;
 
         CANBus m_bus;
 };
 
 App::App()
 {
-
+    m_curSeq     = NULL;
+    m_curMachine = NULL;
 }
 
 App::~App()
@@ -94,7 +105,7 @@ App::AddFDToEPoll( int fd )
 APP_RESULT_T
 App::initCANSocket()
 {
-	printf("CAN Socket\r\n");
+	  printf("CAN Socket\r\n");
 
     m_bus.open();
 
@@ -105,10 +116,30 @@ App::initCANSocket()
 }
 
 APP_RESULT_T
-App::queueDeviceInfoRequests()
+App::initTargetMachineSingleAxes()
 {
-    CANReqRsp *request = createUIM342Msg( UIM342_MSG_8C_GET_SERIAL_NUMBER, 4, 5 );
-    m_bus.appendRequest( request );
+    //CANReqRsp *request = createUIM342Msg( UIM342_MSG_8C_GET_SERIAL_NUMBER, 4, 5 );
+    //m_bus.appendRequest( request );
+
+    m_curMachine = new CNCMachine();
+
+    m_curMachine->setCanBus( "cbus0", new CANBus() );
+
+    return APP_RESULT_SUCCESS;
+}
+
+APP_RESULT_T
+App::startSequence( CmdSequence *execSeq )
+{
+    if( m_curSeq != NULL )
+    {
+        fprintf( stderr, "ERROR: Sequence already running, can't start new sequence." );
+        return APP_RESULT_FAILURE;
+    }
+
+    m_curSeq = execSeq;
+
+    m_curSeq->startExecution();
 
     return APP_RESULT_SUCCESS;
 }
@@ -133,8 +164,10 @@ App::executeEPoll()
             if( events[n].data.fd == m_bus.getBusFD() )
             {
                 // Receive frame
-                //receiveCANFrame();
                 m_bus.receiveFrame();
+
+                // Figure out what to do next
+
             }
             else if( events[n].data.fd == m_bus.getPendingFD() )
             {
@@ -241,8 +274,12 @@ main (int argc, char **argv)
 
     context.initEPoll();
     context.initCANSocket();
+    context.initTargetMachineSingleAxes();
 
-    context.queueDeviceInfoRequests();
+    UIM342MotorInfoCommand cmdSeq;
+    cmdSeq.initCmdSteps( context.getTargetMachine() );
+    context.startSequence( &cmdSeq );
+    //context.queueDeviceInfoRequests();
 
     context.executeEPoll();
 

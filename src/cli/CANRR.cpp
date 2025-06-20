@@ -34,15 +34,23 @@ CANReqRsp::~CANReqRsp()
 
 }
 
-CANRR_RESULT_T
-CANReqRsp::setRequest( uint consumerID, uint producerID, uint ctrlWord, uint expectedResponseCtrlWord )
+void
+CANReqRsp::setRequest( uint ctrlWord, uint expectedResponseCtrlWord )
 {
-    m_reqConsumerID  = consumerID;
-    m_reqProducerID  = producerID;
     m_reqCtrlWord    = ctrlWord;
     m_expRspCtrlWord = expectedResponseCtrlWord;
+}
 
-    return CANRR_RESULT_SUCCESS;
+void
+CANReqRsp::setProducerID( uint id )
+{
+    m_reqProducerID = id;
+}
+
+void
+CANReqRsp::setConsumerID( uint id )
+{
+    m_reqConsumerID = id;
 }
 
 uint
@@ -257,36 +265,6 @@ CANReqRsp::debugPrint()
         printf( "%02X ",m_rspData[i] );
 
     printf( "\r\n" );
-}
-
-CANRRSequence::CANRRSequence()
-{
-}
-
-CANRRSequence::~CANRRSequence()
-{
-}
-
-
-
-void
-CANRRSequence::calculateTimeout( uint curTime )
-{
-
-}
-
-uint
-CANRRSequence::getTimeout()
-{
-    return -1;
-}
-
-CANRR_RESULT_T
-CANRRSequence::appendStep( CANReqRsp *rrObj )
-{
-    m_sequence.push_back( rrObj );
-
-    return CANRR_RESULT_SUCCESS;
 }
 
 CANBus::CANBus()

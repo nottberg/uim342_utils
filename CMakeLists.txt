@@ -19,9 +19,11 @@ SET( DEBVERSION ${VERSION}-${RELEASE_VERSION} )
 ADD_DEFINITIONS( -DVERSION=${VERSION} )
 
 SET( UIM342_UTILS_SRC
-     ${CMAKE_SOURCE_DIR}/src/cli/uim342_utils.cpp
-     ${CMAKE_SOURCE_DIR}/src/cli/CANRR.cpp
-     ${CMAKE_SOURCE_DIR}/src/cli/UIM342Msg.cpp
+    ${CMAKE_SOURCE_DIR}/src/cli/uim342_utils.cpp
+    ${CMAKE_SOURCE_DIR}/src/cli/CANRR.cpp
+    ${CMAKE_SOURCE_DIR}/src/cli/UIM342Msg.cpp
+    ${CMAKE_SOURCE_DIR}/src/cli/CmdSequence.cpp
+    ${CMAKE_SOURCE_DIR}/src/cli/UIM342Cmd.cpp
 )
 
 SET(CMAKE_BUILD_TYPE Debug)

@@ -1,5 +1,5 @@
-#ifndef  _CANRR_H_
-#define _CANRR_H_
+#ifndef  __CANRR_H__
+#define __CANRR_H__
 
 #include <stdint.h>
 
@@ -38,7 +38,10 @@ class CANReqRsp
         virtual uint getReqDataLength();
         virtual void getReqData( uint8_t *bufPtr );
 
-        CANRR_RESULT_T setRequest( uint consumerID, uint producerID, uint ctrlWord, uint expectedResponseCtrlWord );
+        void setRequest( uint ctrlWord, uint expectedResponseCtrlWord );
+        void setProducerID( uint id );
+        void setConsumerID( uint id );
+
         CANRR_RESULT_T appendReqData( uint8_t *dataBuf, uint dataLen );
         CANRR_RESULT_T append32( uint32_t value );
         CANRR_RESULT_T append16( uint16_t value );
@@ -77,23 +80,6 @@ class CANReqRsp
         uint m_rspDataLen;
         uint8_t m_rspData[CANFRAME_MAX_DATA_LENGTH];
         uint m_rspDataReadIndex;
-};
-
-class CANRRSequence
-{
-    public:
-        CANRRSequence();
-       ~CANRRSequence();
-
-        void calculateTimeout( uint curTime );
-        uint getTimeout();
-
-        CANRR_RESULT_T appendStep( CANReqRsp *rrObj );
-
-    private:
-
-        std::vector< CANReqRsp* > m_sequence;
-
 };
 
 class CANBus
@@ -140,4 +126,4 @@ class CANDevice
         uint m_groupID;
 };
 
-#endif // _CANRR_H_
+#endif // __CANRR_H__

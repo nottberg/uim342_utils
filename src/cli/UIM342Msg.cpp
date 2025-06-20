@@ -1,24 +1,26 @@
 
 #include "UIM342Msg.h"
 
+/*
 CANReqRsp*
-createUIM342Msg( UIM342_MSG_TYPE_T type, uint producerID, uint consumerID )
+createUIM342Msg( UIM342_MSG_TYPE_T type )
 {
     switch( type )
     {
         case UIM342_MSG_8C_GET_SERIAL_NUMBER:
-            return new UIM342MsgGetSerialNumber( producerID, consumerID );
+            return new UIM342MsgGetSerialNumber();
 
     }
 
-    return new UIM342MsgNop( producerID, consumerID );
+    return new UIM342MsgNop();
 }
+*/
 
-UIM342MsgGetSerialNumber::UIM342MsgGetSerialNumber( uint producerID, uint consumerID )
+UIM342MsgGetSerialNumber::UIM342MsgGetSerialNumber()
 {
     m_serialNumber = 0;
 
-    setRequest( consumerID, producerID, 0x8C, 0x0C );
+    setRequest( 0x8C, 0x0C );
 }
 
 UIM342MsgGetSerialNumber::~UIM342MsgGetSerialNumber()
@@ -46,7 +48,7 @@ UIM342MsgGetSerialNumber::parseResponse()
     printf( "UIM342MsgGetSerialNumber::parseResponse - %d\n", m_serialNumber );
 }
 
-UIM342MsgNop::UIM342MsgNop( uint producerID, uint consumerID )
+UIM342MsgNop::UIM342MsgNop()
 {
 
 }

@@ -17,6 +17,7 @@ typedef unsigned int uint;
 typedef enum CANRRResultCodes
 {
     CANRR_RESULT_SUCCESS,
+    CANRR_RESULT_NOTMYFRAME,
     CANRR_RESULT_FAILURE
 }CANRR_RESULT_T;
 
@@ -48,9 +49,9 @@ class CANReqRsp
         CANRR_RESULT_T read16( uint16_t &value );
         CANRR_RESULT_T read8( uint8_t &value );
 
-        bool isMyResponse( struct can_frame *framePtr );
+        CANRR_RESULT_T processResponse( struct can_frame *framePtr );
 
-        CANRR_RESULT_T processRsp( struct can_frame *framePtr );
+        virtual void parseResponse();
 
         CANRR_ACTION_T getNextAction();
 

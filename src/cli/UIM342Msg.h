@@ -20,8 +20,11 @@ class UIM342MsgGetSerialNumber : public CANReqRsp
         virtual uint getReqDataLength();
         virtual void getReqData( uint8_t *bufPtr );
 
+        virtual void parseResponse();
+
     private:
 
+        uint m_serialNumber;
 };
 
 class UIM342MsgNop : public CANReqRsp

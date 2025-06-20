@@ -187,14 +187,8 @@ CANReqRsp::read8( uint8_t &value )
     return CANRR_RESULT_SUCCESS;
 }
 
-bool
-CANReqRsp::isMyResponse( struct can_frame *framePtr )
-{
-    return true;
-}
-
 CANRR_RESULT_T
-CANReqRsp::processRsp( struct can_frame *framePtr )
+CANReqRsp::processResponse( struct can_frame *framePtr )
 {
     printf("Process Response\n");
 
@@ -209,8 +203,16 @@ CANReqRsp::processRsp( struct can_frame *framePtr )
     memcpy( m_rspData, framePtr->data, m_rspDataLen );
 
     // 
+    parseResponse();
 
     return CANRR_RESULT_SUCCESS;
+}
+
+void
+CANReqRsp::parseResponse()
+{
+    printf("CANReqRsp::parseResponse\n");
+    return;
 }
 
 CANRR_ACTION_T
@@ -238,8 +240,8 @@ CANReqRsp::getFrameToSend( struct can_frame &frame, uint &frameSize )
     if( frame.can_dlc > 0 )
         getReqData( frame.data );
 
-    printf( "getFRameToSend - canID: 0x%x\n", frame.can_id );
-    printf( "getFRameToSend -  dLen: %d\n", frame.can_dlc );
+    printf( "getFrameToSend - canID: 0x%x\n", frame.can_id );
+    printf( "getFrameToSend -  dLen: %d\n", frame.can_dlc );
 
     frameSize = sizeof(frame);
 
@@ -362,10 +364,11 @@ CANBus::receiveFrame()
         return CANRR_RESULT_FAILURE;
     }
 
-    CANReqRsp tmpRsp;
-
-    tmpRsp.processRsp( &frame );
-    tmpRsp.debugPrint();
+    if( m_curRR )
+    {
+        m_curRR->processResponse( &frame );
+        m_curRR->debugPrint();
+    }
 
     return CANRR_RESULT_SUCCESS;
 }

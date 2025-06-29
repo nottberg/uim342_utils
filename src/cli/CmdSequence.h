@@ -152,7 +152,7 @@ class CmdStepExecuteCANRR : public CmdStep
         std::string  m_busID;
 };
 
-class CmdSequence
+class CmdSequence : public CANReqRspEvents
 {
     public:
         CmdSequence();
@@ -172,6 +172,8 @@ class CmdSequence
         CS_RESULT_T startExecution();
 
         CS_RESULT_T processPendingEvent( int fd );
+
+        virtual void canRRComplete( CANReqRsp *rrObj );
 
         CS_ACTION_T getNextAction();
 

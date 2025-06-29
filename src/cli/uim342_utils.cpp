@@ -46,7 +46,7 @@ class App
 
         APP_RESULT_T initTargetMachineSingleAxes();
 
-        APP_RESULT_T startSequence( CmdSequence *execSeq );
+        APP_RESULT_T startSequence( CNCMachine *tgtMachine, CmdSequence *execSeq );
 
         CNCMachine *getTargetMachine() { return m_curMachine; }
         
@@ -142,7 +142,7 @@ App::initTargetMachineSingleAxes()
 }
 
 APP_RESULT_T
-App::startSequence( CmdSequence *execSeq )
+App::startSequence( CNCMachine *tgtMachine, CmdSequence *execSeq )
 {
     printf( "App::startSequence - begin\n" );
 
@@ -153,6 +153,8 @@ App::startSequence( CmdSequence *execSeq )
     }
 
     m_curSeq = execSeq;
+
+    m_curSeq->setTargetMachine( tgtMachine );
 
     AddFDToEPoll( m_curSeq->getPendingFD() );
 
@@ -311,7 +313,7 @@ main (int argc, char **argv)
 
     UIM342MotorInfoCommand cmdSeq;
     cmdSeq.initCmdSteps( context.getTargetMachine() );
-    context.startSequence( &cmdSeq );
+    context.startSequence( context.getTargetMachine(), &cmdSeq );
     //context.queueDeviceInfoRequests();
 
     context.executeEPoll();

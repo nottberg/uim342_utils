@@ -26,11 +26,19 @@ CANReqRsp::CANReqRsp()
     m_rspDataLen    = 0;
 
     m_rspDataReadIndex = 0;
+
+    m_eventCB = NULL;
 }
 
 CANReqRsp::~CANReqRsp()
 {
 
+}
+
+void
+CANReqRsp::setEventsCB( CANReqRspEvents *eventCB )
+{
+    m_eventCB = eventCB;
 }
 
 void
@@ -254,6 +262,18 @@ CANReqRsp::debugPrint()
     printf( "\r\n" );
 }
 
+void
+CANReqRsp::finish()
+{
+    printf( "CANReqRsp::finish\n" );
+
+    if( m_eventCB )
+    {
+        m_eventCB->canRRComplete( this );
+    }
+    
+}
+
 CANBus::CANBus()
 {
     m_producerID = 4;
@@ -335,6 +355,12 @@ CANBus::receiveFrame()
     {
         m_curRR->processResponse( &frame );
         m_curRR->debugPrint();
+
+        CANReqRsp *doneRR = m_curRR;
+
+        m_curRR = NULL;
+
+        doneRR->finish();
     }
 
     return CANRR_RESULT_SUCCESS;

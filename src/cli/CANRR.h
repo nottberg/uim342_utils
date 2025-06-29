@@ -26,6 +26,14 @@ typedef enum CANRRActions
     CANRR_ACTION_SENDFRAME,
 }CANRR_ACTION_T;
 
+class CANReqRsp;
+
+class CANReqRspEvents
+{
+    public:
+        virtual void canRRComplete( CANReqRsp *rrObj ) = 0;
+};
+
 class CANReqRsp
 {
     public:
@@ -41,6 +49,8 @@ class CANReqRsp
         void setRequest( uint ctrlWord, uint expectedResponseCtrlWord );
         //void setProducerID( uint id );
         void setConsumerID( uint id );
+
+        void setEventsCB( CANReqRspEvents *eventCB );
 
         CANRR_RESULT_T appendReqData( uint8_t *dataBuf, uint dataLen );
         CANRR_RESULT_T append32( uint32_t value );
@@ -62,6 +72,8 @@ class CANReqRsp
         
         void debugPrint();
 
+        void finish();
+
     private:
 
         //uint m_reqProducerID;
@@ -80,6 +92,8 @@ class CANReqRsp
         uint m_rspDataLen;
         uint8_t m_rspData[CANFRAME_MAX_DATA_LENGTH];
         uint m_rspDataReadIndex;
+
+        CANReqRspEvents *m_eventCB;
 };
 
 class CANBus

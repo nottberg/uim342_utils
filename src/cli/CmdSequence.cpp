@@ -303,6 +303,12 @@ CmdSequence::processPendingEvent( int fd )
     return CS_RESULT_SUCCESS;
 }
 
+void
+CmdSequence::canRRComplete( CANReqRsp *rrObj )
+{
+    printf( "CmdSequence::canRRComplete\n" );
+}
+
 /*
 CS_ACTION_T
 CmdSequence::getNextAction()

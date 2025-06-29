@@ -15,7 +15,6 @@
 
 CANReqRsp::CANReqRsp()
 {
-    m_reqProducerID  = 4;
     m_reqConsumerID  = 5;
     m_reqCtrlWord    = 0;
     m_reqDataLen     = 0;
@@ -42,21 +41,9 @@ CANReqRsp::setRequest( uint ctrlWord, uint expectedResponseCtrlWord )
 }
 
 void
-CANReqRsp::setProducerID( uint id )
-{
-    m_reqProducerID = id;
-}
-
-void
 CANReqRsp::setConsumerID( uint id )
 {
     m_reqConsumerID = id;
-}
-
-uint
-CANReqRsp::getReqProducerID()
-{
-    return m_reqProducerID;
 }
 
 uint
@@ -230,12 +217,12 @@ CANReqRsp::getNextAction()
 }
 
 CANRR_RESULT_T
-CANReqRsp::getFrameToSend( struct can_frame &frame, uint &frameSize )
+CANReqRsp::getFrameToSend( uint producerID, struct can_frame &frame, uint &frameSize )
 {
     frame.can_id  = CAN_EFF_FLAG;
 
-    frame.can_id |= (( getReqProducerID() & 0x1F ) << 24 );
-    frame.can_id |= ((( getReqProducerID() & 0x20 ) >> 4 ) << 16 );
+    frame.can_id |= (( producerID & 0x1F ) << 24 );
+    frame.can_id |= ((( producerID & 0x20 ) >> 4 ) << 16 );
 
     frame.can_id |= (( getReqConsumerID() & 0x1F ) << 19 );
     frame.can_id |= ((( getReqConsumerID() & 0x20 ) << 4 ) << 14 );
@@ -271,7 +258,7 @@ CANBus::CANBus()
 {
     m_producerID = 4;
 
-    m_pendingFD =  eventfd(0, EFD_SEMAPHORE);
+    //m_pendingFD =  eventfd(0, EFD_SEMAPHORE);
 
     m_deviceName = "can0";
 
@@ -282,15 +269,17 @@ CANBus::CANBus()
 
 CANBus::~CANBus()
 {
-    if( m_pendingFD )
-        close( m_pendingFD );
+    //if( m_pendingFD )
+    //    close( m_pendingFD );
 }
 
+/*
 int
 CANBus::getPendingFD()
 {
     return m_pendingFD;
 }
+*/
 
 int
 CANBus::getBusFD()
@@ -352,6 +341,32 @@ CANBus::receiveFrame()
 }
 
 CANRR_RESULT_T
+CANBus::sendFrame( CANReqRsp *rrObj )
+{
+    struct can_frame frame;
+    uint frameSize;
+
+    // Remember the active command
+    m_curRR = rrObj;
+
+    // Get the frame
+    m_curRR->getFrameToSend( m_producerID, frame, frameSize );
+
+    printf( "canid: 0x%x, dlc: %d, data0: 0x%x, len: %d\n", frame.can_id, frame.can_dlc, frame.data[0], frameSize );
+
+    if( write( m_busFD, &frame, frameSize ) != frameSize )
+    {
+        perror("Write");
+	    return CANRR_RESULT_FAILURE;
+	}
+
+    printf( "frameSent\n" );
+
+    return CANRR_RESULT_SUCCESS;
+}
+
+/*
+CANRR_RESULT_T
 CANBus::processPending()
 {
     uint64_t u;
@@ -395,13 +410,19 @@ CANBus::processPending()
 
     return CANRR_RESULT_SUCCESS;
 }
+*/
 
+/*
 CANRR_RESULT_T
-CANBus::appendRequest( CANReqRsp *rrObj )
+CANBus::startRequest( CANReqRsp *rrObj )
 {
-    m_pendingQueue.push_back( rrObj );
+//    m_pendingQueue.push_back( rrObj );
 
-    if( m_curRR == NULL )
+    if( m_curRR != NULL )
+        return CANRR_RESULT_FAILURE;
+
+    m_curRR = rrObj;
+    
     {
         uint64_t u = 1;
         write( m_pendingFD, &u, sizeof(u) );
@@ -409,6 +430,7 @@ CANBus::appendRequest( CANReqRsp *rrObj )
 
     return CANRR_RESULT_SUCCESS;
 }
+*/
 
 CANDevice::CANDevice()
 {

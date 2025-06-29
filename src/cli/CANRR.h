@@ -32,14 +32,14 @@ class CANReqRsp
         CANReqRsp();
        ~CANReqRsp();
 
-        virtual uint getReqProducerID();
+        //virtual uint getReqProducerID();
         virtual uint getReqConsumerID();
         virtual uint getReqControlWord();
         virtual uint getReqDataLength();
         virtual void getReqData( uint8_t *bufPtr );
 
         void setRequest( uint ctrlWord, uint expectedResponseCtrlWord );
-        void setProducerID( uint id );
+        //void setProducerID( uint id );
         void setConsumerID( uint id );
 
         CANRR_RESULT_T appendReqData( uint8_t *dataBuf, uint dataLen );
@@ -58,13 +58,13 @@ class CANReqRsp
 
         CANRR_ACTION_T getNextAction();
 
-        CANRR_RESULT_T getFrameToSend( struct can_frame &frame, uint &frameSize );
+        CANRR_RESULT_T getFrameToSend( uint producerID, struct can_frame &frame, uint &frameSize );
         
         void debugPrint();
 
     private:
 
-        uint m_reqProducerID;
+        //uint m_reqProducerID;
         uint m_reqConsumerID;
         uint m_reqCtrlWord;
 
@@ -88,20 +88,22 @@ class CANBus
         CANBus();
        ~CANBus();
 
-        int getPendingFD();
+        //int getPendingFD();
         int getBusFD();
 
         CANRR_RESULT_T open();
 
         CANRR_RESULT_T receiveFrame();
 
-        CANRR_RESULT_T processPending();
+        CANRR_RESULT_T sendFrame( CANReqRsp *rrObj );
 
-        CANRR_RESULT_T appendRequest( CANReqRsp *rrObj );
+        //CANRR_RESULT_T processPending();
+
+        //CANRR_RESULT_T startRequest( CANReqRsp *rrObj );
 
     private:
 
-        int m_pendingFD;
+        //int m_pendingFD;
 
         std::string m_deviceName;
 
@@ -111,7 +113,7 @@ class CANBus
         uint m_producerID;
 
         CANReqRsp *m_curRR;
-        std::list< CANReqRsp* > m_pendingQueue; 
+        //std::list< CANReqRsp* > m_pendingQueue; 
 };
 
 class CANDevice

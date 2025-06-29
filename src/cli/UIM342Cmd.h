@@ -4,13 +4,15 @@
 #include "CmdSequence.h"
 #include "UIM342Msg.h"
 
-class UIM342MotorInfoCommand : public CmdSequence
+class UIM342MotorInfoCommand : public CmdSequence, CmdStepEventsCB
 {
     public:
         UIM342MotorInfoCommand();
        ~UIM342MotorInfoCommand();
 
         void initCmdSteps( CNCMachine *tgtMachine );
+
+        virtual void StepCompleteNotify();
 
     private:
 

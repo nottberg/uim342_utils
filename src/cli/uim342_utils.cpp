@@ -42,7 +42,7 @@ class App
 
         APP_RESULT_T initEPoll();
 
-        APP_RESULT_T initCANSocket();
+        APP_RESULT_T initMachineFileDescriptors();
 
         APP_RESULT_T initTargetMachineSingleAxes();
 
@@ -58,7 +58,7 @@ class App
 
         CNCMachine *m_curMachine;
 
-        CANBus m_bus;
+        //CANBus m_bus;
 };
 
 App::App()
@@ -91,6 +91,8 @@ App::AddFDToEPoll( int fd )
 {
     struct epoll_event ev;
 
+    printf( "Adding fd to epoll: %d\n", fd );
+
     ev.events = EPOLLIN;
     ev.data.fd = fd;
     if( epoll_ctl( m_epollFD, EPOLL_CTL_ADD, fd, &ev ) == -1 )
@@ -103,14 +105,25 @@ App::AddFDToEPoll( int fd )
 }
 
 APP_RESULT_T
-App::initCANSocket()
+App::initMachineFileDescriptors()
 {
-	  printf("CAN Socket\r\n");
+	printf("Init Machine File Descriptors\r\n");
 
-    m_bus.open();
+    m_curMachine->openFileDescriptors();
 
-    AddFDToEPoll( m_bus.getBusFD() );
-    AddFDToEPoll( m_bus.getPendingFD() );
+    std::vector<int> fdList;
+
+    m_curMachine->getFDList( fdList );
+
+    for( std::vector<int>::iterator it = fdList.begin(); it != fdList.end(); it++ )
+    {
+        AddFDToEPoll( *it );
+    }
+
+    //m_bus.open();
+
+    //AddFDToEPoll( m_bus.getBusFD() );
+    //AddFDToEPoll( m_bus.getPendingFD() );
 
     return APP_RESULT_SUCCESS;
 }
@@ -131,6 +144,8 @@ App::initTargetMachineSingleAxes()
 APP_RESULT_T
 App::startSequence( CmdSequence *execSeq )
 {
+    printf( "App::startSequence - begin\n" );
+
     if( m_curSeq != NULL )
     {
         fprintf( stderr, "ERROR: Sequence already running, can't start new sequence." );
@@ -138,6 +153,8 @@ App::startSequence( CmdSequence *execSeq )
     }
 
     m_curSeq = execSeq;
+
+    AddFDToEPoll( m_curSeq->getPendingFD() );
 
     m_curSeq->startExecution();
 
@@ -161,7 +178,22 @@ App::executeEPoll()
 
         for( int n = 0; n < nfds; ++n )
         {
-            if( events[n].data.fd == m_bus.getBusFD() )
+            if( ( m_curSeq != NULL) && ( events[n].data.fd == m_curSeq->getPendingFD() ) )
+            {
+                printf( "executeEPoll - seqence: %d\n", events[n].data.fd );
+                m_curSeq->processPendingEvent( events[n].data.fd );
+            }
+            else if( m_curMachine != NULL )
+            {
+                printf( "executeEPoll - machine fd: %d\n", events[n].data.fd );
+                m_curMachine->processFDEvent( events[n].data.fd );
+            }
+            else
+            {
+                printf("ERROR: Couldn't match FD event with source: %d\n", events[n].data.fd );
+            }
+            /*
+            else if( events[n].data.fd == m_bus.getBusFD() )
             {
                 // Receive frame
                 m_bus.receiveFrame();
@@ -178,6 +210,7 @@ App::executeEPoll()
             {
                 //do_use_fd(events[n].data.fd);
             }
+            */
         }
     }
 
@@ -273,8 +306,8 @@ main (int argc, char **argv)
     }
 
     context.initEPoll();
-    context.initCANSocket();
     context.initTargetMachineSingleAxes();
+    context.initMachineFileDescriptors();
 
     UIM342MotorInfoCommand cmdSeq;
     cmdSeq.initCmdSteps( context.getTargetMachine() );

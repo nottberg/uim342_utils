@@ -23,9 +23,3 @@ UIM342MotorInfoCommand::initCmdSteps( CNCMachine *tgtMachine )
     // Indicate the sequence is ready
     setState( CS_STATE_INIT );
 }
-
-void
-UIM342MotorInfoCommand::StepCompleteNotify()
-{
-    printf( "UIM342MotorInfoCommand::StepCompleteNotify()\n" );
-}

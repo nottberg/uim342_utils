@@ -183,7 +183,17 @@ App::executeEPoll()
             if( ( m_curSeq != NULL) && ( events[n].data.fd == m_curSeq->getPendingFD() ) )
             {
                 printf( "executeEPoll - seqence: %d\n", events[n].data.fd );
-                m_curSeq->processPendingEvent( events[n].data.fd );
+                switch( m_curSeq->processPendingEvent( events[n].data.fd ) )
+                {
+                    case CS_ACTION_WAIT:
+                    break;
+
+                    case CS_ACTION_ERROR:
+                        return APP_RESULT_FAILURE;
+
+                    case CS_ACTION_DONE:
+                        return APP_RESULT_SUCCESS;
+                }
             }
             else if( m_curMachine != NULL )
             {

@@ -128,6 +128,15 @@ CmdStep::getState()
     return m_state;
 }
 
+void
+CmdStep::stepComplete()
+{
+    printf( "CmdStep::stepComplete()\n" );
+
+    if( m_eventCB )
+        m_eventCB->StepCompleteNotify();
+}
+
 bool
 CmdStep::isComplete()
 {
@@ -165,9 +174,19 @@ CmdStepExecuteCANRR::startStep( CNCMachine *tgtMachine )
 {
     printf( "CmdStepExecuteCANRR::startStep - begin\n" );
 
+    m_RR->setEventsCB( this );
+
     tgtMachine->sendCanBus( "cbus0", m_RR );
 
     return CS_STEPACTION_WAIT;
+}
+
+void
+CmdStepExecuteCANRR::canRRComplete( CANReqRsp *rrObj )
+{
+    printf( "CmdStepExecuteCANRR::canRRComplete\n" );
+
+    stepComplete();
 }
 
 /*
@@ -261,7 +280,19 @@ CmdSequence::startExecution()
     return CS_RESULT_SUCCESS;
 }
 
-CS_RESULT_T
+void
+CmdSequence::StepCompleteNotify()
+{
+    printf( "CmdSequence::StepCompleteNotify\n" );
+
+    setState( CS_STATE_FINISHED );
+
+    uint64_t u = 1;
+    write( m_pendingFD, &u, sizeof(u) );
+
+}
+
+CS_ACTION_T
 CmdSequence::processPendingEvent( int fd )
 {
     printf( "CmdSequence::processPendingEvent\n" );
@@ -279,8 +310,8 @@ CmdSequence::processPendingEvent( int fd )
         {
             if( m_stepList.size() == 0 )
             {
-                setState( CS_STATE_DONE );
-                return CS_RESULT_SUCCESS;
+                setState( CS_STATE_FINISHED );
+                return CS_ACTION_DONE;
             }
 
             m_curStep = m_stepList[ m_curStepIndex ];
@@ -288,6 +319,7 @@ CmdSequence::processPendingEvent( int fd )
             switch( m_curStep->startStep( m_tgtMachine ) )
             {
                 case CS_STEPACTION_WAIT:
+                    return CS_ACTION_WAIT;
                 break;
 
                 default:
@@ -298,53 +330,9 @@ CmdSequence::processPendingEvent( int fd )
         }
         break;
 
-    }
-
-    return CS_RESULT_SUCCESS;
-}
-
-void
-CmdSequence::canRRComplete( CANReqRsp *rrObj )
-{
-    printf( "CmdSequence::canRRComplete\n" );
-}
-
-/*
-CS_ACTION_T
-CmdSequence::getNextAction()
-{
-    // Check if we haven't started yet.
-    switch( m_state )
-    {
-        case CS_STATE_INIT:
-        break;
-
-        case CS_STATE_EXECUTING:
-        {
-            if( m_curStepIndex >= m_stepList.size() )
-            {
-                setState( CS_STATE_DONE );
-                return CS_ACTION_DONE;
-            }
-
-            CmdStep *curStep = m_stepList[ m_curStepIndex ];
-
-            if( curStep->isComplete() == true )
-                return CS_ACTION_NEXTSTEP;
-
-            return CS_ACTION_CONTINUE;
-        }
-        break;
-
-        case CS_STATE_DONE:
+        case CS_STATE_FINISHED:
             return CS_ACTION_DONE;
-        break;
-
-        case CS_STATE_NOTSET:
-        default:
-        break;
     }
 
     return CS_ACTION_ERROR;
 }
-*/

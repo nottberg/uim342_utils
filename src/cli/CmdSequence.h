@@ -30,14 +30,12 @@ typedef enum CommandSequenceStates
     CS_STATE_NOTSET,
     CS_STATE_INIT,
     CS_STATE_EXECUTING,
-    CS_STATE_DONE
+    CS_STATE_FINISHED
 }CS_STATE_T;
 
 typedef enum CommandSequenceExecutionActions
 {
-    CS_ACTION_NEXTSTEP,
-    CS_ACTION_CONTINUE,
-    CS_ACTION_OUTPUT,
+    CS_ACTION_WAIT,
     CS_ACTION_DONE,
     CS_ACTION_ERROR
 }CS_ACTION_T;
@@ -120,6 +118,8 @@ class CmdStep
         void setState( CS_STEPSTATE_T newState );
         CS_STEPSTATE_T getState();
 
+        void stepComplete();
+
         bool isComplete();
 
         //virtual CS_STEPACTION_T getNextAction() = 0;
@@ -133,7 +133,7 @@ class CmdStep
         CS_STEPSTATE_T  m_state;
 };
 
-class CmdStepExecuteCANRR : public CmdStep
+class CmdStepExecuteCANRR : public CmdStep, CANReqRspEvents
 {
     public:
         CmdStepExecuteCANRR( CmdStepEventsCB *eventCB );
@@ -146,13 +146,15 @@ class CmdStepExecuteCANRR : public CmdStep
 
         virtual CS_STEPACTION_T startStep( CNCMachine *tgtMachine );
 
+        virtual void canRRComplete( CANReqRsp *rrObj );
+
     private:
 
         CANReqRsp   *m_RR;
         std::string  m_busID;
 };
 
-class CmdSequence : public CANReqRspEvents
+class CmdSequence : public CmdStepEventsCB
 {
     public:
         CmdSequence();
@@ -171,11 +173,11 @@ class CmdSequence : public CANReqRspEvents
 
         CS_RESULT_T startExecution();
 
-        CS_RESULT_T processPendingEvent( int fd );
+        CS_ACTION_T processPendingEvent( int fd );
 
-        virtual void canRRComplete( CANReqRsp *rrObj );
+        virtual void StepCompleteNotify();
 
-        CS_ACTION_T getNextAction();
+        //CS_ACTION_T getNextAction();
 
     private:
 

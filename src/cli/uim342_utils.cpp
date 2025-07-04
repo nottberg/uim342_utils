@@ -15,9 +15,12 @@
 #include <linux/can/raw.h>
 */
 
+#include "EventLoop.h"
 #include "CmdSequence.h"
+#include "CNCMachine.h"
 #include "UIM342Msg.h"
 #include "UIM342Cmd.h"
+#include "UIM342Machines.h"
 
 // Flag set by ‘--verbose’.
 static int verbose_flag;
@@ -36,25 +39,28 @@ class App
         App();
         ~App();
 
-        APP_RESULT_T executeEPoll();
+        //APP_RESULT_T executeEPoll();
 
-        APP_RESULT_T AddFDToEPoll( int fd );
+        //APP_RESULT_T AddFDToEPoll( int fd );
 
-        APP_RESULT_T initEPoll();
+        //APP_RESULT_T initEPoll();
 
-        APP_RESULT_T initMachineFileDescriptors();
+        APP_RESULT_T init();
 
-        APP_RESULT_T initTargetMachineSingleAxes();
+        APP_RESULT_T execute();
 
-        APP_RESULT_T startSequence( CNCMachine *tgtMachine, CmdSequence *execSeq );
+        void outputResult();
 
-        CNCMachine *getTargetMachine() { return m_curMachine; }
+        //APP_RESULT_T startSequence( CNCMachine *tgtMachine, CmdSequence *execSeq );
+
+        //CNCMachine *getTargetMachine() { return m_curMachine; }
         
     private:
 
-        int m_epollFD;
+        //int m_epollFD;
+        EventLoop m_eventLoop;
 
-        CmdSequence *m_curSeq;
+        //CmdSequence *m_curSeq;
 
         CNCMachine *m_curMachine;
 
@@ -63,7 +69,7 @@ class App
 
 App::App()
 {
-    m_curSeq     = NULL;
+    //m_curSeq     = NULL;
     m_curMachine = NULL;
 }
 
@@ -72,6 +78,7 @@ App::~App()
 
 }
 
+/*
 APP_RESULT_T
 App::initEPoll()
 {
@@ -103,42 +110,53 @@ App::AddFDToEPoll( int fd )
 
     return APP_RESULT_SUCCESS;
 }
+*/
 
 APP_RESULT_T
-App::initMachineFileDescriptors()
+App::init()
 {
-	printf("Init Machine File Descriptors\r\n");
+    printf("App Init\r\n");
 
-    m_curMachine->openFileDescriptors();
+    m_eventLoop.init();
 
-    std::vector<int> fdList;
+    m_curMachine = new UIM342SingleAxisMachine;
+    
+    m_curMachine->setup();
 
-    m_curMachine->getFDList( fdList );
-
-    for( std::vector<int>::iterator it = fdList.begin(); it != fdList.end(); it++ )
-    {
-        AddFDToEPoll( *it );
-    }
-
-    //m_bus.open();
-
-    //AddFDToEPoll( m_bus.getBusFD() );
-    //AddFDToEPoll( m_bus.getPendingFD() );
+    m_curMachine->attachToEventLoop( &m_eventLoop );
 
     return APP_RESULT_SUCCESS;
 }
 
+APP_RESULT_T
+App::execute()
+{
+    CmdSeqParameters seqParam;
+
+    m_curMachine->startSequence( "motorInfo", &seqParam );
+
+    m_eventLoop.run();
+
+    return APP_RESULT_SUCCESS;
+}
+
+void
+App::outputResult()
+{
+
+}
+
+/*
 APP_RESULT_T
 App::initTargetMachineSingleAxes()
 {
     //CANReqRsp *request = createUIM342Msg( UIM342_MSG_8C_GET_SERIAL_NUMBER, 4, 5 );
     //m_bus.appendRequest( request );
 
-    m_curMachine = new CNCMachine();
+    //m_curMachine = new CNCMachine();
 
-    m_curMachine->setCanBus( "cbus0", new CANBus() );
+    //m_curMachine->setCanBus( "cbus0", new CANBus() );
 
-    return APP_RESULT_SUCCESS;
 }
 
 APP_RESULT_T
@@ -162,7 +180,9 @@ App::startSequence( CNCMachine *tgtMachine, CmdSequence *execSeq )
 
     return APP_RESULT_SUCCESS;
 }
+*/
 
+/*
 APP_RESULT_T
 App::executeEPoll()
 {
@@ -204,30 +224,12 @@ App::executeEPoll()
             {
                 printf("ERROR: Couldn't match FD event with source: %d\n", events[n].data.fd );
             }
-            /*
-            else if( events[n].data.fd == m_bus.getBusFD() )
-            {
-                // Receive frame
-                m_bus.receiveFrame();
-
-                // Figure out what to do next
-
-            }
-            else if( events[n].data.fd == m_bus.getPendingFD() )
-            {
-                // Send frame
-                m_bus.processPending();
-            }
-            else
-            {
-                //do_use_fd(events[n].data.fd);
-            }
-            */
         }
     }
 
     return APP_RESULT_SUCCESS;
 }
+*/
 
 int
 main (int argc, char **argv)
@@ -317,16 +319,16 @@ main (int argc, char **argv)
       putchar ('\n');
     }
 
-    context.initEPoll();
-    context.initTargetMachineSingleAxes();
-    context.initMachineFileDescriptors();
+    context.init();
 
-    UIM342MotorInfoCommand cmdSeq;
-    cmdSeq.initCmdSteps( context.getTargetMachine() );
-    context.startSequence( context.getTargetMachine(), &cmdSeq );
+    //UIM342MotorInfoCommand cmdSeq;
+    //cmdSeq.initCmdSteps( context.getTargetMachine() );
+    //context.startSequence(  );
     //context.queueDeviceInfoRequests();
 
-    context.executeEPoll();
+    context.execute();
+
+    context.outputResult();
 
     exit (0);
 }

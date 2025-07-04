@@ -3,109 +3,6 @@
 
 #include "CmdSequence.h"
 
-CNCAxis::CNCAxis()
-{
-
-}
-
-CNCAxis::~CNCAxis()
-{
-
-}
-
-CNCMotorAxis::CNCMotorAxis()
-{
-
-}
-
-CNCMotorAxis::~CNCMotorAxis()
-{
-
-}
-
-CNCMachine::CNCMachine()
-{
-
-}
-
-CNCMachine::~CNCMachine()
-{
-
-}
-
-void
-CNCMachine::setCanBus( std::string id, CANBus *bus )
-{
-    m_canBuses.insert( std::pair<std::string, CANBus*>( id, bus ) );
-}
-
-void
-CNCMachine::setAxis( std::string id, CNCAxis *axisObj )
-{
-    m_axes.insert( std::pair<std::string, CNCAxis*>( id, axisObj ) );
-}
-
-CS_RESULT_T
-CNCMachine::openFileDescriptors()
-{
-    for( std::map<std::string, CANBus*>::iterator it = m_canBuses.begin(); it != m_canBuses.end(); it++ )
-    {
-        it->second->open();
-    }
-
-    return CS_RESULT_SUCCESS;
-}
-
-void
-CNCMachine::getFDList( std::vector<int> &fdList )
-{
-    for( std::map<std::string, CANBus*>::iterator it = m_canBuses.begin(); it != m_canBuses.end(); it++ )
-    {
-        fdList.push_back( it->second->getBusFD() );
-    }
-}
-
-void
-CNCMachine::processFDEvent( int fd )
-{
-    for( std::map<std::string, CANBus*>::iterator it = m_canBuses.begin(); it != m_canBuses.end(); it++ )
-    {
-        if( fd == it->second->getBusFD())
-        {
-            it->second->receiveFrame();
-        }
-    }
-}
-
-CS_RESULT_T
-CNCMachine::sendCanBus( std::string busID, CANReqRsp *rrObj )
-{
-    // Look up the target bus
-    std::map< std::string, CANBus* >::iterator it = m_canBuses.find( busID );
-
-    if( it == m_canBuses.end() )
-    {
-        return CS_RESULT_FAILURE;
-    }
-
-    if( it->second->sendFrame( rrObj ) != CANRR_RESULT_SUCCESS )
-    {
-        return CS_RESULT_FAILURE;
-    }
-
-    return CS_RESULT_SUCCESS;
-}
-
-/*
-CANBus*
-CNCMachine::getCANBus()
-{
-    std::map<std::string, CANBus*>::iterator it = m_canBuses.begin();
-    
-    return it->second; 
-}
-*/
-
 CmdStep::CmdStep( CmdStepEventsCB *eventCB )
 {
     m_eventCB = eventCB;
@@ -176,7 +73,7 @@ CmdStepExecuteCANRR::startStep( CNCMachine *tgtMachine )
 
     m_RR->setEventsCB( this );
 
-    tgtMachine->sendCanBus( "cbus0", m_RR );
+    //tgtMachine->sendCanBus( "cbus0", m_RR );
 
     return CS_STEPACTION_WAIT;
 }
@@ -189,27 +86,15 @@ CmdStepExecuteCANRR::canRRComplete( CANReqRsp *rrObj )
     stepComplete();
 }
 
-/*
-CS_STEPACTION_T
-CmdStepExecuteCANRR::getNextAction()
+CmdSeqParameters::CmdSeqParameters()
 {
-    switch( getState() )
-    {
-        case CS_STEPSTATE_READY:
-        {
-            setState( CS_STEPSTATE_EXECUTING );
-            return CS_STEPACTION_START_CAN_REQUEST;
-        }
 
-        case CS_STEPSTATE_NOTSET:
-        case CS_STEPSTATE_EXECUTING:
-        case CS_STEPSTATE_DONE:
-            break;
-    }
-
-    return CS_STEPACTION_NOP;
 }
-*/
+
+CmdSeqParameters::~CmdSeqParameters()
+{
+
+}
 
 CmdSequence::CmdSequence()
 {
@@ -250,18 +135,26 @@ CmdSequence::getPendingFD()
     return m_pendingFD;
 }
 
-CS_RESULT_T
-CmdSequence::setTargetMachine( CNCMachine *tgtMachine )
-{
-    m_tgtMachine = tgtMachine;
+//CS_RESULT_T
+//CmdSequence::setTargetMachine( CNCMachine *tgtMachine )
+//{
+//    m_tgtMachine = tgtMachine;
 
-    return CS_RESULT_SUCCESS;
-}
+//    return CS_RESULT_SUCCESS;
+//}
 
 CS_RESULT_T
 CmdSequence::appendStep( CmdStep *stepObj )
 {
     m_stepList.push_back( stepObj );
+
+    return CS_RESULT_SUCCESS;
+}
+
+CS_RESULT_T
+CmdSequence::setupBeforeExecution( CmdSeqParameters *param )
+{
+    printf( "CmdSequence::setupBeforeExecution\n" );
 
     return CS_RESULT_SUCCESS;
 }
@@ -316,15 +209,15 @@ CmdSequence::processPendingEvent( int fd )
 
             m_curStep = m_stepList[ m_curStepIndex ];
 
-            switch( m_curStep->startStep( m_tgtMachine ) )
-            {
-                case CS_STEPACTION_WAIT:
-                    return CS_ACTION_WAIT;
-                break;
+//            switch( m_curStep->startStep( m_tgtMachine ) )
+//            {
+//                case CS_STEPACTION_WAIT:
+//                    return CS_ACTION_WAIT;
+//                break;
 
-                default:
-                break;
-            }
+//                default:
+//                break;
+//            }
 
             setState( CS_STATE_EXECUTING );
         }

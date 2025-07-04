@@ -40,67 +40,8 @@ typedef enum CommandSequenceExecutionActions
     CS_ACTION_ERROR
 }CS_ACTION_T;
 
-class CNCAxis
-{
-    public:
-        CNCAxis();
-       ~CNCAxis();
+class CNCMachine;
 
-    private:
-
-};
-
-class CNCMotorAxis : public CNCAxis
-{
-    public:
-        CNCMotorAxis();
-       ~CNCMotorAxis();
-
-    private:
-
-        CANDevice   m_motor;
-};
-
-class CNCMachineEventsCB
-{
-    public:
-        virtual void MachineEventNotify() = 0;
-
-};
-
-class CNCMachine
-{
-    public:
-        CNCMachine();
-       ~CNCMachine();
-
-        void addEventObserver( CNCMachineEventsCB *obsPtr );
-        void removeEventObserver( CNCMachineEventsCB *obsPtr );
-
-        void setCanBus( std::string id, CANBus *bus );
-
-        void setAxis( std::string id, CNCAxis *axisObj );
-
-        CS_RESULT_T openFileDescriptors();
-
-        void getFDList( std::vector<int> &fdList );
-
-        void processFDEvent( int fd );
-        
-        CS_RESULT_T sendCanBus( std::string busID,  CANReqRsp *rrObj );
-
-        // Fix ME - Make generic
-        //CANBus *getCANBus();
-
-    private:
-
-        std::vector< CNCMachineEventsCB* > m_obsList;
-
-        std::map< std::string, CANBus* > m_canBuses;
-
-        std::map< std::string, CNCAxis* > m_axes; 
-
-};
 
 class CmdStepEventsCB
 {
@@ -154,6 +95,16 @@ class CmdStepExecuteCANRR : public CmdStep, CANReqRspEvents
         std::string  m_busID;
 };
 
+class CmdSeqParameters
+{
+    public:
+        CmdSeqParameters();
+       ~CmdSeqParameters();
+
+    private:
+
+};
+
 class CmdSequence : public CmdStepEventsCB
 {
     public:
@@ -175,6 +126,8 @@ class CmdSequence : public CmdStepEventsCB
 
         CS_ACTION_T processPendingEvent( int fd );
 
+        virtual CS_RESULT_T setupBeforeExecution( CmdSeqParameters *param );
+
         virtual void StepCompleteNotify();
 
         //CS_ACTION_T getNextAction();
@@ -185,7 +138,7 @@ class CmdSequence : public CmdStepEventsCB
 
         int m_pendingFD;
 
-        CNCMachine *m_tgtMachine;
+        //CNCMachine *m_tgtMachine;
 
         CmdStep *m_curStep;
 
@@ -194,5 +147,6 @@ class CmdSequence : public CmdStepEventsCB
         std::vector< CmdStep* > m_stepList;
 
 };
+
 
 #endif // __CMD_SEQUENCE_H__

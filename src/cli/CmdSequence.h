@@ -22,8 +22,15 @@ typedef enum CommandSequenceStepStates
 typedef enum CommandSequenceStepActions
 {
     CS_STEPACTION_NOP,
-    CS_STEPACTION_WAIT
+    CS_STEPACTION_WAIT,
+    CS_STEPACTION_CANREQ
 }CS_STEPACTION_T;
+
+typedef enum CommandSequenceStepEvents
+{
+    CS_STEPEVENT_NOP,
+    CS_STEPEVENT_WAIT
+}CS_STEPEVENT_T;
 
 typedef enum CommandSequenceStates
 {
@@ -36,6 +43,7 @@ typedef enum CommandSequenceStates
 typedef enum CommandSequenceExecutionActions
 {
     CS_ACTION_WAIT,
+    CS_ACTION_CANREQ,
     CS_ACTION_DONE,
     CS_ACTION_ERROR
 }CS_ACTION_T;
@@ -63,9 +71,11 @@ class CmdStep
 
         bool isComplete();
 
-        //virtual CS_STEPACTION_T getNextAction() = 0;
+        CS_RESULT_T getTargetAxisID( std::string &id );
 
-        virtual CS_STEPACTION_T startStep( CNCMachine *tgtMachine ) = 0;
+        virtual CS_STEPACTION_T startStep() = 0;
+
+        virtual CS_STEPACTION_T continueStep( CS_STEPEVENT_T event ) = 0;
 
     private:
 
@@ -74,7 +84,7 @@ class CmdStep
         CS_STEPSTATE_T  m_state;
 };
 
-class CmdStepExecuteCANRR : public CmdStep, CANReqRspEvents
+class CmdStepExecuteCANRR : public CmdStep
 {
     public:
         CmdStepExecuteCANRR( CmdStepEventsCB *eventCB );
@@ -83,11 +93,11 @@ class CmdStepExecuteCANRR : public CmdStep, CANReqRspEvents
         void setTargetBus( std::string busID );
         void setRR( CANReqRsp *rrObj );
 
-        //virtual CS_STEPACTION_T getNextAction();
+        CS_RESULT_T getRR( CANReqRsp **rrObj );
 
-        virtual CS_STEPACTION_T startStep( CNCMachine *tgtMachine );
+        virtual CS_STEPACTION_T startStep();
 
-        virtual void canRRComplete( CANReqRsp *rrObj );
+        virtual CS_STEPACTION_T continueStep( CS_STEPEVENT_T event );
 
     private:
 
@@ -116,36 +126,31 @@ class CmdSequence : public CmdStepEventsCB
         void calculateTimeout( uint curTime );
         uint getTimeout();
 
-        uint getPendingFD();
-
-        CS_RESULT_T setTargetMachine( CNCMachine *tgtMachine );
-
         CS_RESULT_T appendStep( CmdStep *step );
 
-        CS_RESULT_T startExecution();
+        CS_ACTION_T processPendingWork();
 
-        CS_ACTION_T processPendingEvent( int fd );
+        CS_RESULT_T getStepTargetAxisID( std::string &id );
+
+        CS_RESULT_T getStepCANRR( CANReqRsp **rrObj );
+
+        std::string getStepTargetAxisID();
+
+        CANReqRsp *getStepCANRR();
 
         virtual CS_RESULT_T setupBeforeExecution( CmdSeqParameters *param );
 
         virtual void StepCompleteNotify();
 
-        //CS_ACTION_T getNextAction();
-
     private:
 
         CS_STATE_T m_state;
-
-        int m_pendingFD;
-
-        //CNCMachine *m_tgtMachine;
 
         CmdStep *m_curStep;
 
         uint m_curStepIndex;
 
         std::vector< CmdStep* > m_stepList;
-
 };
 
 

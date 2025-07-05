@@ -30,14 +30,28 @@ EventLoop::init()
         return EVLP_RESULT_FAILURE;
     }
 
+    printf( "Created epoll fd: %d\n", m_epollFD );
+
     // Create the exit loop signal socket
-    m_quitFD =  eventfd( 0, EFD_SEMAPHORE );
+    m_quitFD = eventfd( 0, EFD_SEMAPHORE );
     if( m_quitFD == -1 )
     {
         perror( "m_quiteFD" );
         return EVLP_RESULT_FAILURE;
     }
-    
+
+    printf( "Created quit fd: %d\n", m_quitFD );
+
+    struct epoll_event ev;
+
+    ev.events = EPOLLIN;
+    ev.data.fd = m_quitFD;
+    if( epoll_ctl( m_epollFD, EPOLL_CTL_ADD, m_quitFD, &ev ) == -1 )
+    {
+        perror( "epoll_ctl: CAN socket" );
+        return EVLP_RESULT_FAILURE;
+    }
+
     return EVLP_RESULT_SUCCESS;
 }
 
@@ -56,6 +70,8 @@ EventLoop::registerFD( int fd,  ELEventCB *callback )
         return EVLP_RESULT_FAILURE;
     }
 
+    m_fdList.insert( std::pair< int, ELEventCB* >( fd, callback ) );
+
     return EVLP_RESULT_SUCCESS;
 }
 
@@ -72,6 +88,8 @@ EventLoop::run()
     struct epoll_event events[MAX_EVENTS];
     uint nfds = 0;
 
+    printf( "EventLoop::run - loop start\n" );
+    
     for( ;; )
     {
         nfds = epoll_wait( m_epollFD, events, MAX_EVENTS, -1 );

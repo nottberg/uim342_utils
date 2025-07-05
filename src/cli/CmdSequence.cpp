@@ -43,6 +43,13 @@ CmdStep::isComplete()
     return false;
 }
 
+CS_RESULT_T
+CmdStep::getTargetAxisID( std::string &id )
+{
+    id = "X";
+    return CS_RESULT_SUCCESS;
+}
+
 CmdStepExecuteCANRR::CmdStepExecuteCANRR( CmdStepEventsCB *eventCB )
 : CmdStep( eventCB )
 {
@@ -66,24 +73,30 @@ CmdStepExecuteCANRR::setRR( CANReqRsp *rrObj )
     m_RR = rrObj;
 }
 
+CS_RESULT_T
+CmdStepExecuteCANRR::getRR( CANReqRsp **rrObj )
+{
+    *rrObj = m_RR;
+    return CS_RESULT_SUCCESS;
+}
+
 CS_STEPACTION_T
-CmdStepExecuteCANRR::startStep( CNCMachine *tgtMachine )
+CmdStepExecuteCANRR::startStep()
 {
     printf( "CmdStepExecuteCANRR::startStep - begin\n" );
 
-    m_RR->setEventsCB( this );
+    //m_RR->setEventsCB( this );
 
     //tgtMachine->sendCanBus( "cbus0", m_RR );
 
     return CS_STEPACTION_WAIT;
 }
 
-void
-CmdStepExecuteCANRR::canRRComplete( CANReqRsp *rrObj )
+CS_STEPACTION_T
+CmdStepExecuteCANRR::continueStep( CS_STEPEVENT_T event )
 {
-    printf( "CmdStepExecuteCANRR::canRRComplete\n" );
 
-    stepComplete();
+    return CS_STEPACTION_WAIT;
 }
 
 CmdSeqParameters::CmdSeqParameters()
@@ -98,7 +111,7 @@ CmdSeqParameters::~CmdSeqParameters()
 
 CmdSequence::CmdSequence()
 {
-    m_pendingFD =  eventfd(0, EFD_SEMAPHORE);
+    //m_pendingFD =  eventfd(0, EFD_SEMAPHORE);
 
     m_state = CS_STATE_NOTSET;
 
@@ -129,20 +142,6 @@ CmdSequence::getTimeout()
     return -1;
 }
 
-uint
-CmdSequence::getPendingFD()
-{
-    return m_pendingFD;
-}
-
-//CS_RESULT_T
-//CmdSequence::setTargetMachine( CNCMachine *tgtMachine )
-//{
-//    m_tgtMachine = tgtMachine;
-
-//    return CS_RESULT_SUCCESS;
-//}
-
 CS_RESULT_T
 CmdSequence::appendStep( CmdStep *stepObj )
 {
@@ -156,19 +155,10 @@ CmdSequence::setupBeforeExecution( CmdSeqParameters *param )
 {
     printf( "CmdSequence::setupBeforeExecution\n" );
 
-    return CS_RESULT_SUCCESS;
-}
-
-CS_RESULT_T
-CmdSequence::startExecution()
-{
     m_curStep = NULL;
     m_curStepIndex = 0;
 
     setState( CS_STATE_INIT );
-
-    uint64_t u = 1;
-    write( m_pendingFD, &u, sizeof(u) );
 
     return CS_RESULT_SUCCESS;
 }
@@ -179,20 +169,12 @@ CmdSequence::StepCompleteNotify()
     printf( "CmdSequence::StepCompleteNotify\n" );
 
     setState( CS_STATE_FINISHED );
-
-    uint64_t u = 1;
-    write( m_pendingFD, &u, sizeof(u) );
-
 }
 
 CS_ACTION_T
-CmdSequence::processPendingEvent( int fd )
+CmdSequence::processPendingWork()
 {
-    printf( "CmdSequence::processPendingEvent\n" );
-
-    // Clear the pending fd
-    uint64_t u = 0;
-    read( m_pendingFD, &u, sizeof(u) );
+    printf( "CmdSequence::processPendingWork\n" );
 
     printf( "CmdSequence::processPendingEvent - state: %d\n", m_state );
 
@@ -209,15 +191,19 @@ CmdSequence::processPendingEvent( int fd )
 
             m_curStep = m_stepList[ m_curStepIndex ];
 
-//            switch( m_curStep->startStep( m_tgtMachine ) )
-//            {
-//                case CS_STEPACTION_WAIT:
-//                    return CS_ACTION_WAIT;
-//                break;
+            switch( m_curStep->startStep() )
+            {
+                case CS_STEPACTION_CANREQ:
+                    return CS_ACTION_CANREQ;
+                break;
 
-//                default:
-//                break;
-//            }
+                case CS_STEPACTION_WAIT:
+                    return CS_ACTION_WAIT;
+                break;
+
+                default:
+                break;
+            }
 
             setState( CS_STATE_EXECUTING );
         }
@@ -228,4 +214,22 @@ CmdSequence::processPendingEvent( int fd )
     }
 
     return CS_ACTION_ERROR;
+}
+
+CS_RESULT_T
+CmdSequence::getStepTargetAxisID( std::string &id )
+{
+    if( m_curStep == NULL )
+        return CS_RESULT_FAILURE;
+
+    return m_curStep->getTargetAxisID( id );
+}
+
+CS_RESULT_T
+CmdSequence::getStepCANRR( CANReqRsp **rrObj )
+{
+    if( m_curStep == NULL )
+        return CS_RESULT_FAILURE;
+
+    return ((CmdStepExecuteCANRR* ) m_curStep)->getRR( rrObj );
 }

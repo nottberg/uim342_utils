@@ -1,4 +1,4 @@
-
+#include "CNCMachine.h"
 #include "UIM342Cmd.h"
 #include "UIM342Machines.h"
 
@@ -21,6 +21,9 @@ UIM342SingleAxisMachine::setup()
     //m_curMachine = new CNCMachine();
 
     setCanBus( "cbus0", new CANBus() );
+
+    UIM343MotorAxis *axis = new UIM343MotorAxis;
+    setAxis( "X", axis );
 
     UIM342MotorInfoCommand *cmdSeq = new UIM342MotorInfoCommand;
     addSequence( "motorInfo", cmdSeq );

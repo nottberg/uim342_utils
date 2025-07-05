@@ -26,6 +26,8 @@ class CNCAxis
         CNCAxis();
        ~CNCAxis();
 
+        CNCM_RESULT_T getBusID( std::string &id );
+        
     private:
 
 };
@@ -50,7 +52,7 @@ class UIM343MotorAxis : public CNCStepperAxis
         CANDevice   m_motor;
 };
 
-class CNCMachine : public ELEventCB
+class CNCMachine : public ELEventCB, CANReqRspEvents
 {
     public:
         CNCMachine();
@@ -68,8 +70,14 @@ class CNCMachine : public ELEventCB
         CNCM_RESULT_T attachToEventLoop( EventLoop *evlp );
 
         virtual void eventFD( int fd );
+
+        CNCM_RESULT_T getCANBusForAxis( std::string id, CANBus **busPtr );
         
         CNCM_RESULT_T sendCanBus( std::string busID,  CANReqRsp *rrObj );
+
+        void startCANRR();
+
+        virtual void canRRComplete( CANReqRsp *rrObj );
 
         void addSequence( std::string seqID, CmdSequence *seqObj );
 
@@ -78,7 +86,9 @@ class CNCMachine : public ELEventCB
         virtual CNCM_RESULT_T setup() = 0;
 
         void signalPendingWork();
-        
+
+        void clearPendingWork();
+
     private:
 
         int m_pendingFD;

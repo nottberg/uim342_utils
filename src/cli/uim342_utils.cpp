@@ -123,6 +123,8 @@ App::init()
     
     m_curMachine->setup();
 
+    m_curMachine->openFileDescriptors();
+
     m_curMachine->attachToEventLoop( &m_eventLoop );
 
     return APP_RESULT_SUCCESS;

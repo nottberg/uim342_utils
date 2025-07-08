@@ -13,13 +13,6 @@ typedef enum CNCMachineResultTypes
     CNCM_RESULT_FAILURE
 }CNCM_RESULT_T;
 
-class CNCMachineEventsCB
-{
-    public:
-        virtual void MachineEventNotify() = 0;
-
-};
-
 class CNCAxis
 {
     public:
@@ -27,7 +20,7 @@ class CNCAxis
        ~CNCAxis();
 
         CNCM_RESULT_T getBusID( std::string &id );
-        
+
     private:
 
 };
@@ -50,6 +43,13 @@ class UIM343MotorAxis : public CNCStepperAxis
     private:
 
         CANDevice   m_motor;
+};
+
+class CNCMachineEventsCB
+{
+    public:
+        virtual void sequenceComplete() = 0;
+
 };
 
 class CNCMachine : public ELEventCB, CANReqRspEvents
@@ -85,11 +85,15 @@ class CNCMachine : public ELEventCB, CANReqRspEvents
 
         virtual CNCM_RESULT_T setup() = 0;
 
+
+
+    private:
+
         void signalPendingWork();
 
         void clearPendingWork();
 
-    private:
+        void notifySequenceComplete();
 
         int m_pendingFD;
 

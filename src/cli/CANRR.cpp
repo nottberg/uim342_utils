@@ -354,7 +354,6 @@ CANBus::receiveFrame()
     if( m_curRR )
     {
         m_curRR->processResponse( &frame );
-        m_curRR->debugPrint();
 
         CANReqRsp *doneRR = m_curRR;
 

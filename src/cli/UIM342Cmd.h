@@ -10,7 +10,7 @@ class UIM342MotorInfoCommand : public CmdSequence
         UIM342MotorInfoCommand();
        ~UIM342MotorInfoCommand();
 
-        void initCmdSteps( CNCMachine *tgtMachine );
+        void initCmdSteps();
 
     private:
 

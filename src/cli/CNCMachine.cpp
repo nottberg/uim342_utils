@@ -37,7 +37,7 @@ UIM343MotorAxis::UIM343MotorAxis()
 
 UIM343MotorAxis::~UIM343MotorAxis()
 {
-    
+
 }
 
 CNCMachine::CNCMachine()
@@ -50,6 +50,27 @@ CNCMachine::CNCMachine()
 CNCMachine::~CNCMachine()
 {
 
+}
+
+void
+CNCMachine::addEventObserver( CNCMachineEventsCB *obsPtr )
+{
+    m_obsList.push_back( obsPtr );
+}
+
+void
+CNCMachine::removeEventObserver( CNCMachineEventsCB *obsPtr )
+{
+    //std::vector< CNCMachineEventsCB* > m_obsList
+}
+
+void
+CNCMachine::notifySequenceComplete()
+{
+    for( std::vector< CNCMachineEventsCB* >::iterator it = m_obsList.begin(); it != m_obsList.end(); it++ )
+    {
+        (*it)->sequenceComplete();
+    }
 }
 
 void
@@ -159,6 +180,27 @@ void
 CNCMachine::canRRComplete( CANReqRsp *rrObj )
 {
     printf("CNCMachine::canRRComplete - begin\n");
+
+    // If there is a sequence running, let it know a request has finished.
+    if( m_curSeq == NULL )
+    {
+        printf("ERROR: CAN response with no sequence active.\n");
+        return;
+    }
+
+    switch( m_curSeq->completeStepCANRR( rrObj ) )
+    {
+        case CS_ACTION_SCHEDULE:
+            signalPendingWork();
+            return;
+        break;
+
+        case CS_ACTION_ERROR:
+        break;
+    }
+
+    m_curSeq->setErrorState(); 
+    signalPendingWork();
 }
 
 void
@@ -225,6 +267,12 @@ CNCMachine::eventFD( int fd )
         // If a sequence is running then call its pending work call
         if( m_curSeq != NULL )
         {
+            if( m_curSeq->hasError() )
+            {
+                // Process the error and end the sequence
+                return;
+            }
+
             switch( m_curSeq->processPendingWork() )
             {
                 case CS_ACTION_CANREQ:
@@ -234,14 +282,20 @@ CNCMachine::eventFD( int fd )
                 case CS_ACTION_WAIT:
                 break;
 
+                case CS_ACTION_SCHEDULE:
+                    signalPendingWork();
+                break;
+
                 case CS_ACTION_DONE:
                     // Notify that sequence is complete
                     m_curSeq = NULL;
+                    notifySequenceComplete();
                 break;
 
                 case CS_ACTION_ERROR:
                     // Notify that sequence had error
                     m_curSeq = NULL;
+                    notifySequenceComplete();
                 break;
             }
         }

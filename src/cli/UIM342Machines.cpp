@@ -26,6 +26,7 @@ UIM342SingleAxisMachine::setup()
     setAxis( "X", axis );
 
     UIM342MotorInfoCommand *cmdSeq = new UIM342MotorInfoCommand;
+    cmdSeq->initCmdSteps();
     addSequence( "motorInfo", cmdSeq );
 
     return CNCM_RESULT_SUCCESS;

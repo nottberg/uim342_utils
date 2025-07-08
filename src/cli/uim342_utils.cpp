@@ -33,7 +33,8 @@ typedef enum AppResultCodes
     APP_RESULT_FAILURE
 }APP_RESULT_T;
 
-class App
+
+class App : public CNCMachineEventsCB
 {
     public:
         App();
@@ -50,6 +51,8 @@ class App
         APP_RESULT_T execute();
 
         void outputResult();
+
+        virtual void sequenceComplete();
 
         //APP_RESULT_T startSequence( CNCMachine *tgtMachine, CmdSequence *execSeq );
 
@@ -127,6 +130,8 @@ App::init()
 
     m_curMachine->attachToEventLoop( &m_eventLoop );
 
+    m_curMachine->addEventObserver( this );
+
     return APP_RESULT_SUCCESS;
 }
 
@@ -140,6 +145,13 @@ App::execute()
     m_eventLoop.run();
 
     return APP_RESULT_SUCCESS;
+}
+
+void
+App::sequenceComplete()
+{
+    printf( "App::sequenceComplete\n" );
+    m_eventLoop.signalQuit();
 }
 
 void

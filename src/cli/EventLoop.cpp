@@ -82,6 +82,13 @@ EventLoop::signalQuit()
     write( m_quitFD, &u, sizeof(u) );
 }
 
+void
+EventLoop::clearQuit()
+{
+    uint64_t u = 1;
+    read( m_quitFD, &u, sizeof(u) );
+}
+
 EVLP_RESULT_T
 EventLoop::run()
 {
@@ -103,8 +110,9 @@ EventLoop::run()
         {
             if( events[n].data.fd == m_quitFD )
             {
+                clearQuit();
                 printf("EventLoop quit signal detected\n");
-                break;
+                return EVLP_RESULT_SUCCESS;
             }
 
             std::map< int, ELEventCB* >::iterator it = m_fdList.find( events[n].data.fd );

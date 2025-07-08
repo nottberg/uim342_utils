@@ -28,7 +28,8 @@ class EventLoop
         EVLP_RESULT_T run();
 
         void signalQuit();
-
+        void clearQuit();
+        
     private:
 
         int m_epollFD;

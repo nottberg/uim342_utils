@@ -48,6 +48,16 @@ UIM342MsgGetSerialNumber::parseResponse()
     printf( "UIM342MsgGetSerialNumber::parseResponse - %d\n", m_serialNumber );
 }
 
+std::string
+UIM342MsgGetSerialNumber::getSerialNumberAsStr()
+{
+    char buf[64];
+
+    sprintf( buf, "%d", m_serialNumber );
+
+    return buf;
+}
+
 UIM342MsgNop::UIM342MsgNop()
 {
 

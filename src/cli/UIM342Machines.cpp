@@ -2,6 +2,16 @@
 #include "UIM342Cmd.h"
 #include "UIM342Machines.h"
 
+UIM342MotorAxis::UIM342MotorAxis()
+{
+
+}
+
+UIM342MotorAxis::~UIM342MotorAxis()
+{
+
+}
+
 UIM342SingleAxisMachine::UIM342SingleAxisMachine()
 {
 
@@ -22,12 +32,16 @@ UIM342SingleAxisMachine::setup()
 
     setCanBus( "cbus0", new CANBus() );
 
-    UIM343MotorAxis *axis = new UIM343MotorAxis;
+    UIM342MotorAxis *axis = new UIM342MotorAxis;
     setAxis( "X", axis );
 
-    UIM342MotorInfoCommand *cmdSeq = new UIM342MotorInfoCommand;
+    UIM342AxisInfoCommand *cmdSeq = new UIM342AxisInfoCommand("X");
+    
+    cmdSeq->setHardwareInterface( this );
+
     cmdSeq->initCmdSteps();
-    addSequence( "motorInfo", cmdSeq );
+    
+    addSequence( "motorInfoX", cmdSeq );
 
     return CNCM_RESULT_SUCCESS;
 }

@@ -25,6 +25,14 @@ CmdStep::getState()
     return m_state;
 }
 
+/*
+void
+CmdStep::addUpdateTarget( CMModelUpdateInterface *upObj )
+{
+    m_updateList.push_back( upObj );
+}
+*/
+
 void
 CmdStep::stepComplete()
 {
@@ -131,6 +139,9 @@ CmdStepExecuteCANRR::continueStep()
 
         case CS_STEPSTATE_POST_PROCESS:
             printf( "CmdStepExecuteCANRR::continueStep - post process\n" );
+
+            performPost();
+
             setState( CS_STEPSTATE_DONE );
             return CS_STEPACTION_DONE;
         break;
@@ -141,6 +152,12 @@ CmdStepExecuteCANRR::continueStep()
     }
 
     return CS_STEPACTION_WAIT;
+}
+
+void
+CmdStepExecuteCANRR::performPost()
+{
+    printf( "CmdStepExecuteCANRR::performPost()\n" );
 }
 
 CmdSeqParameters::CmdSeqParameters()
@@ -159,6 +176,8 @@ CmdSequence::CmdSequence()
 
     m_state = CS_STATE_NOTSET;
 
+    m_hwIntf = NULL;
+
     m_curStep = NULL;
 
     m_curStepIndex = 0;
@@ -172,6 +191,12 @@ void
 CmdSequence::setState( CS_STATE_T newState )
 {
     m_state = newState;
+}
+
+void
+CmdSequence::setHardwareInterface( CSHardwareInterface *hwIntf )
+{
+    m_hwIntf = hwIntf;
 }
 
 void

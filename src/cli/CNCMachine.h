@@ -23,6 +23,7 @@ class CNCAxis
 
     private:
 
+        std::map< std::string, std::string > m_modelValues;
 };
 
 class CNCStepperAxis : public CNCAxis
@@ -34,17 +35,6 @@ class CNCStepperAxis : public CNCAxis
     private:
 };
 
-class UIM343MotorAxis : public CNCStepperAxis
-{
-    public:
-        UIM343MotorAxis();
-       ~UIM343MotorAxis();
-
-    private:
-
-        CANDevice   m_motor;
-};
-
 class CNCMachineEventsCB
 {
     public:
@@ -52,7 +42,7 @@ class CNCMachineEventsCB
 
 };
 
-class CNCMachine : public ELEventCB, CANReqRspEvents
+class CNCMachine : public CSHardwareInterface, ELEventCB, CANReqRspEvents
 {
     public:
         CNCMachine();
@@ -85,7 +75,7 @@ class CNCMachine : public ELEventCB, CANReqRspEvents
 
         virtual CNCM_RESULT_T setup() = 0;
 
-
+        virtual void update( std::string name, std::string value );
 
     private:
 

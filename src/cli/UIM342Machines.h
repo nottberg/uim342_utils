@@ -3,6 +3,17 @@
 
 #include "CNCMachine.h"
 
+class UIM342MotorAxis : public CNCStepperAxis
+{
+    public:
+        UIM342MotorAxis();
+       ~UIM342MotorAxis();
+
+    private:
+
+        CANDevice   m_motor;
+};
+
 class UIM342SingleAxisMachine : public CNCMachine
 {
     public:

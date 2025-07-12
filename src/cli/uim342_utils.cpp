@@ -140,7 +140,7 @@ App::execute()
 {
     CmdSeqParameters seqParam;
 
-    m_curMachine->startSequence( "motorInfo", &seqParam );
+    m_curMachine->startSequence( "motorInfoX", &seqParam );
 
     m_eventLoop.run();
 

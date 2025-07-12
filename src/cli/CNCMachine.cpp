@@ -30,16 +30,6 @@ CNCStepperAxis::~CNCStepperAxis()
 
 }
 
-UIM343MotorAxis::UIM343MotorAxis()
-{
-
-}
-
-UIM343MotorAxis::~UIM343MotorAxis()
-{
-
-}
-
 CNCMachine::CNCMachine()
 {
     m_curSeq = NULL;
@@ -253,7 +243,16 @@ CNCMachine::clearPendingWork()
     read( m_pendingFD, &u, sizeof(u) );
 }
 
+void
+CNCMachine::update( std::string name, std::string value )
+{
+    //std::map< std::string, std::string >::iterator it = m_modelValues.find( name ); 
 
+    //if( it == m_modelValues.end() )
+    //    m_modelValues.insert( std::pair< std::string, std::string >( name, value ) );
+    //else
+    //    it->second = value;
+}
 
 void
 CNCMachine::eventFD( int fd )

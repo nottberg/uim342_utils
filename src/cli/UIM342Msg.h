@@ -22,6 +22,8 @@ class UIM342MsgGetSerialNumber : public CANReqRsp
 
         virtual void parseResponse();
 
+        std::string getSerialNumberAsStr();
+
     private:
 
         uint m_serialNumber;

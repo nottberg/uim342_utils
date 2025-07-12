@@ -53,6 +53,11 @@ typedef enum CommandSequenceExecutionActions
 
 class CNCMachine;
 
+class CSHardwareInterface
+{
+    public:
+        virtual void update( std::string name, std::string value ) = 0;
+};
 
 class CmdStepEventsCB
 {
@@ -80,6 +85,8 @@ class CmdStep
 
         virtual CS_STEPACTION_T continueStep() = 0;
 
+        virtual void performPost() = 0;
+
         virtual void closeout();
         
     private:
@@ -106,6 +113,8 @@ class CmdStepExecuteCANRR : public CmdStep
 
         virtual CS_STEPACTION_T continueStep();
 
+        virtual void performPost();
+
     private:
 
         CANReqRsp   *m_RR;
@@ -129,6 +138,8 @@ class CmdSequence : public CmdStepEventsCB
        ~CmdSequence();
 
         void setState( CS_STATE_T newState );
+
+        void setHardwareInterface( CSHardwareInterface *hwIntf );
 
         void calculateTimeout( uint curTime );
         uint getTimeout();
@@ -162,6 +173,8 @@ class CmdSequence : public CmdStepEventsCB
         CmdStep *m_curStep;
 
         uint m_curStepIndex;
+
+        CSHardwareInterface *m_hwIntf;
 
         std::vector< CmdStep* > m_stepList;
 };

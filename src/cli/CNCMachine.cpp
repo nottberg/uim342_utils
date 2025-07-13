@@ -20,6 +20,24 @@ CNCAxis::getBusID( std::string &id )
     return CNCM_RESULT_SUCCESS;
 }
 
+void
+CNCAxis::updateParameter( std::string name, std::string value )
+{
+    m_parameters.insert( std::pair<std::string, std::string>(name, value));
+}
+
+CNCM_RESULT_T
+CNCAxis::getParameter( std::string name, std::string &value )
+{
+    std::map< std::string, std::string >::iterator it = m_parameters.find( name );
+
+    if( it == m_parameters.end() )
+        return CNCM_RESULT_FAILURE;
+
+    value = it->second;
+    return CNCM_RESULT_SUCCESS;
+}
+
 CNCStepperAxis::CNCStepperAxis()
 {
 
@@ -243,15 +261,30 @@ CNCMachine::clearPendingWork()
     read( m_pendingFD, &u, sizeof(u) );
 }
 
-void
-CNCMachine::update( std::string name, std::string value )
+CNCAxis*
+CNCMachine::lookupAxisByID( std::string axisID )
 {
-    //std::map< std::string, std::string >::iterator it = m_modelValues.find( name ); 
+    std::map< std::string, CNCAxis* >::iterator it = m_axes.find( axisID );
+    
+    if( it == m_axes.end() )
+        return NULL;
 
-    //if( it == m_modelValues.end() )
-    //    m_modelValues.insert( std::pair< std::string, std::string >( name, value ) );
-    //else
-    //    it->second = value;
+    return it->second;
+}
+
+void
+CNCMachine::updateAxis( std::string axisID, std::string name, std::string value )
+{
+    printf( "CNCMachine::updateAxis - axisID: %s,  name: %s,  value: %s\n", axisID.c_str(), name.c_str(), value.c_str() );
+
+    // Lookup the axis.
+    CNCAxis *axis = lookupAxisByID( axisID);
+
+    if( axis == NULL )
+        return;
+
+    // Apply the parameter update
+    axis->updateParameter( name, value );
 }
 
 void
@@ -310,4 +343,9 @@ CNCMachine::eventFD( int fd )
     }
 }
 
+void
+CNCMachine::debugPrint()
+{
+    printf( "\n=== CNC Machine ===\n" );
 
+}

@@ -52,28 +52,31 @@ typedef enum CommandSequenceExecutionActions
 }CS_ACTION_T;
 
 class CNCMachine;
+class CmdSequence;
 
 class CSHardwareInterface
 {
     public:
-        virtual void update( std::string name, std::string value ) = 0;
+        virtual void updateAxis( std::string axisID, std::string name, std::string value ) = 0;
 };
 
-class CmdStepEventsCB
-{
-    public:
-        virtual void StepCompleteNotify() = 0;
-
-};
+//class CmdStepEventsCB
+//{
+//    public:
+//        virtual void StepCompleteNotify() = 0;
+//
+//};
 
 class CmdStep
 {
     public:
-        CmdStep( CmdStepEventsCB *eventCB );
+        CmdStep();
        ~CmdStep();
 
         void setState( CS_STEPSTATE_T newState );
         CS_STEPSTATE_T getState();
+
+        void setParent( CmdSequence *parent );
 
         void stepComplete();
 
@@ -89,9 +92,11 @@ class CmdStep
 
         virtual void closeout();
         
+        void updateAxis( std::string axisID, std::string name, std::string value );
+
     private:
 
-        CmdStepEventsCB *m_eventCB;
+        CmdSequence *m_parent;
 
         CS_STEPSTATE_T  m_state;
 };
@@ -99,7 +104,7 @@ class CmdStep
 class CmdStepExecuteCANRR : public CmdStep
 {
     public:
-        CmdStepExecuteCANRR( CmdStepEventsCB *eventCB );
+        CmdStepExecuteCANRR();
        ~CmdStepExecuteCANRR();
 
         void setTargetBus( std::string busID );
@@ -131,7 +136,7 @@ class CmdSeqParameters
 
 };
 
-class CmdSequence : public CmdStepEventsCB
+class CmdSequence
 {
     public:
         CmdSequence();
@@ -165,6 +170,8 @@ class CmdSequence : public CmdStepEventsCB
         bool hasError();
 
         void setErrorState();
+
+        void updateAxis( std::string axisID, std::string name, std::string value );
 
     private:
 

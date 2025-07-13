@@ -21,9 +21,13 @@ class CNCAxis
 
         CNCM_RESULT_T getBusID( std::string &id );
 
+        CNCM_RESULT_T getParameter( std::string name, std::string &value );
+
+        void updateParameter( std::string name, std::string value );
+
     private:
 
-        std::map< std::string, std::string > m_modelValues;
+        std::map< std::string, std::string > m_parameters;
 };
 
 class CNCStepperAxis : public CNCAxis
@@ -75,9 +79,13 @@ class CNCMachine : public CSHardwareInterface, ELEventCB, CANReqRspEvents
 
         virtual CNCM_RESULT_T setup() = 0;
 
-        virtual void update( std::string name, std::string value );
+        virtual void updateAxis( std::string axisID, std::string name, std::string value );
 
+        void debugPrint();
+        
     private:
+
+        CNCAxis *lookupAxisByID( std::string axisID );
 
         void signalPendingWork();
 

@@ -157,7 +157,7 @@ App::sequenceComplete()
 void
 App::outputResult()
 {
-
+    m_curMachine->debugPrint();
 }
 
 /*

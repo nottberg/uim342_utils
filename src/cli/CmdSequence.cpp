@@ -3,9 +3,9 @@
 
 #include "CmdSequence.h"
 
-CmdStep::CmdStep( CmdStepEventsCB *eventCB )
+CmdStep::CmdStep()
 {
-    m_eventCB = eventCB;
+    m_parent = NULL;
 }
 
 CmdStep::~CmdStep()
@@ -25,6 +25,12 @@ CmdStep::getState()
     return m_state;
 }
 
+void
+CmdStep::setParent( CmdSequence *parent )
+{
+    m_parent = parent;
+}
+
 /*
 void
 CmdStep::addUpdateTarget( CMModelUpdateInterface *upObj )
@@ -38,8 +44,8 @@ CmdStep::stepComplete()
 {
     printf( "CmdStep::stepComplete()\n" );
 
-    if( m_eventCB )
-        m_eventCB->StepCompleteNotify();
+    if( m_parent )
+        m_parent->StepCompleteNotify();
 }
 
 bool
@@ -64,8 +70,16 @@ CmdStep::closeout()
     printf( "CmdStep::closeout\n" );
 }
 
-CmdStepExecuteCANRR::CmdStepExecuteCANRR( CmdStepEventsCB *eventCB )
-: CmdStep( eventCB )
+void
+CmdStep::updateAxis( std::string axisID, std::string name, std::string value )
+{
+    printf( "CmdStep::updateAxis - axisID: %s,  name: %s,  value: %s\n", axisID.c_str(), name.c_str(), value.c_str() );
+
+    if( m_parent )
+        m_parent->updateAxis( axisID, name, value );
+}
+
+CmdStepExecuteCANRR::CmdStepExecuteCANRR()
 {
     m_RR     = NULL;
 }
@@ -197,6 +211,15 @@ void
 CmdSequence::setHardwareInterface( CSHardwareInterface *hwIntf )
 {
     m_hwIntf = hwIntf;
+}
+
+void
+CmdSequence::updateAxis( std::string axisID, std::string name, std::string value )
+{
+    printf( "CmdSequence::updateAxis - axisID: %s,  name: %s,  value: %s\n", axisID.c_str(), name.c_str(), value.c_str() );
+
+    if( m_hwIntf )
+        m_hwIntf->updateAxis( axisID, name, value );
 }
 
 void

@@ -8,12 +8,14 @@
 class UIM342GetMotorSNStep : public CmdStepExecuteCANRR
 {
     public:
-        UIM342GetMotorSNStep( CmdStepEventsCB *eventCB );
+        UIM342GetMotorSNStep( std::string axisID );
        ~UIM342GetMotorSNStep();
 
         virtual void performPost();
 
     private:
+
+        std::string m_axisID;
 
         UIM342MsgGetSerialNumber m_getSN_CANRR;
 };

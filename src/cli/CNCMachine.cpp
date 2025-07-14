@@ -200,7 +200,7 @@ CNCMachine::startCANRR()
 
     printf( "CNCMachine::startCANRR - bus aquired\n" );
 
-    m_curSeq->getStepCANRR( &rrObj );
+    m_curSeq->getCANRR( &rrObj );
 
     rrObj->setEventsCB( this );
     
@@ -208,9 +208,9 @@ CNCMachine::startCANRR()
 }
 
 void
-CNCMachine::canRRComplete( CANReqRsp *rrObj )
+CNCMachine::completeCANRR( CANReqRsp *rrObj )
 {
-    printf("CNCMachine::canRRComplete - begin\n");
+    printf("CNCMachine::completeCANRR - begin\n");
 
     // If there is a sequence running, let it know a request has finished.
     if( m_curSeq == NULL )
@@ -219,7 +219,7 @@ CNCMachine::canRRComplete( CANReqRsp *rrObj )
         return;
     }
 
-    switch( m_curSeq->completeStepCANRR( rrObj ) )
+    switch( m_curSeq->completeCANRR() )
     {
         case CS_ACTION_SCHEDULE:
             signalPendingWork();

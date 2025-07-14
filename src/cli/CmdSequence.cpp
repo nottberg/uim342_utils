@@ -81,7 +81,7 @@ CmdStep::updateAxis( std::string axisID, std::string name, std::string value )
 
 CmdStepExecuteCANRR::CmdStepExecuteCANRR()
 {
-    m_RR     = NULL;
+    //m_RR     = NULL;
 }
 
 CmdStepExecuteCANRR::~CmdStepExecuteCANRR()
@@ -89,6 +89,7 @@ CmdStepExecuteCANRR::~CmdStepExecuteCANRR()
 
 }
 
+/*
 void
 CmdStepExecuteCANRR::setTargetBus( std::string busID )
 {
@@ -117,6 +118,30 @@ CmdStepExecuteCANRR::completeRR( CANReqRsp *rrObj )
     printf( "CmdStepExecuteCANRR::completeRR: 0x%x\n", rrObj );
 
     m_RR->debugPrint();
+
+    setState(CS_STEPSTATE_POST_PROCESS);
+
+    return CS_STEPACTION_START_POST;
+}
+*/
+
+CS_RESULT_T
+CmdStepExecuteCANRR::initCANRR()
+{
+    printf( "CmdStepExecuteCANRR::initCANRR: 0x%x\n", this );
+
+    return CS_RESULT_SUCCESS;
+}
+
+CS_STEPACTION_T
+CmdStepExecuteCANRR::completeCANRR()
+{
+    //if( m_RR != rrObj )
+    //    return CS_STEPACTION_ERROR;
+
+    printf( "CmdStepExecuteCANRR::completeCANRR: 0x%x\n", this );
+
+    debugPrint();
 
     setState(CS_STEPSTATE_POST_PROCESS);
 
@@ -371,23 +396,25 @@ CmdSequence::getStepTargetAxisID( std::string &id )
 }
 
 CS_RESULT_T
-CmdSequence::getStepCANRR( CANReqRsp **rrObj )
+CmdSequence::getCANRR( CANReqRsp **rrObj )
 {
     if( m_curStep == NULL )
         return CS_RESULT_FAILURE;
 
-    return ((CmdStepExecuteCANRR* ) m_curStep)->getRR( rrObj );
+    *rrObj = ( (CANReqRsp*) m_curStep );
+
+    return CS_RESULT_SUCCESS;
 }
 
 CS_ACTION_T
-CmdSequence::completeStepCANRR( CANReqRsp *rrObj )
+CmdSequence::completeCANRR()
 {
     if( m_curStep == NULL )
         return CS_ACTION_ERROR;
 
-    printf( "CmdSequence::completeStepCANRR: 0x%x\n", rrObj );
+    printf( "CmdSequence::completeStepCANRR: 0x%x\n", m_curStep );
 
-    switch( ((CmdStepExecuteCANRR*) m_curStep)->completeRR( rrObj ) )
+    switch( ((CmdStepExecuteCANRR*) m_curStep)->completeCANRR() )
     {
         case CS_STEPACTION_START_POST:
             return CS_ACTION_SCHEDULE;

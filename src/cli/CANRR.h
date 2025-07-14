@@ -31,7 +31,7 @@ class CANReqRsp;
 class CANReqRspEvents
 {
     public:
-        virtual void canRRComplete( CANReqRsp *rrObj ) = 0;
+        virtual void completeCANRR( CANReqRsp *rrObj ) = 0;
 };
 
 class CANReqRsp
@@ -46,9 +46,9 @@ class CANReqRsp
         virtual uint getReqDataLength();
         virtual void getReqData( uint8_t *bufPtr );
 
-        void setRequest( uint ctrlWord, uint expectedResponseCtrlWord );
+        void setReqControlWord( uint ctrlWord );
         //void setProducerID( uint id );
-        void setConsumerID( uint id );
+        void setTargetID( uint id );
 
         void setEventsCB( CANReqRspEvents *eventCB );
 

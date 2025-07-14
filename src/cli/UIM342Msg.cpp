@@ -1,6 +1,7 @@
 
 #include "UIM342Msg.h"
 
+#if 0
 /*
 CANReqRsp*
 createUIM342Msg( UIM342_MSG_TYPE_T type )
@@ -259,3 +260,5 @@ UIM342MsgNop::~UIM342MsgNop()
 {
 
 }
+
+#endif

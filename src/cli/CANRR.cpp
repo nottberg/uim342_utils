@@ -18,7 +18,6 @@ CANReqRsp::CANReqRsp()
     m_reqConsumerID  = 5;
     m_reqCtrlWord    = 0;
     m_reqDataLen     = 0;
-    m_expRspCtrlWord = 0;
 
     m_rspProducerID = 0;
     m_rspConsumerID = 0;
@@ -42,14 +41,13 @@ CANReqRsp::setEventsCB( CANReqRspEvents *eventCB )
 }
 
 void
-CANReqRsp::setRequest( uint ctrlWord, uint expectedResponseCtrlWord )
+CANReqRsp::setReqControlWord( uint ctrlWord )
 {
     m_reqCtrlWord    = ctrlWord;
-    m_expRspCtrlWord = expectedResponseCtrlWord;
 }
 
 void
-CANReqRsp::setConsumerID( uint id )
+CANReqRsp::setTargetID( uint id )
 {
     m_reqConsumerID = id;
 }
@@ -269,7 +267,7 @@ CANReqRsp::finish()
 
     if( m_eventCB )
     {
-        m_eventCB->canRRComplete( this );
+        m_eventCB->completeCANRR( this );
     }
     
 }

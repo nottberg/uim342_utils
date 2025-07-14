@@ -78,7 +78,7 @@ class CNCMachine : public CSHardwareInterface, ELEventCB, CANReqRspEvents
 
         void startCANRR();
 
-        virtual void canRRComplete( CANReqRsp *rrObj );
+        virtual void completeCANRR( CANReqRsp *rrObj );
 
         void addSequence( std::string seqID, CmdSequence *seqObj );
 

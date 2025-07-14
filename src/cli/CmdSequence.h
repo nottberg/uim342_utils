@@ -101,18 +101,20 @@ class CmdStep
         CS_STEPSTATE_T  m_state;
 };
 
-class CmdStepExecuteCANRR : public CmdStep
+class CmdStepExecuteCANRR : public CmdStep, public CANReqRsp
 {
     public:
         CmdStepExecuteCANRR();
        ~CmdStepExecuteCANRR();
 
-        void setTargetBus( std::string busID );
-        void setRR( CANReqRsp *rrObj );
+        //void setTargetBus( std::string busID );
+        //void setRR( CANReqRsp *rrObj );
 
-        CS_RESULT_T getRR( CANReqRsp **rrObj );
+        //CS_RESULT_T getRR( CANReqRsp **rrObj );
 
-        CS_STEPACTION_T completeRR( CANReqRsp *rrObj );
+        CS_RESULT_T initCANRR();
+
+        CS_STEPACTION_T completeCANRR();
 
         virtual CS_STEPACTION_T startStep();
 
@@ -122,7 +124,11 @@ class CmdStepExecuteCANRR : public CmdStep
 
     private:
 
-        CANReqRsp   *m_RR;
+        virtual CS_RESULT_T setupRequestCANRR( uint targetCANID ) = 0;
+
+        virtual CS_RESULT_T parseResponseCANRR() = 0;
+
+        //CANReqRsp   *m_RR;
         std::string  m_busID;
 };
 
@@ -155,17 +161,16 @@ class CmdSequence
 
         CS_RESULT_T getStepTargetAxisID( std::string &id );
 
-        CS_RESULT_T getStepCANRR( CANReqRsp **rrObj );
 
         std::string getStepTargetAxisID();
-
-        CANReqRsp *getStepCANRR();
 
         virtual CS_RESULT_T setupBeforeExecution( CmdSeqParameters *param );
 
         virtual void StepCompleteNotify();
 
-        CS_ACTION_T completeStepCANRR( CANReqRsp *rrObj );
+        CS_RESULT_T getCANRR( CANReqRsp **rrObj );
+
+        CS_ACTION_T completeCANRR();
 
         bool hasError();
 

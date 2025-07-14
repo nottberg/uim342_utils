@@ -1,6 +1,8 @@
 #ifndef _UIM342_MSG_H_
 #define _UIM342_MSG_H_
 
+#if 0
+
 #include "CANRR.h"
 
 typedef enum UIM342MessageTypeEnum
@@ -99,7 +101,7 @@ class UIM342MsgGetCANGroupID : public CANReqRsp
         virtual void parseResponse();
 
         std::string getCANGroupIDAsStr();
-        
+
     private:
 
         uint m_groupID;
@@ -114,5 +116,7 @@ class UIM342MsgNop : public CANReqRsp
     private:
 
 };
+
+#endif
 
 #endif // _UIM342_MSG_H_

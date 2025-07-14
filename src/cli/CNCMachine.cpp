@@ -13,6 +13,18 @@ CNCAxis::~CNCAxis()
 
 }
 
+void
+CNCAxis::setID( std::string value )
+{
+    m_id = value;
+}
+
+std::string
+CNCAxis::getID()
+{
+    return m_id;
+}
+
 CNCM_RESULT_T
 CNCAxis::getBusID( std::string &id )
 {
@@ -36,6 +48,17 @@ CNCAxis::getParameter( std::string name, std::string &value )
 
     value = it->second;
     return CNCM_RESULT_SUCCESS;
+}
+
+void
+CNCAxis::debugPrint()
+{
+    printf( "  === Axis: %s ===\n", m_id.c_str() );
+
+    for( std::map< std::string, std::string >::iterator it = m_parameters.begin(); it != m_parameters.end(); it++ )
+    {
+        printf( "    %s: %s\n", it->first.c_str(), it->second.c_str() );
+    }
 }
 
 CNCStepperAxis::CNCStepperAxis()
@@ -88,9 +111,9 @@ CNCMachine::setCanBus( std::string id, CANBus *bus )
 }
 
 void
-CNCMachine::setAxis( std::string id, CNCAxis *axisObj )
+CNCMachine::setAxis( CNCAxis *axisObj )
 {
-    m_axes.insert( std::pair<std::string, CNCAxis*>( id, axisObj ) );
+    m_axes.insert( std::pair<std::string, CNCAxis*>( axisObj->getID(), axisObj ) );
 }
 
 CNCM_RESULT_T
@@ -348,4 +371,8 @@ CNCMachine::debugPrint()
 {
     printf( "\n=== CNC Machine ===\n" );
 
+    for( std::map< std::string, CNCAxis* >::iterator it = m_axes.begin(); it != m_axes.end(); it++ )
+    {
+        it->second->debugPrint();
+    }
 }

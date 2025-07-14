@@ -33,7 +33,8 @@ UIM342SingleAxisMachine::setup()
     setCanBus( "cbus0", new CANBus() );
 
     UIM342MotorAxis *axis = new UIM342MotorAxis;
-    setAxis( "X", axis );
+    axis->setID( "X" );
+    setAxis( axis );
 
     UIM342AxisInfoCommand *cmdSeq = new UIM342AxisInfoCommand("X");
     

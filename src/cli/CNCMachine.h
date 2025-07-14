@@ -19,13 +19,20 @@ class CNCAxis
         CNCAxis();
        ~CNCAxis();
 
+        void setID( std::string value );
+        std::string getID();
+
         CNCM_RESULT_T getBusID( std::string &id );
 
         CNCM_RESULT_T getParameter( std::string name, std::string &value );
 
         void updateParameter( std::string name, std::string value );
 
+        virtual void debugPrint();
+
     private:
+
+        std::string m_id;
 
         std::map< std::string, std::string > m_parameters;
 };
@@ -57,7 +64,7 @@ class CNCMachine : public CSHardwareInterface, ELEventCB, CANReqRspEvents
 
         void setCanBus( std::string id, CANBus *bus );
 
-        void setAxis( std::string id, CNCAxis *axisObj );
+        void setAxis( CNCAxis *axisObj );
 
         CNCM_RESULT_T openFileDescriptors();
 
@@ -81,8 +88,8 @@ class CNCMachine : public CSHardwareInterface, ELEventCB, CANReqRspEvents
 
         virtual void updateAxis( std::string axisID, std::string name, std::string value );
 
-        void debugPrint();
-        
+        virtual void debugPrint();
+
     private:
 
         CNCAxis *lookupAxisByID( std::string axisID );

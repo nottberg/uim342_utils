@@ -3,8 +3,6 @@
 UIM342GetMotorSNStep::UIM342GetMotorSNStep( std::string axisID )
 {
     m_axisID = axisID;
-
-    //setRR( &m_getSN_CANRR );
 }
 
 UIM342GetMotorSNStep::~UIM342GetMotorSNStep()
@@ -15,8 +13,12 @@ UIM342GetMotorSNStep::~UIM342GetMotorSNStep()
 CS_RESULT_T
 UIM342GetMotorSNStep::setupRequestCANRR( uint targetCANID )
 {
-    setTargetID( targetCANID );
-    setReqControlWord( 0x8C );
+    printf( "UIM342GetMotorSNStep::setupRequestCANRR\n" );
+    
+    CANReqRsp *rrObj = getRR();
+
+    rrObj->setTargetID( targetCANID );
+    rrObj->setReqControlWord( 0x8C );
 
     return CS_RESULT_SUCCESS;
 }
@@ -24,23 +26,31 @@ UIM342GetMotorSNStep::setupRequestCANRR( uint targetCANID )
 CS_RESULT_T
 UIM342GetMotorSNStep::parseResponseCANRR()
 {
+    CANReqRsp *rrObj = getRR();
+
+    rrObj->read32( m_serialNumber );
+
+    printf( "UIM342GetMotorSNStep::parseResponse - %d\n", m_serialNumber );
+
     return CS_RESULT_SUCCESS;
 }
 
 void
-UIM342GetMotorSNStep::performPost()
+UIM342GetMotorSNStep::distributeResult()
 {
-    printf("UIM342GetMotorSNStep::performPost\n");
+    char tmpBuf[64];
 
-    //updateAxis( m_axisID, "SerialNumber", m_getSN_CANRR.getSerialNumberAsStr() );
+    printf("UIM342GetMotorSNStep::distributeResult\n");
+
+    sprintf( tmpBuf, "%d", m_serialNumber );
+
+    updateAxis( m_axisID, "SerialNumber", tmpBuf );
 }
 
 
 UIM342GetMotorModelStep::UIM342GetMotorModelStep( std::string axisID )
 {
     m_axisID = axisID;
-
-    //setRR( &m_getModel_CANRR );
 }
 
 UIM342GetMotorModelStep::~UIM342GetMotorModelStep()
@@ -51,8 +61,10 @@ UIM342GetMotorModelStep::~UIM342GetMotorModelStep()
 CS_RESULT_T
 UIM342GetMotorModelStep::setupRequestCANRR( uint targetCANID )
 {
-    setTargetID( targetCANID );
-    setReqControlWord( 0x8B );
+    CANReqRsp *rrObj = getRR();
+
+    rrObj->setTargetID( targetCANID );
+    rrObj->setReqControlWord( 0x8B );
 
     return CS_RESULT_SUCCESS;
 }
@@ -60,24 +72,41 @@ UIM342GetMotorModelStep::setupRequestCANRR( uint targetCANID )
 CS_RESULT_T
 UIM342GetMotorModelStep::parseResponseCANRR()
 {
+    uint8_t  tmp;
+    uint8_t  buf[3];
+    uint16_t fwVer;
+    char tmpStr[128];
+
+    CANReqRsp *rrObj = getRR();
+
+    rrObj->readRspData( buf, 3 );
+    rrObj->read8( tmp );
+    rrObj->read16( fwVer );
+
+    printf("model: 0x%x, 0x%x, 0x%x, fwVer: 0x%x\n", buf[0], buf[1], buf[2], fwVer );
+
+    sprintf( tmpStr, "model_%x_%x_%x", buf[0], buf[1], buf[2] );
+    m_model = tmpStr;
+
+    sprintf( tmpStr, "%d", fwVer );
+    m_fwVer = tmpStr;
+
     return CS_RESULT_SUCCESS;
 }
 
 void
-UIM342GetMotorModelStep::performPost()
+UIM342GetMotorModelStep::distributeResult()
 {
-    printf("UIM342GetMotorModelStep::performPost\n");
+    printf("UIM342GetMotorModelStep::distributeResult\n");
 
-    //updateAxis( m_axisID, "Model", m_getModel_CANRR.getModelAsStr() );
-    //updateAxis( m_axisID, "FWVersion", m_getModel_CANRR.getFWVersionAsStr() );
+    updateAxis( m_axisID, "Model", m_model );
+    updateAxis( m_axisID, "FWVersion", m_fwVer );
 }
 
 
 UIM342GetMotorCANBitrateStep::UIM342GetMotorCANBitrateStep( std::string axisID )
 {
     m_axisID = axisID;
-
-    //setRR( &m_getCANBitrate_CANRR );
 }
 
 UIM342GetMotorCANBitrateStep::~UIM342GetMotorCANBitrateStep()
@@ -88,9 +117,11 @@ UIM342GetMotorCANBitrateStep::~UIM342GetMotorCANBitrateStep()
 CS_RESULT_T
 UIM342GetMotorCANBitrateStep::setupRequestCANRR( uint targetCANID )
 {
-    setTargetID( targetCANID );
-    setReqControlWord( 0x81 );
-    append8( 5 );
+    CANReqRsp *rrObj = getRR();
+
+    rrObj->setTargetID( targetCANID );
+    rrObj->setReqControlWord( 0x81 );
+    rrObj->append8( 5 );
 
     return CS_RESULT_SUCCESS;
 }
@@ -102,9 +133,9 @@ UIM342GetMotorCANBitrateStep::parseResponseCANRR()
 }
 
 void
-UIM342GetMotorCANBitrateStep::performPost()
+UIM342GetMotorCANBitrateStep::distributeResult()
 {
-    printf("UIM342GetMotorCANBitrateStep::performPost\n");
+    printf("UIM342GetMotorCANBitrateStep::distributeResult\n");
 
     //updateAxis( m_axisID, "CAN_Bitrate", m_getCANBitrate_CANRR.getCANBitrateAsStr() );
 }
@@ -125,9 +156,11 @@ UIM342GetMotorCANNodeIDStep::~UIM342GetMotorCANNodeIDStep()
 CS_RESULT_T
 UIM342GetMotorCANNodeIDStep::setupRequestCANRR( uint targetCANID )
 {
-    setTargetID( targetCANID );
-    setReqControlWord( 0x81 );
-    append8( 7 );
+    CANReqRsp *rrObj = getRR();
+
+    rrObj->setTargetID( targetCANID );
+    rrObj->setReqControlWord( 0x81 );
+    rrObj->append8( 7 );
 
     return CS_RESULT_SUCCESS;
 }
@@ -139,9 +172,9 @@ UIM342GetMotorCANNodeIDStep::parseResponseCANRR()
 }
 
 void
-UIM342GetMotorCANNodeIDStep::performPost()
+UIM342GetMotorCANNodeIDStep::distributeResult()
 {
-    printf("UIM342GetMotorCANNodeIDStep::performPost\n");
+    printf("UIM342GetMotorCANNodeIDStep::distributeResult\n");
 
     //updateAxis( m_axisID, "CAN_NodeID", m_getCANNodeID_CANRR.getCANNodeIDAsStr() );
 }
@@ -162,9 +195,11 @@ UIM342GetMotorCANGroupIDStep::~UIM342GetMotorCANGroupIDStep()
 CS_RESULT_T
 UIM342GetMotorCANGroupIDStep::setupRequestCANRR( uint targetCANID )
 {
-    setTargetID( targetCANID );
-    setReqControlWord( 0x81 );
-    append8( 8 );
+    CANReqRsp *rrObj = getRR();
+
+    rrObj->setTargetID( targetCANID );
+    rrObj->setReqControlWord( 0x81 );
+    rrObj->append8( 8 );
 
     return CS_RESULT_SUCCESS;
 }
@@ -176,9 +211,9 @@ UIM342GetMotorCANGroupIDStep::parseResponseCANRR()
 }
 
 void
-UIM342GetMotorCANGroupIDStep::performPost()
+UIM342GetMotorCANGroupIDStep::distributeResult()
 {
-    printf("UIM342GetMotorCANGroupIDStep::performPost\n");
+    printf("UIM342GetMotorCANGroupIDStep::distributeResult\n");
 
     //updateAxis( m_axisID, "CAN_GroupID", m_getCANGroupID_CANRR.getCANGroupIDAsStr() );
 }
@@ -202,6 +237,10 @@ void
 UIM342AxisInfoCommand::initCmdSteps()
 {
     m_getSN_Step.setParent( this );
+    m_getModel_Step.setParent( this );
+    m_getCANBitrate_Step.setParent( this );
+    m_getCANNodeID_Step.setParent( this );
+    m_getCANGroupID_Step.setParent( this );
 
     // Create a CAN request
     //m_getSN_Step.setTargetBus( "cbus0" );
@@ -210,6 +249,10 @@ UIM342AxisInfoCommand::initCmdSteps()
     //m_getSN_Step.addUpdateTarget( m_assocAxis );
 
     appendStep( &m_getSN_Step );
+    appendStep( &m_getModel_Step );
+    appendStep( &m_getCANBitrate_Step );
+    appendStep( &m_getCANNodeID_Step );
+    appendStep( &m_getCANGroupID_Step );
 
     // Indicate the sequence is ready
     setState( CS_STATE_INIT );

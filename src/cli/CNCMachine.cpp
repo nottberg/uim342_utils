@@ -202,9 +202,15 @@ CNCMachine::startCANRR()
 
     m_curSeq->getCANRR( &rrObj );
 
+    printf( "CNCMachine::startCANRR - 1\n" );
+
     rrObj->setEventsCB( this );
-    
+
+    printf( "CNCMachine::startCANRR - 2\n" );
+
     busPtr->sendFrame( rrObj );
+
+    printf( "CNCMachine::startCANRR - end\n" );
 }
 
 void

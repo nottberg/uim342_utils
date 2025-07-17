@@ -88,7 +88,7 @@ class CmdStep
 
         virtual CS_STEPACTION_T continueStep() = 0;
 
-        virtual void performPost() = 0;
+        virtual void distributeResult() = 0;
 
         virtual void closeout();
         
@@ -101,7 +101,7 @@ class CmdStep
         CS_STEPSTATE_T  m_state;
 };
 
-class CmdStepExecuteCANRR : public CmdStep, public CANReqRsp
+class CmdStepExecuteCANRR : public CmdStep
 {
     public:
         CmdStepExecuteCANRR();
@@ -110,7 +110,7 @@ class CmdStepExecuteCANRR : public CmdStep, public CANReqRsp
         //void setTargetBus( std::string busID );
         //void setRR( CANReqRsp *rrObj );
 
-        //CS_RESULT_T getRR( CANReqRsp **rrObj );
+        CANReqRsp *getRR();
 
         CS_RESULT_T initCANRR();
 
@@ -120,7 +120,7 @@ class CmdStepExecuteCANRR : public CmdStep, public CANReqRsp
 
         virtual CS_STEPACTION_T continueStep();
 
-        virtual void performPost();
+        virtual void distributeResult();
 
     private:
 
@@ -128,7 +128,8 @@ class CmdStepExecuteCANRR : public CmdStep, public CANReqRsp
 
         virtual CS_RESULT_T parseResponseCANRR() = 0;
 
-        //CANReqRsp   *m_RR;
+        CANReqRsp    m_RR;
+
         std::string  m_busID;
 };
 

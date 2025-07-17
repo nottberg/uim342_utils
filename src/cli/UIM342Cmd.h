@@ -14,13 +14,13 @@ class UIM342GetMotorSNStep : public CmdStepExecuteCANRR
         virtual CS_RESULT_T setupRequestCANRR( uint targetCANID );
         virtual CS_RESULT_T parseResponseCANRR();
 
-        virtual void performPost();
+        virtual void distributeResult();
 
     private:
 
         std::string m_axisID;
 
-        //UIM342MsgGetSerialNumber m_getSN_CANRR;
+        uint m_serialNumber;
 };
 
 class UIM342GetMotorModelStep : public CmdStepExecuteCANRR
@@ -32,13 +32,14 @@ class UIM342GetMotorModelStep : public CmdStepExecuteCANRR
         virtual CS_RESULT_T setupRequestCANRR( uint targetCANID );
         virtual CS_RESULT_T parseResponseCANRR();
 
-        virtual void performPost();
+        virtual void distributeResult();
 
     private:
 
         std::string m_axisID;
 
-        //UIM342MsgGetModel m_getModel_CANRR;
+        std::string m_model;
+        std::string m_fwVer;
 };
 
 class UIM342GetMotorCANBitrateStep : public CmdStepExecuteCANRR
@@ -50,7 +51,7 @@ class UIM342GetMotorCANBitrateStep : public CmdStepExecuteCANRR
         virtual CS_RESULT_T setupRequestCANRR( uint targetCANID );
         virtual CS_RESULT_T parseResponseCANRR();
 
-        virtual void performPost();
+        virtual void distributeResult();
 
     private:
 
@@ -68,7 +69,7 @@ class UIM342GetMotorCANNodeIDStep : public CmdStepExecuteCANRR
         virtual CS_RESULT_T setupRequestCANRR( uint targetCANID );
         virtual CS_RESULT_T parseResponseCANRR();
 
-        virtual void performPost();
+        virtual void distributeResult();
 
     private:
 
@@ -86,7 +87,7 @@ class UIM342GetMotorCANGroupIDStep : public CmdStepExecuteCANRR
         virtual CS_RESULT_T setupRequestCANRR( uint targetCANID );
         virtual CS_RESULT_T parseResponseCANRR();
 
-        virtual void performPost();
+        virtual void distributeResult();
 
     private:
 

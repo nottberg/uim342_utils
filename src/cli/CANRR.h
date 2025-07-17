@@ -41,10 +41,10 @@ class CANReqRsp
        ~CANReqRsp();
 
         //virtual uint getReqProducerID();
-        virtual uint getReqConsumerID();
-        virtual uint getReqControlWord();
-        virtual uint getReqDataLength();
-        virtual void getReqData( uint8_t *bufPtr );
+        uint getReqConsumerID();
+        uint getReqControlWord();
+        uint getReqDataLength();
+        void getReqData( uint8_t *bufPtr );
 
         void setReqControlWord( uint ctrlWord );
         //void setProducerID( uint id );

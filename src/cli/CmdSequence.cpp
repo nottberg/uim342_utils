@@ -101,14 +101,13 @@ CmdStepExecuteCANRR::setRR( CANReqRsp *rrObj )
 {
     m_RR = rrObj;
 }
-
-CS_RESULT_T
-CmdStepExecuteCANRR::getRR( CANReqRsp **rrObj )
+*/
+CANReqRsp*
+CmdStepExecuteCANRR::getRR()
 {
-    *rrObj = m_RR;
-    return CS_RESULT_SUCCESS;
+    return &m_RR;
 }
-
+/*
 CS_STEPACTION_T
 CmdStepExecuteCANRR::completeRR( CANReqRsp *rrObj )
 {
@@ -141,7 +140,8 @@ CmdStepExecuteCANRR::completeCANRR()
 
     printf( "CmdStepExecuteCANRR::completeCANRR: 0x%x\n", this );
 
-    debugPrint();
+    parseResponseCANRR();
+    //debugPrint();
 
     setState(CS_STEPSTATE_POST_PROCESS);
 
@@ -152,6 +152,8 @@ CS_STEPACTION_T
 CmdStepExecuteCANRR::startStep()
 {
     printf( "CmdStepExecuteCANRR::startStep - begin\n" );
+
+    setupRequestCANRR( 5 );
 
     setState(CS_STEPSTATE_WAITRSP);
 
@@ -179,7 +181,7 @@ CmdStepExecuteCANRR::continueStep()
         case CS_STEPSTATE_POST_PROCESS:
             printf( "CmdStepExecuteCANRR::continueStep - post process\n" );
 
-            performPost();
+            distributeResult();
 
             setState( CS_STEPSTATE_DONE );
             return CS_STEPACTION_DONE;
@@ -194,9 +196,9 @@ CmdStepExecuteCANRR::continueStep()
 }
 
 void
-CmdStepExecuteCANRR::performPost()
+CmdStepExecuteCANRR::distributeResult()
 {
-    printf( "CmdStepExecuteCANRR::performPost()\n" );
+    printf( "CmdStepExecuteCANRR::distributeResult()\n" );
 }
 
 CmdSeqParameters::CmdSeqParameters()
@@ -358,6 +360,8 @@ CmdSequence::processPendingWork()
                 return CS_ACTION_DONE;
             }
 
+            setState( CS_STATE_EXECUTING );
+
             m_curStep = m_stepList[ m_curStepIndex ];
 
             printf( "CmdSequence::continue start step: 0x%x\n", m_curStep );
@@ -401,7 +405,7 @@ CmdSequence::getCANRR( CANReqRsp **rrObj )
     if( m_curStep == NULL )
         return CS_RESULT_FAILURE;
 
-    *rrObj = ( (CANReqRsp*) m_curStep );
+    *rrObj = ( (CmdStepExecuteCANRR*) m_curStep )->getRR();
 
     return CS_RESULT_SUCCESS;
 }

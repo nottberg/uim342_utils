@@ -76,6 +76,8 @@ CANReqRsp::getReqDataLength()
 void
 CANReqRsp::getReqData( uint8_t *bufPtr )
 {
+    memcpy( bufPtr, m_reqData, m_reqDataLen );
+    
     return;
 }
 

@@ -129,15 +129,57 @@ UIM342GetMotorCANBitrateStep::setupRequestCANRR( uint targetCANID )
 CS_RESULT_T
 UIM342GetMotorCANBitrateStep::parseResponseCANRR()
 {
+    uint8_t PIndex;
+    uint8_t PValue;
+
+    CANReqRsp *rrObj = getRR();
+
+    rrObj->read8(PIndex);
+    rrObj->read8(PValue);
+
+    switch(PValue)
+    {
+        case 0:
+            m_bitrate = 1000;
+        break;
+
+        case 1:
+            m_bitrate = 800;
+        break;
+
+        case 2:
+            m_bitrate = 500;
+        break;
+
+        case 3:
+            m_bitrate = 250;
+        break;
+
+        case 4:
+            m_bitrate = 125;
+        break;
+
+        default:
+            m_bitrate = 0;
+        break;
+    }
+
     return CS_RESULT_SUCCESS;
 }
 
 void
 UIM342GetMotorCANBitrateStep::distributeResult()
 {
+    char tmpBuf[64];
+
     printf("UIM342GetMotorCANBitrateStep::distributeResult\n");
 
-    //updateAxis( m_axisID, "CAN_Bitrate", m_getCANBitrate_CANRR.getCANBitrateAsStr() );
+    if( m_bitrate == 0 )
+        sprintf( tmpBuf, "Unknown" );
+    else
+        sprintf( tmpBuf, "%dK", m_bitrate );
+
+    updateAxis( m_axisID, "CAN_Bitrate", tmpBuf );
 }
 
 
@@ -168,23 +210,35 @@ UIM342GetMotorCANNodeIDStep::setupRequestCANRR( uint targetCANID )
 CS_RESULT_T
 UIM342GetMotorCANNodeIDStep::parseResponseCANRR()
 {
+    uint8_t PIndex;
+    uint8_t PValue;
+
+    CANReqRsp *rrObj = getRR();
+
+    rrObj->read8(PIndex);
+    rrObj->read8(PValue);
+
+    m_nodeID = PValue;
+
     return CS_RESULT_SUCCESS;
 }
 
 void
 UIM342GetMotorCANNodeIDStep::distributeResult()
 {
+    char tmpBuf[16];
+
     printf("UIM342GetMotorCANNodeIDStep::distributeResult\n");
 
-    //updateAxis( m_axisID, "CAN_NodeID", m_getCANNodeID_CANRR.getCANNodeIDAsStr() );
+    sprintf( tmpBuf, "%d", m_nodeID );
+
+    updateAxis( m_axisID, "CAN_NodeID", tmpBuf );
 }
 
 
 UIM342GetMotorCANGroupIDStep::UIM342GetMotorCANGroupIDStep( std::string axisID )
 {
     m_axisID = axisID;
-
-    //setRR( &m_getCANGroupID_CANRR );
 }
 
 UIM342GetMotorCANGroupIDStep::~UIM342GetMotorCANGroupIDStep()
@@ -207,16 +261,432 @@ UIM342GetMotorCANGroupIDStep::setupRequestCANRR( uint targetCANID )
 CS_RESULT_T
 UIM342GetMotorCANGroupIDStep::parseResponseCANRR()
 {
+    uint8_t PIndex;
+    uint8_t PValue;
+
+    CANReqRsp *rrObj = getRR();
+
+    rrObj->read8(PIndex);
+    rrObj->read8(PValue);
+
+    m_groupID = PValue;
+
     return CS_RESULT_SUCCESS;
 }
 
 void
 UIM342GetMotorCANGroupIDStep::distributeResult()
-{
+{    
+    char tmpBuf[16];
+
     printf("UIM342GetMotorCANGroupIDStep::distributeResult\n");
 
-    //updateAxis( m_axisID, "CAN_GroupID", m_getCANGroupID_CANRR.getCANGroupIDAsStr() );
+    sprintf( tmpBuf, "%d", m_groupID );
+
+    updateAxis( m_axisID, "CAN_GroupID", tmpBuf );
 }
+
+UIM342GetMotorICMotorDrivePowerOnStep::UIM342GetMotorICMotorDrivePowerOnStep( std::string axisID )
+{
+
+}
+
+UIM342GetMotorICMotorDrivePowerOnStep::~UIM342GetMotorICMotorDrivePowerOnStep()
+{
+
+}
+
+CS_RESULT_T
+UIM342GetMotorICMotorDrivePowerOnStep::setupRequestCANRR( uint targetCANID )
+{
+    CANReqRsp *rrObj = getRR();
+
+    rrObj->setTargetID( targetCANID );
+    rrObj->setReqControlWord( 0x81 );
+    rrObj->append8( 8 );
+
+    return CS_RESULT_SUCCESS;
+}
+
+CS_RESULT_T
+UIM342GetMotorICMotorDrivePowerOnStep::parseResponseCANRR()
+{
+    uint8_t PIndex;
+    uint8_t PValue;
+
+    CANReqRsp *rrObj = getRR();
+
+    rrObj->read8(PIndex);
+    rrObj->read8(PValue);
+
+    m_groupID = PValue;
+
+    return CS_RESULT_SUCCESS;
+}
+
+void
+UIM342GetMotorICMotorDrivePowerOnStep::distributeResult()
+{    
+    char tmpBuf[16];
+
+    printf("::distributeResult\n");
+
+    sprintf( tmpBuf, "%d", m_groupID );
+
+    updateAxis( m_axisID, "CAN_GroupID", tmpBuf );
+}
+
+UIM342GetMotorICPositiveDirectionStep::UIM342GetMotorICPositiveDirectionStep( std::string axisID )
+{
+
+}
+
+UIM342GetMotorICPositiveDirectionStep::~UIM342GetMotorICPositiveDirectionStep()
+{
+
+}
+
+CS_RESULT_T
+UIM342GetMotorICPositiveDirectionStep::setupRequestCANRR( uint targetCANID )
+{
+    CANReqRsp *rrObj = getRR();
+
+    rrObj->setTargetID( targetCANID );
+    rrObj->setReqControlWord( 0x81 );
+    rrObj->append8( 8 );
+
+    return CS_RESULT_SUCCESS;
+}
+
+CS_RESULT_T
+UIM342GetMotorICPositiveDirectionStep::parseResponseCANRR()
+{
+    uint8_t PIndex;
+    uint8_t PValue;
+
+    CANReqRsp *rrObj = getRR();
+
+    rrObj->read8(PIndex);
+    rrObj->read8(PValue);
+
+    m_groupID = PValue;
+
+    return CS_RESULT_SUCCESS;
+}
+
+void
+UIM342GetMotorICPositiveDirectionStep::distributeResult()
+{    
+    char tmpBuf[16];
+
+    printf("::distributeResult\n");
+
+    sprintf( tmpBuf, "%d", m_groupID );
+
+    updateAxis( m_axisID, "CAN_GroupID", tmpBuf );
+}
+
+UIM342GetMotorICExecuteUserPowerOnStep::UIM342GetMotorICExecuteUserPowerOnStep( std::string axisID )
+{
+
+}
+
+UIM342GetMotorICExecuteUserPowerOnStep::~UIM342GetMotorICExecuteUserPowerOnStep()
+{
+
+}
+
+CS_RESULT_T
+UIM342GetMotorICExecuteUserPowerOnStep::setupRequestCANRR( uint targetCANID )
+{
+    CANReqRsp *rrObj = getRR();
+
+    rrObj->setTargetID( targetCANID );
+    rrObj->setReqControlWord( 0x81 );
+    rrObj->append8( 8 );
+
+    return CS_RESULT_SUCCESS;
+}
+
+CS_RESULT_T
+UIM342GetMotorICExecuteUserPowerOnStep::parseResponseCANRR()
+{
+    uint8_t PIndex;
+    uint8_t PValue;
+
+    CANReqRsp *rrObj = getRR();
+
+    rrObj->read8(PIndex);
+    rrObj->read8(PValue);
+
+    m_groupID = PValue;
+
+    return CS_RESULT_SUCCESS;
+}
+
+void
+UIM342GetMotorICExecuteUserPowerOnStep::distributeResult()
+{    
+    char tmpBuf[16];
+
+    printf("::distributeResult\n");
+
+    sprintf( tmpBuf, "%d", m_groupID );
+
+    updateAxis( m_axisID, "CAN_GroupID", tmpBuf );
+}
+
+UIM342GetMotorICLockOnEStopStep::UIM342GetMotorICLockOnEStopStep( std::string axisID )
+{
+
+}
+
+UIM342GetMotorICLockOnEStopStep::~UIM342GetMotorICLockOnEStopStep()
+{
+
+}
+
+CS_RESULT_T
+UIM342GetMotorICLockOnEStopStep::setupRequestCANRR( uint targetCANID )
+{
+    CANReqRsp *rrObj = getRR();
+
+    rrObj->setTargetID( targetCANID );
+    rrObj->setReqControlWord( 0x81 );
+    rrObj->append8( 8 );
+
+    return CS_RESULT_SUCCESS;
+}
+
+CS_RESULT_T
+UIM342GetMotorICLockOnEStopStep::parseResponseCANRR()
+{
+    uint8_t PIndex;
+    uint8_t PValue;
+
+    CANReqRsp *rrObj = getRR();
+
+    rrObj->read8(PIndex);
+    rrObj->read8(PValue);
+
+    m_groupID = PValue;
+
+    return CS_RESULT_SUCCESS;
+}
+
+void
+UIM342GetMotorICLockOnEStopStep::distributeResult()
+{    
+    char tmpBuf[16];
+
+    printf("::distributeResult\n");
+
+    sprintf( tmpBuf, "%d", m_groupID );
+
+    updateAxis( m_axisID, "CAN_GroupID", tmpBuf );
+}
+
+UIM342GetMotorICUnitsACDCStep::UIM342GetMotorICUnitsACDCStep( std::string axisID )
+{
+
+}
+
+UIM342GetMotorICUnitsACDCStep::~UIM342GetMotorICUnitsACDCStep()
+{
+
+}
+
+CS_RESULT_T
+UIM342GetMotorICUnitsACDCStep::setupRequestCANRR( uint targetCANID )
+{
+    CANReqRsp *rrObj = getRR();
+
+    rrObj->setTargetID( targetCANID );
+    rrObj->setReqControlWord( 0x81 );
+    rrObj->append8( 8 );
+
+    return CS_RESULT_SUCCESS;
+}
+
+CS_RESULT_T
+UIM342GetMotorICUnitsACDCStep::parseResponseCANRR()
+{
+    uint8_t PIndex;
+    uint8_t PValue;
+
+    CANReqRsp *rrObj = getRR();
+
+    rrObj->read8(PIndex);
+    rrObj->read8(PValue);
+
+    m_groupID = PValue;
+
+    return CS_RESULT_SUCCESS;
+}
+
+void
+UIM342GetMotorICUnitsACDCStep::distributeResult()
+{    
+    char tmpBuf[16];
+
+    printf("::distributeResult\n");
+
+    sprintf( tmpBuf, "%d", m_groupID );
+
+    updateAxis( m_axisID, "CAN_GroupID", tmpBuf );
+}
+
+UIM342GetMotorICEncoderTypeStep::UIM342GetMotorICEncoderTypeStep( std::string axisID )
+{
+
+}
+
+UIM342GetMotorICEncoderTypeStep::~UIM342GetMotorICEncoderTypeStep()
+{
+
+}
+
+CS_RESULT_T
+UIM342GetMotorICEncoderTypeStep::setupRequestCANRR( uint targetCANID )
+{
+    CANReqRsp *rrObj = getRR();
+
+    rrObj->setTargetID( targetCANID );
+    rrObj->setReqControlWord( 0x81 );
+    rrObj->append8( 8 );
+
+    return CS_RESULT_SUCCESS;
+}
+
+CS_RESULT_T
+UIM342GetMotorICEncoderTypeStep::parseResponseCANRR()
+{
+    uint8_t PIndex;
+    uint8_t PValue;
+
+    CANReqRsp *rrObj = getRR();
+
+    rrObj->read8(PIndex);
+    rrObj->read8(PValue);
+
+    m_groupID = PValue;
+
+    return CS_RESULT_SUCCESS;
+}
+
+void
+UIM342GetMotorICEncoderTypeStep::distributeResult()
+{    
+    char tmpBuf[16];
+
+    printf("::distributeResult\n");
+
+    sprintf( tmpBuf, "%d", m_groupID );
+
+    updateAxis( m_axisID, "CAN_GroupID", tmpBuf );
+}
+
+UIM342GetMotorICClosedLoopStep::UIM342GetMotorICClosedLoopStep( std::string axisID )
+{
+
+}
+
+UIM342GetMotorICClosedLoopStep::~UIM342GetMotorICClosedLoopStep()
+{
+
+}
+
+CS_RESULT_T
+UIM342GetMotorICClosedLoopStep::setupRequestCANRR( uint targetCANID )
+{
+    CANReqRsp *rrObj = getRR();
+
+    rrObj->setTargetID( targetCANID );
+    rrObj->setReqControlWord( 0x81 );
+    rrObj->append8( 8 );
+
+    return CS_RESULT_SUCCESS;
+}
+
+CS_RESULT_T
+UIM342GetMotorICClosedLoopStep::parseResponseCANRR()
+{
+    uint8_t PIndex;
+    uint8_t PValue;
+
+    CANReqRsp *rrObj = getRR();
+
+    rrObj->read8(PIndex);
+    rrObj->read8(PValue);
+
+    m_groupID = PValue;
+
+    return CS_RESULT_SUCCESS;
+}
+
+void
+UIM342GetMotorICClosedLoopStep::distributeResult()
+{    
+    char tmpBuf[16];
+
+    printf("::distributeResult\n");
+
+    sprintf( tmpBuf, "%d", m_groupID );
+
+    updateAxis( m_axisID, "CAN_GroupID", tmpBuf );
+}
+
+UIM342GetMotorICSoftwareLimitStep::UIM342GetMotorICSoftwareLimitStep( std::string axisID )
+{
+
+}
+
+UIM342GetMotorICSoftwareLimitStep::~UIM342GetMotorICSoftwareLimitStep()
+{
+
+}
+
+CS_RESULT_T
+UIM342GetMotorICSoftwareLimitStep::setupRequestCANRR( uint targetCANID )
+{
+    CANReqRsp *rrObj = getRR();
+
+    rrObj->setTargetID( targetCANID );
+    rrObj->setReqControlWord( 0x81 );
+    rrObj->append8( 8 );
+
+    return CS_RESULT_SUCCESS;
+}
+
+CS_RESULT_T
+UIM342GetMotorICSoftwareLimitStep::parseResponseCANRR()
+{
+    uint8_t PIndex;
+    uint8_t PValue;
+
+    CANReqRsp *rrObj = getRR();
+
+    rrObj->read8(PIndex);
+    rrObj->read8(PValue);
+
+    m_groupID = PValue;
+
+    return CS_RESULT_SUCCESS;
+}
+
+void
+UIM342GetMotorICSoftwareLimitStep::distributeResult()
+{    
+    char tmpBuf[16];
+
+    printf("::distributeResult\n");
+
+    sprintf( tmpBuf, "%d", m_groupID );
+
+    updateAxis( m_axisID, "CAN_GroupID", tmpBuf );
+}
+
+
 
 UIM342AxisInfoCommand::UIM342AxisInfoCommand( std::string axisID )
 : m_getSN_Step( axisID ),

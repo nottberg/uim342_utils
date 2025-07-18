@@ -57,7 +57,7 @@ class UIM342GetMotorCANBitrateStep : public CmdStepExecuteCANRR
 
         std::string m_axisID;
 
-        //UIM342MsgGetCANBitrate m_getCANBitrate_CANRR;
+        uint m_bitrate;
 };
 
 class UIM342GetMotorCANNodeIDStep : public CmdStepExecuteCANRR
@@ -75,7 +75,7 @@ class UIM342GetMotorCANNodeIDStep : public CmdStepExecuteCANRR
 
         std::string m_axisID;
 
-        //UIM342MsgGetCANNodeID m_getCANNodeID_CANRR;
+        uint m_nodeID;
 };
 
 class UIM342GetMotorCANGroupIDStep : public CmdStepExecuteCANRR
@@ -93,7 +93,153 @@ class UIM342GetMotorCANGroupIDStep : public CmdStepExecuteCANRR
 
         std::string m_axisID;
 
-        //UIM342MsgGetCANGroupID m_getCANGroupID_CANRR;
+        uint m_groupID;
+};
+
+
+
+class UIM342GetMotorICMotorDrivePowerOnStep : public CmdStepExecuteCANRR
+{
+    public:
+        UIM342GetMotorICMotorDrivePowerOnStep( std::string axisID );
+       ~UIM342GetMotorICMotorDrivePowerOnStep();
+
+        virtual CS_RESULT_T setupRequestCANRR( uint targetCANID );
+        virtual CS_RESULT_T parseResponseCANRR();
+
+        virtual void distributeResult();
+
+    private:
+
+        std::string m_axisID;
+
+        uint m_groupID;
+};
+
+class UIM342GetMotorICPositiveDirectionStep : public CmdStepExecuteCANRR
+{
+    public:
+        UIM342GetMotorICPositiveDirectionStep( std::string axisID );
+       ~UIM342GetMotorICPositiveDirectionStep();
+
+        virtual CS_RESULT_T setupRequestCANRR( uint targetCANID );
+        virtual CS_RESULT_T parseResponseCANRR();
+
+        virtual void distributeResult();
+
+    private:
+
+        std::string m_axisID;
+
+        uint m_groupID;
+};
+
+class UIM342GetMotorICExecuteUserPowerOnStep : public CmdStepExecuteCANRR
+{
+    public:
+        UIM342GetMotorICExecuteUserPowerOnStep( std::string axisID );
+       ~UIM342GetMotorICExecuteUserPowerOnStep();
+
+        virtual CS_RESULT_T setupRequestCANRR( uint targetCANID );
+        virtual CS_RESULT_T parseResponseCANRR();
+
+        virtual void distributeResult();
+
+    private:
+
+        std::string m_axisID;
+
+        uint m_groupID;
+};
+
+class UIM342GetMotorICLockOnEStopStep : public CmdStepExecuteCANRR
+{
+    public:
+        UIM342GetMotorICLockOnEStopStep( std::string axisID );
+       ~UIM342GetMotorICLockOnEStopStep();
+
+        virtual CS_RESULT_T setupRequestCANRR( uint targetCANID );
+        virtual CS_RESULT_T parseResponseCANRR();
+
+        virtual void distributeResult();
+
+    private:
+
+        std::string m_axisID;
+
+        uint m_groupID;
+};
+
+class UIM342GetMotorICUnitsACDCStep : public CmdStepExecuteCANRR
+{
+    public:
+        UIM342GetMotorICUnitsACDCStep( std::string axisID );
+       ~UIM342GetMotorICUnitsACDCStep();
+
+        virtual CS_RESULT_T setupRequestCANRR( uint targetCANID );
+        virtual CS_RESULT_T parseResponseCANRR();
+
+        virtual void distributeResult();
+
+    private:
+
+        std::string m_axisID;
+
+        uint m_groupID;
+};
+
+class UIM342GetMotorICEncoderTypeStep : public CmdStepExecuteCANRR
+{
+    public:
+        UIM342GetMotorICEncoderTypeStep( std::string axisID );
+       ~UIM342GetMotorICEncoderTypeStep();
+
+        virtual CS_RESULT_T setupRequestCANRR( uint targetCANID );
+        virtual CS_RESULT_T parseResponseCANRR();
+
+        virtual void distributeResult();
+
+    private:
+
+        std::string m_axisID;
+
+        uint m_groupID;
+};
+
+class UIM342GetMotorICClosedLoopStep : public CmdStepExecuteCANRR
+{
+    public:
+        UIM342GetMotorICClosedLoopStep( std::string axisID );
+       ~UIM342GetMotorICClosedLoopStep();
+
+        virtual CS_RESULT_T setupRequestCANRR( uint targetCANID );
+        virtual CS_RESULT_T parseResponseCANRR();
+
+        virtual void distributeResult();
+
+    private:
+
+        std::string m_axisID;
+
+        uint m_groupID;
+};
+
+class UIM342GetMotorICSoftwareLimitStep : public CmdStepExecuteCANRR
+{
+    public:
+        UIM342GetMotorICSoftwareLimitStep( std::string axisID );
+       ~UIM342GetMotorICSoftwareLimitStep();
+
+        virtual CS_RESULT_T setupRequestCANRR( uint targetCANID );
+        virtual CS_RESULT_T parseResponseCANRR();
+
+        virtual void distributeResult();
+
+    private:
+
+        std::string m_axisID;
+
+        uint m_groupID;
 };
 
 class UIM342AxisInfoCommand : public CmdSequence

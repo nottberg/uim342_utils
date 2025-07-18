@@ -154,6 +154,34 @@ class UIM342GetInformationEnableStep : public CmdStepExecuteCANRR
         uint m_value;
 };
 
+typedef enum UIM342QuadratureEncoderParamID
+{
+    UIM342_QEP_LINES_PER_REV    = 0,
+    UIM342_QEP_STALL_TOLERANCE  = 1,
+    UIM342_QEP_SINGLE_TURN_BITS = 2,
+    UIM342_QEP_BATTERY_STATUS   = 3,
+    UIM342_QEP_COUNTS_PER_REV   = 4
+}UIM342_QEP_TYPE_T;
+
+class UIM342GetQuadratureEncoderStep : public CmdStepExecuteCANRR
+{
+    public:
+        UIM342GetQuadratureEncoderStep( UIM342_QEP_TYPE_T paramID, std::string axisID );
+       ~UIM342GetQuadratureEncoderStep();
+
+        virtual CS_RESULT_T setupRequestCANRR( uint targetCANID );
+        virtual CS_RESULT_T parseResponseCANRR();
+
+        virtual void distributeResult();
+
+    private:
+
+        UIM342_QEP_TYPE_T m_paramID;
+        std::string m_axisID;
+
+        uint m_value;
+};
+
 class UIM342AxisInfoCommand : public CmdSequence
 {
     public:
@@ -185,6 +213,12 @@ class UIM342AxisInfoCommand : public CmdSequence
         UIM342GetInformationEnableStep m_getIEStep_P1;
         UIM342GetInformationEnableStep m_getIEStep_P2;
         UIM342GetInformationEnableStep m_getIEStep_P8;
+
+        UIM342GetQuadratureEncoderStep m_getQEStep_P0;
+        UIM342GetQuadratureEncoderStep m_getQEStep_P1;
+        UIM342GetQuadratureEncoderStep m_getQEStep_P2;
+        UIM342GetQuadratureEncoderStep m_getQEStep_P3;
+        UIM342GetQuadratureEncoderStep m_getQEStep_P4;
 
 };
 

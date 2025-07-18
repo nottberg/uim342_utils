@@ -466,12 +466,91 @@ UIM342GetInformationEnableStep::distributeResult()
 
         case UIM342_IEP_PTP_FINISH_NOTIFY:
             if( m_value == 0 )
-                updateAxis( m_axisID, "IC_PTPFinishNotification", "disabled" );
+                updateAxis( m_axisID, "IE_PTPFinishNotification", "disabled" );
             else
-                updateAxis( m_axisID, "IC_PTPFinishNotification", "enabled" );
+                updateAxis( m_axisID, "IE_PTPFinishNotification", "enabled" );
         break;
     }
 }
+
+
+UIM342GetQuadratureEncoderStep::UIM342GetQuadratureEncoderStep( UIM342_QEP_TYPE_T paramID, std::string axisID )
+{
+    m_paramID = paramID;
+    m_axisID  = axisID;
+}
+
+UIM342GetQuadratureEncoderStep::~UIM342GetQuadratureEncoderStep()
+{
+
+}
+
+CS_RESULT_T
+UIM342GetQuadratureEncoderStep::setupRequestCANRR( uint targetCANID )
+{
+    CANReqRsp *rrObj = getRR();
+
+    rrObj->setTargetID( targetCANID );
+    rrObj->setReqControlWord( 0xBD );
+    rrObj->append8( m_paramID );
+
+    return CS_RESULT_SUCCESS;
+}
+
+CS_RESULT_T
+UIM342GetQuadratureEncoderStep::parseResponseCANRR()
+{
+    uint8_t  PIndex;
+    uint16_t PValue;
+
+    CANReqRsp *rrObj = getRR();
+
+    rrObj->read8(PIndex);
+    rrObj->read16(PValue);
+
+    m_value = PValue;
+
+    return CS_RESULT_SUCCESS;
+}
+
+void
+UIM342GetQuadratureEncoderStep::distributeResult()
+{    
+    char tmpBuf[128];
+
+    printf( "UIM342GetQuadratureEncoderStep::distributeResult - param: %d\n", m_paramID );
+
+    switch( m_paramID )
+    {
+        case UIM342_QEP_LINES_PER_REV:
+            sprintf( tmpBuf, "%d", m_value );
+            updateAxis( m_axisID, "QE_LinesPerRevolutionOfEncoder", tmpBuf );
+        break;
+
+        case UIM342_QEP_STALL_TOLERANCE:
+            sprintf( tmpBuf, "%d", m_value );
+            updateAxis( m_axisID, "QE_StallTolerance", tmpBuf );       
+        break;
+
+        case UIM342_QEP_SINGLE_TURN_BITS:
+            sprintf( tmpBuf, "%d", m_value );
+            updateAxis( m_axisID, "QE_SingleTurnBits", tmpBuf );
+        break;
+
+        case UIM342_QEP_BATTERY_STATUS:
+            if( m_value == 0 )
+                updateAxis( m_axisID, "QE_BatteryStatus", "Low" );
+            else
+                updateAxis( m_axisID, "QE_BatteryStatus", "Ok" );
+        break;
+
+        case UIM342_QEP_COUNTS_PER_REV:
+            sprintf( tmpBuf, "%d", m_value );
+            updateAxis( m_axisID, "QE_CountsPerRevolution", tmpBuf );
+        break;
+    }
+}
+
 
 UIM342AxisInfoCommand::UIM342AxisInfoCommand( std::string axisID )
 : m_getSN_Step( axisID ),
@@ -490,7 +569,12 @@ m_getICStep_P7( UIM342_ICP_SOFTWARE_LIMIT, axisID ),
 m_getIEStep_P0( UIM342_IEP_IN1_CHANGE_NOTIFY, axisID ),
 m_getIEStep_P1( UIM342_IEP_IN2_CHANGE_NOTIFY, axisID ),
 m_getIEStep_P2( UIM342_IEP_IN3_CHANGE_NOTIFY, axisID ),
-m_getIEStep_P8( UIM342_IEP_PTP_FINISH_NOTIFY, axisID )
+m_getIEStep_P8( UIM342_IEP_PTP_FINISH_NOTIFY, axisID ),
+m_getQEStep_P0( UIM342_QEP_LINES_PER_REV, axisID ),
+m_getQEStep_P1( UIM342_QEP_STALL_TOLERANCE, axisID ),
+m_getQEStep_P2( UIM342_QEP_SINGLE_TURN_BITS, axisID ),
+m_getQEStep_P3( UIM342_QEP_BATTERY_STATUS, axisID ),
+m_getQEStep_P4( UIM342_QEP_COUNTS_PER_REV, axisID )
 {
     m_axisID = axisID;
 }
@@ -523,6 +607,12 @@ UIM342AxisInfoCommand::initCmdSteps()
     m_getIEStep_P2.setParent( this );
     m_getIEStep_P8.setParent( this );
 
+    m_getQEStep_P0.setParent( this );
+    m_getQEStep_P1.setParent( this );
+    m_getQEStep_P2.setParent( this );
+    m_getQEStep_P3.setParent( this );
+    m_getQEStep_P4.setParent( this );
+
     // Create a CAN request
     //m_getSN_Step.setTargetBus( "cbus0" );
     //m_getSN_Step.setRR( &m_getSN_CANRR );
@@ -549,6 +639,11 @@ UIM342AxisInfoCommand::initCmdSteps()
     appendStep( &m_getIEStep_P2 );
     appendStep( &m_getIEStep_P8 );
 
+    appendStep( &m_getQEStep_P0 );
+    appendStep( &m_getQEStep_P1 );
+    appendStep( &m_getQEStep_P2 );
+    appendStep( &m_getQEStep_P3 );
+    appendStep( &m_getQEStep_P4 );
 
     // Indicate the sequence is ready
     setState( CS_STATE_INIT );

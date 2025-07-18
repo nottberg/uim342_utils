@@ -182,6 +182,33 @@ class UIM342GetQuadratureEncoderStep : public CmdStepExecuteCANRR
         uint m_value;
 };
 
+typedef enum UIM342MotorDriverParamID
+{
+    UIM342_MTP_MICROSTEP_RES             = 0,
+    UIM342_MTP_WORKING_CURRENT           = 1,
+    UIM342_MTP_PERCENT_IDLE_OVER_WORKING = 2,
+    UIM342_MTP_DELAY_TO_ENABLE           = 3
+}UIM342_MTP_TYPE_T;
+
+class UIM342GetMotorDriverStep : public CmdStepExecuteCANRR
+{
+    public:
+        UIM342GetMotorDriverStep( UIM342_MTP_TYPE_T paramID, std::string axisID );
+       ~UIM342GetMotorDriverStep();
+
+        virtual CS_RESULT_T setupRequestCANRR( uint targetCANID );
+        virtual CS_RESULT_T parseResponseCANRR();
+
+        virtual void distributeResult();
+
+    private:
+
+        UIM342_MTP_TYPE_T m_paramID;
+        std::string m_axisID;
+
+        uint m_value;
+};
+
 class UIM342AxisInfoCommand : public CmdSequence
 {
     public:
@@ -220,6 +247,10 @@ class UIM342AxisInfoCommand : public CmdSequence
         UIM342GetQuadratureEncoderStep m_getQEStep_P3;
         UIM342GetQuadratureEncoderStep m_getQEStep_P4;
 
+        UIM342GetMotorDriverStep m_getMTStep_P0;
+        UIM342GetMotorDriverStep m_getMTStep_P1;
+        UIM342GetMotorDriverStep m_getMTStep_P2;
+        UIM342GetMotorDriverStep m_getMTStep_P3;
 };
 
 #endif // __UIM342_CMD_H__

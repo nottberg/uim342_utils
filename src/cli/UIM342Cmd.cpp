@@ -552,6 +552,78 @@ UIM342GetQuadratureEncoderStep::distributeResult()
 }
 
 
+
+UIM342GetMotorDriverStep::UIM342GetMotorDriverStep( UIM342_MTP_TYPE_T paramID, std::string axisID )
+{
+    m_paramID = paramID;
+    m_axisID  = axisID;
+}
+
+UIM342GetMotorDriverStep::~UIM342GetMotorDriverStep()
+{
+
+}
+
+CS_RESULT_T
+UIM342GetMotorDriverStep::setupRequestCANRR( uint targetCANID )
+{
+    CANReqRsp *rrObj = getRR();
+
+    rrObj->setTargetID( targetCANID );
+    rrObj->setReqControlWord( 0x90 );
+    rrObj->append8( m_paramID );
+
+    return CS_RESULT_SUCCESS;
+}
+
+CS_RESULT_T
+UIM342GetMotorDriverStep::parseResponseCANRR()
+{
+    uint8_t  PIndex;
+    uint16_t PValue;
+
+    CANReqRsp *rrObj = getRR();
+
+    rrObj->read8(PIndex);
+    rrObj->read16(PValue);
+
+    m_value = PValue;
+
+    return CS_RESULT_SUCCESS;
+}
+
+void
+UIM342GetMotorDriverStep::distributeResult()
+{    
+    char tmpBuf[128];
+
+    printf( "UIM342GetMotorDriverStep::distributeResult - param: %d\n", m_paramID );
+
+    switch( m_paramID )
+    {
+        case UIM342_MTP_MICROSTEP_RES:
+            sprintf( tmpBuf, "%d", m_value );
+            updateAxis( m_axisID, "MT_MicrostepResolution", tmpBuf );
+        break;
+
+        case UIM342_MTP_WORKING_CURRENT:
+            sprintf( tmpBuf, "%d", m_value );
+            updateAxis( m_axisID, "MT_WorkingCurrent", tmpBuf );       
+        break;
+
+        case UIM342_MTP_PERCENT_IDLE_OVER_WORKING:
+            sprintf( tmpBuf, "%d", m_value );
+            updateAxis( m_axisID, "MT_PercentIdleCurrentOverWorkingCurrent", tmpBuf );
+        break;
+
+        case UIM342_MTP_DELAY_TO_ENABLE:
+            sprintf( tmpBuf, "%d", m_value );
+            updateAxis( m_axisID, "MT_DelayAutomaticEnableAfterPowerOn", tmpBuf );
+        break;
+    }
+}
+
+
 UIM342AxisInfoCommand::UIM342AxisInfoCommand( std::string axisID )
 : m_getSN_Step( axisID ),
 m_getModel_Step( axisID ),
@@ -574,7 +646,11 @@ m_getQEStep_P0( UIM342_QEP_LINES_PER_REV, axisID ),
 m_getQEStep_P1( UIM342_QEP_STALL_TOLERANCE, axisID ),
 m_getQEStep_P2( UIM342_QEP_SINGLE_TURN_BITS, axisID ),
 m_getQEStep_P3( UIM342_QEP_BATTERY_STATUS, axisID ),
-m_getQEStep_P4( UIM342_QEP_COUNTS_PER_REV, axisID )
+m_getQEStep_P4( UIM342_QEP_COUNTS_PER_REV, axisID ),
+m_getMTStep_P0( UIM342_MTP_MICROSTEP_RES, axisID ),
+m_getMTStep_P1( UIM342_MTP_WORKING_CURRENT, axisID ),
+m_getMTStep_P2( UIM342_MTP_PERCENT_IDLE_OVER_WORKING, axisID ),
+m_getMTStep_P3( UIM342_MTP_DELAY_TO_ENABLE, axisID )
 {
     m_axisID = axisID;
 }
@@ -613,6 +689,11 @@ UIM342AxisInfoCommand::initCmdSteps()
     m_getQEStep_P3.setParent( this );
     m_getQEStep_P4.setParent( this );
 
+    m_getMTStep_P0.setParent( this );
+    m_getMTStep_P1.setParent( this );
+    m_getMTStep_P2.setParent( this );
+    m_getMTStep_P3.setParent( this );
+
     // Create a CAN request
     //m_getSN_Step.setTargetBus( "cbus0" );
     //m_getSN_Step.setRR( &m_getSN_CANRR );
@@ -644,6 +725,11 @@ UIM342AxisInfoCommand::initCmdSteps()
     appendStep( &m_getQEStep_P2 );
     appendStep( &m_getQEStep_P3 );
     appendStep( &m_getQEStep_P4 );
+
+    appendStep( &m_getMTStep_P0 );
+    appendStep( &m_getMTStep_P1 );
+    appendStep( &m_getMTStep_P2 );
+    appendStep( &m_getMTStep_P3 );
 
     // Indicate the sequence is ready
     setState( CS_STATE_INIT );

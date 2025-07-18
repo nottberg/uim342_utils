@@ -96,13 +96,23 @@ class UIM342GetMotorCANGroupIDStep : public CmdStepExecuteCANRR
         uint m_groupID;
 };
 
+typedef enum UIM342InitialConfigurationParamID
+{
+    UIM342_ICP_MOTOR_DRIVER_ON_POWER = 0,
+    UIM342_ICP_POSITIVE_DIRECTION    = 1,
+    UIM342_ICP_EXEC_USER_ON_POWER    = 2,
+    UIM342_ICP_LOCK_ON_ESTOP         = 3,
+    UIM342_ICP_UNITS_ACDC            = 4,
+    UIM342_ICP_ENCODER_TYPE          = 5,
+    UIM342_ICP_CONTROL_TYPE          = 6,
+    UIM342_ICP_SOFTWARE_LIMIT        = 7
+}UIM342_ICP_TYPE_T;
 
-
-class UIM342GetMotorICMotorDrivePowerOnStep : public CmdStepExecuteCANRR
+class UIM342GetInitialConfigurationStep : public CmdStepExecuteCANRR
 {
     public:
-        UIM342GetMotorICMotorDrivePowerOnStep( std::string axisID );
-       ~UIM342GetMotorICMotorDrivePowerOnStep();
+        UIM342GetInitialConfigurationStep( UIM342_ICP_TYPE_T paramID, std::string axisID );
+       ~UIM342GetInitialConfigurationStep();
 
         virtual CS_RESULT_T setupRequestCANRR( uint targetCANID );
         virtual CS_RESULT_T parseResponseCANRR();
@@ -111,16 +121,25 @@ class UIM342GetMotorICMotorDrivePowerOnStep : public CmdStepExecuteCANRR
 
     private:
 
+        UIM342_ICP_TYPE_T m_paramID;
         std::string m_axisID;
 
-        uint m_groupID;
+        uint m_value;
 };
 
-class UIM342GetMotorICPositiveDirectionStep : public CmdStepExecuteCANRR
+typedef enum UIM342InformationEnableParamID
+{
+    UIM342_IEP_IN1_CHANGE_NOTIFY = 0,
+    UIM342_IEP_IN2_CHANGE_NOTIFY = 1,
+    UIM342_IEP_IN3_CHANGE_NOTIFY = 2,
+    UIM342_IEP_PTP_FINISH_NOTIFY = 8
+}UIM342_IEP_TYPE_T;
+
+class UIM342GetInformationEnableStep : public CmdStepExecuteCANRR
 {
     public:
-        UIM342GetMotorICPositiveDirectionStep( std::string axisID );
-       ~UIM342GetMotorICPositiveDirectionStep();
+        UIM342GetInformationEnableStep( UIM342_IEP_TYPE_T paramID, std::string axisID );
+       ~UIM342GetInformationEnableStep();
 
         virtual CS_RESULT_T setupRequestCANRR( uint targetCANID );
         virtual CS_RESULT_T parseResponseCANRR();
@@ -129,117 +148,10 @@ class UIM342GetMotorICPositiveDirectionStep : public CmdStepExecuteCANRR
 
     private:
 
+        UIM342_IEP_TYPE_T m_paramID;
         std::string m_axisID;
 
-        uint m_groupID;
-};
-
-class UIM342GetMotorICExecuteUserPowerOnStep : public CmdStepExecuteCANRR
-{
-    public:
-        UIM342GetMotorICExecuteUserPowerOnStep( std::string axisID );
-       ~UIM342GetMotorICExecuteUserPowerOnStep();
-
-        virtual CS_RESULT_T setupRequestCANRR( uint targetCANID );
-        virtual CS_RESULT_T parseResponseCANRR();
-
-        virtual void distributeResult();
-
-    private:
-
-        std::string m_axisID;
-
-        uint m_groupID;
-};
-
-class UIM342GetMotorICLockOnEStopStep : public CmdStepExecuteCANRR
-{
-    public:
-        UIM342GetMotorICLockOnEStopStep( std::string axisID );
-       ~UIM342GetMotorICLockOnEStopStep();
-
-        virtual CS_RESULT_T setupRequestCANRR( uint targetCANID );
-        virtual CS_RESULT_T parseResponseCANRR();
-
-        virtual void distributeResult();
-
-    private:
-
-        std::string m_axisID;
-
-        uint m_groupID;
-};
-
-class UIM342GetMotorICUnitsACDCStep : public CmdStepExecuteCANRR
-{
-    public:
-        UIM342GetMotorICUnitsACDCStep( std::string axisID );
-       ~UIM342GetMotorICUnitsACDCStep();
-
-        virtual CS_RESULT_T setupRequestCANRR( uint targetCANID );
-        virtual CS_RESULT_T parseResponseCANRR();
-
-        virtual void distributeResult();
-
-    private:
-
-        std::string m_axisID;
-
-        uint m_groupID;
-};
-
-class UIM342GetMotorICEncoderTypeStep : public CmdStepExecuteCANRR
-{
-    public:
-        UIM342GetMotorICEncoderTypeStep( std::string axisID );
-       ~UIM342GetMotorICEncoderTypeStep();
-
-        virtual CS_RESULT_T setupRequestCANRR( uint targetCANID );
-        virtual CS_RESULT_T parseResponseCANRR();
-
-        virtual void distributeResult();
-
-    private:
-
-        std::string m_axisID;
-
-        uint m_groupID;
-};
-
-class UIM342GetMotorICClosedLoopStep : public CmdStepExecuteCANRR
-{
-    public:
-        UIM342GetMotorICClosedLoopStep( std::string axisID );
-       ~UIM342GetMotorICClosedLoopStep();
-
-        virtual CS_RESULT_T setupRequestCANRR( uint targetCANID );
-        virtual CS_RESULT_T parseResponseCANRR();
-
-        virtual void distributeResult();
-
-    private:
-
-        std::string m_axisID;
-
-        uint m_groupID;
-};
-
-class UIM342GetMotorICSoftwareLimitStep : public CmdStepExecuteCANRR
-{
-    public:
-        UIM342GetMotorICSoftwareLimitStep( std::string axisID );
-       ~UIM342GetMotorICSoftwareLimitStep();
-
-        virtual CS_RESULT_T setupRequestCANRR( uint targetCANID );
-        virtual CS_RESULT_T parseResponseCANRR();
-
-        virtual void distributeResult();
-
-    private:
-
-        std::string m_axisID;
-
-        uint m_groupID;
+        uint m_value;
 };
 
 class UIM342AxisInfoCommand : public CmdSequence
@@ -259,6 +171,21 @@ class UIM342AxisInfoCommand : public CmdSequence
         UIM342GetMotorCANBitrateStep m_getCANBitrate_Step;
         UIM342GetMotorCANNodeIDStep  m_getCANNodeID_Step;
         UIM342GetMotorCANGroupIDStep m_getCANGroupID_Step;
+
+        UIM342GetInitialConfigurationStep m_getICStep_P0;
+        UIM342GetInitialConfigurationStep m_getICStep_P1;
+        UIM342GetInitialConfigurationStep m_getICStep_P2;
+        UIM342GetInitialConfigurationStep m_getICStep_P3;
+        UIM342GetInitialConfigurationStep m_getICStep_P4;
+        UIM342GetInitialConfigurationStep m_getICStep_P5;
+        UIM342GetInitialConfigurationStep m_getICStep_P6;
+        UIM342GetInitialConfigurationStep m_getICStep_P7;
+
+        UIM342GetInformationEnableStep m_getIEStep_P0;
+        UIM342GetInformationEnableStep m_getIEStep_P1;
+        UIM342GetInformationEnableStep m_getIEStep_P2;
+        UIM342GetInformationEnableStep m_getIEStep_P8;
+
 };
 
 #endif // __UIM342_CMD_H__

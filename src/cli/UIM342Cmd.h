@@ -209,6 +209,60 @@ class UIM342GetMotorDriverStep : public CmdStepExecuteCANRR
         uint m_value;
 };
 
+class UIM342GetMTStateStep : public CmdStepExecuteCANRR
+{
+    public:
+        UIM342GetMTStateStep( std::string axisID );
+       ~UIM342GetMTStateStep();
+
+        virtual CS_RESULT_T setupRequestCANRR( uint targetCANID );
+        virtual CS_RESULT_T parseResponseCANRR();
+
+        virtual void distributeResult();
+
+    private:
+
+        std::string m_axisID;
+
+        uint m_value;
+};
+
+class UIM342GetRelativePositionStep : public CmdStepExecuteCANRR
+{
+    public:
+        UIM342GetRelativePositionStep( std::string axisID );
+       ~UIM342GetRelativePositionStep();
+
+        virtual CS_RESULT_T setupRequestCANRR( uint targetCANID );
+        virtual CS_RESULT_T parseResponseCANRR();
+
+        virtual void distributeResult();
+
+    private:
+
+        std::string m_axisID;
+
+        uint m_value;
+};
+
+class UIM342GetAbsolutePositionStep : public CmdStepExecuteCANRR
+{
+    public:
+        UIM342GetAbsolutePositionStep( std::string axisID );
+       ~UIM342GetAbsolutePositionStep();
+
+        virtual CS_RESULT_T setupRequestCANRR( uint targetCANID );
+        virtual CS_RESULT_T parseResponseCANRR();
+
+        virtual void distributeResult();
+
+    private:
+
+        std::string m_axisID;
+
+        uint m_value;
+};
+
 class UIM342AxisInfoCommand : public CmdSequence
 {
     public:
@@ -251,6 +305,11 @@ class UIM342AxisInfoCommand : public CmdSequence
         UIM342GetMotorDriverStep m_getMTStep_P1;
         UIM342GetMotorDriverStep m_getMTStep_P2;
         UIM342GetMotorDriverStep m_getMTStep_P3;
+
+        UIM342GetMTStateStep m_getMTStateStep;
+
+        UIM342GetRelativePositionStep m_getRelPosStep;
+        UIM342GetAbsolutePositionStep m_getAbsPosStep;
 };
 
 #endif // __UIM342_CMD_H__

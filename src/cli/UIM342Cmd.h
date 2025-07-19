@@ -3,7 +3,6 @@
 
 #include "UIM342Machines.h"
 #include "CmdSequence.h"
-#include "UIM342Msg.h"
 
 class UIM342GetMotorSNStep : public CmdStepExecuteCANRR
 {

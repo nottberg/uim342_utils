@@ -25,7 +25,9 @@ typedef enum AppResultCodes
 
 typedef enum AppCommandCodes
 {
-    APP_CMD_AXIS_INFO
+    APP_CMD_NOTSET,
+    APP_CMD_AXIS_INFO,
+    APP_CMD_SINGLE_AXIS_MOTION
 }APP_CMD_CODES_T;
 
 typedef struct AppCommandMapStruct 
@@ -36,7 +38,8 @@ typedef struct AppCommandMapStruct
 
 static APP_CMDMAP_ENTRY_T gCommandMap[] =
 {
-    { "axisInfo", APP_CMD_AXIS_INFO }
+    { "axisInfo", APP_CMD_AXIS_INFO },
+    { "axisMove", APP_CMD_SINGLE_AXIS_MOTION }
 };
 
 
@@ -47,6 +50,8 @@ class App : public CNCMachineEventsCB
         ~App();
 
         APP_RESULT_T setCommand( std::string cmd );
+
+        APP_RESULT_T setAxisID( std::string id );
 
         APP_RESULT_T commandValid();
 
@@ -59,7 +64,9 @@ class App : public CNCMachineEventsCB
         virtual void sequenceComplete();
 
     private:
-        std::string m_cmd;
+        APP_CMD_CODES_T m_cmd;
+
+        CmdSeqParameters m_cmdParams;
 
         EventLoop m_eventLoop;
 
@@ -68,7 +75,8 @@ class App : public CNCMachineEventsCB
 
 App::App()
 {
-    //m_curSeq     = NULL;
+    m_cmd = APP_CMD_NOTSET;
+    
     m_curMachine = NULL;
 }
 
@@ -94,9 +102,16 @@ App::setCommand( std::string cmdStr )
 }
 
 APP_RESULT_T
+App::setAxisID( std::string id )
+{
+    m_cmdParams.setValue( "axisID", id );
+    return APP_RESULT_SUCCESS;
+}
+
+APP_RESULT_T
 App::commandValid()
 {
-    if( m_cmd.empty() == true )
+    if( m_cmd == APP_CMD_NOTSET )
         return APP_RESULT_FAILURE;
 
     return APP_RESULT_SUCCESS;
@@ -125,11 +140,18 @@ App::init()
 APP_RESULT_T
 App::execute()
 {
-    CmdSeqParameters seqParam;
+    switch( m_cmd )
+    {
+        case APP_CMD_AXIS_INFO:
+            m_curMachine->startSequence( "motorInfoX", &m_cmdParams );
 
-    m_curMachine->startSequence( "motorInfoX", &seqParam );
+            m_eventLoop.run();
+        break;
 
-    m_eventLoop.run();
+        case APP_CMD_SINGLE_AXIS_MOTION:
+
+        break;
+    }
 
     return APP_RESULT_SUCCESS;
 }
@@ -246,6 +268,8 @@ main( int argc, char **argv )
             printf ("%s ", argv[optind++]);
         putchar ('\n');
     }
+
+    context.setAxisID("X");
 
     context.init();
 

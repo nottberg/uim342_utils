@@ -67,6 +67,25 @@ class CSHardwareInterface
 //
 //};
 
+class CmdSeqParameters
+{
+    public:
+        CmdSeqParameters();
+       ~CmdSeqParameters();
+
+        CS_RESULT_T setValue( std::string paramID, std::string value );
+
+        CS_RESULT_T lookup( std::string paramID, std::string &value );
+
+        CS_RESULT_T setCANID( uint value );
+
+        CS_RESULT_T lookupCANID( uint &value );
+
+    private:
+
+        std::map< std::string, std::string > m_pMap;
+};
+
 class CmdStep
 {
     public:
@@ -84,11 +103,11 @@ class CmdStep
 
         CS_RESULT_T getTargetAxisID( std::string &id );
 
-        virtual CS_STEPACTION_T startStep() = 0;
+        virtual CS_STEPACTION_T startStep( CmdSeqParameters *params ) = 0;
 
-        virtual CS_STEPACTION_T continueStep() = 0;
+        virtual CS_STEPACTION_T continueStep( CmdSeqParameters *params ) = 0;
 
-        virtual void distributeResult() = 0;
+        virtual void distributeResult( CmdSeqParameters *params ) = 0;
 
         virtual void closeout();
         
@@ -110,38 +129,32 @@ class CmdStepExecuteCANRR : public CmdStep
         //void setTargetBus( std::string busID );
         //void setRR( CANReqRsp *rrObj );
 
-        CANReqRsp *getRR();
+        //CANReqRsp *getRR();
 
         CS_RESULT_T initCANRR();
 
-        CS_STEPACTION_T completeCANRR();
+        CS_STEPACTION_T setupCANRequest( CmdSeqParameters *params, CANReqRsp *rrObj );
 
-        virtual CS_STEPACTION_T startStep();
+        CS_STEPACTION_T completeCANResponse( CmdSeqParameters *params, CANReqRsp *rrObj );
 
-        virtual CS_STEPACTION_T continueStep();
+        virtual CS_STEPACTION_T startStep( CmdSeqParameters *params );
 
-        virtual void distributeResult();
+        virtual CS_STEPACTION_T continueStep( CmdSeqParameters *params );
 
-    private:
-
-        virtual CS_RESULT_T setupRequestCANRR( uint targetCANID ) = 0;
-
-        virtual CS_RESULT_T parseResponseCANRR() = 0;
-
-        CANReqRsp    m_RR;
-
-        std::string  m_busID;
-};
-
-class CmdSeqParameters
-{
-    public:
-        CmdSeqParameters();
-       ~CmdSeqParameters();
+        virtual void distributeResult( CmdSeqParameters *params );
 
     private:
 
+        virtual CS_RESULT_T setupRequestCANRR( CmdSeqParameters *params,  CANReqRsp *rrObj ) = 0;
+
+        virtual CS_RESULT_T parseResponseCANRR( CmdSeqParameters *params,  CANReqRsp *rrObj ) = 0;
+
+        //CANReqRsp    m_RR;
+
+        //std::string  m_busID;
 };
+
+
 
 class CmdSequence
 {
@@ -167,11 +180,14 @@ class CmdSequence
 
         virtual CS_RESULT_T setupBeforeExecution( CmdSeqParameters *param );
 
+    
         virtual void StepCompleteNotify();
 
-        CS_RESULT_T getCANRR( CANReqRsp **rrObj );
+        //CS_RESULT_T getCANRR( CANReqRsp **rrObj );
 
-        CS_ACTION_T completeCANRR();
+        CS_ACTION_T setupCANRequest( CANReqRsp *rrObj );
+
+        CS_ACTION_T completeCANResponse( CANReqRsp *rrObj );
 
         bool hasError();
 
@@ -180,6 +196,8 @@ class CmdSequence
         void updateAxis( std::string axisID, std::string name, std::string value );
 
     private:
+
+        CmdSeqParameters *m_cmdParams;
 
         CS_STATE_T m_state;
 

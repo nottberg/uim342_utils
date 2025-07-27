@@ -31,7 +31,7 @@ class CANReqRsp;
 class CANReqRspEvents
 {
     public:
-        virtual void completeCANRR( CANReqRsp *rrObj ) = 0;
+        virtual void completeCANResponse( CANReqRsp *rrObj ) = 0;
 };
 
 class CANReqRsp
@@ -108,6 +108,8 @@ class CANBus
         CANRR_RESULT_T open();
 
         CANRR_RESULT_T receiveFrame();
+
+        CANReqRsp *allocateReqRspObj( uint targetID );
 
         CANRR_RESULT_T sendFrame( CANReqRsp *rrObj );
 

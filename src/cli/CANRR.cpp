@@ -279,7 +279,7 @@ CANReqRsp::finish()
 
     if( m_eventCB )
     {
-        m_eventCB->completeCANRR( this );
+        m_eventCB->completeCANResponse( this );
     }
     
 }
@@ -373,6 +373,16 @@ CANBus::receiveFrame()
     }
 
     return CANRR_RESULT_SUCCESS;
+}
+
+CANReqRsp*
+CANBus::allocateReqRspObj( uint targetID )
+{
+    CANReqRsp *rtnPtr = new CANReqRsp;
+    
+    rtnPtr->setTargetID( targetID );
+
+    return rtnPtr;
 }
 
 CANRR_RESULT_T

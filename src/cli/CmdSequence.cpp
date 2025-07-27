@@ -3,6 +3,64 @@
 
 #include "CmdSequence.h"
 
+CmdSeqParameters::CmdSeqParameters()
+{
+
+}
+
+CmdSeqParameters::~CmdSeqParameters()
+{
+
+}
+
+CS_RESULT_T
+CmdSeqParameters::setValue( std::string paramID, std::string value )
+{
+    m_pMap.insert( std::pair< std::string, std::string >( paramID, value ) );
+    return CS_RESULT_SUCCESS;
+}
+
+CS_RESULT_T
+CmdSeqParameters::lookup( std::string paramID, std::string &value )
+{
+    std::map< std::string, std::string >::iterator it = m_pMap.find( paramID );
+
+    if( it == m_pMap.end() )
+        return CS_RESULT_FAILURE;
+
+    value = it->second;
+
+    return CS_RESULT_SUCCESS;
+}        
+
+CS_RESULT_T
+CmdSeqParameters::setCANID( uint value )
+{
+    char tmpBuf[64];
+
+    sprintf( tmpBuf, "%d", value );
+
+    return setValue( "canID", tmpBuf );
+}
+
+CS_RESULT_T
+CmdSeqParameters::lookupCANID( uint &value )
+{
+    std::string strVal;
+    uint rtnValue;
+
+    if( lookup( "canID", strVal ) != CS_RESULT_SUCCESS )
+        return CS_RESULT_FAILURE;
+
+    sscanf( strVal.c_str(), "%d", &rtnValue );
+
+    value = rtnValue;
+    
+    return CS_RESULT_SUCCESS;
+}
+
+
+
 CmdStep::CmdStep()
 {
     m_parent = NULL;
@@ -102,11 +160,11 @@ CmdStepExecuteCANRR::setRR( CANReqRsp *rrObj )
     m_RR = rrObj;
 }
 */
-CANReqRsp*
-CmdStepExecuteCANRR::getRR()
-{
-    return &m_RR;
-}
+//CANReqRsp*
+//CmdStepExecuteCANRR::getRR()
+//{
+//    return &m_RR;
+//}
 /*
 CS_STEPACTION_T
 CmdStepExecuteCANRR::completeRR( CANReqRsp *rrObj )
@@ -133,14 +191,26 @@ CmdStepExecuteCANRR::initCANRR()
 }
 
 CS_STEPACTION_T
-CmdStepExecuteCANRR::completeCANRR()
+CmdStepExecuteCANRR::setupCANRequest( CmdSeqParameters *params, CANReqRsp *rrObj )
+{
+    printf( "CmdStepExecuteCANRR::setupCANRequest - begin\n" );
+
+    setupRequestCANRR( params, rrObj );
+
+    setState(CS_STEPSTATE_WAITRSP);
+
+    return CS_STEPACTION_WAIT;
+}
+
+CS_STEPACTION_T
+CmdStepExecuteCANRR::completeCANResponse( CmdSeqParameters *params, CANReqRsp *rrObj )
 {
     //if( m_RR != rrObj )
     //    return CS_STEPACTION_ERROR;
 
-    printf( "CmdStepExecuteCANRR::completeCANRR: 0x%x\n", this );
+    printf( "CmdStepExecuteCANRR::completeCANResponse: 0x%x\n", this );
 
-    parseResponseCANRR();
+    parseResponseCANRR( params, rrObj );
     //debugPrint();
 
     setState(CS_STEPSTATE_POST_PROCESS);
@@ -149,11 +219,11 @@ CmdStepExecuteCANRR::completeCANRR()
 }
 
 CS_STEPACTION_T
-CmdStepExecuteCANRR::startStep()
+CmdStepExecuteCANRR::startStep( CmdSeqParameters *params )
 {
     printf( "CmdStepExecuteCANRR::startStep - begin\n" );
 
-    setupRequestCANRR( 5 );
+    //setupRequestCANRR( params );
 
     setState(CS_STEPSTATE_WAITRSP);
 
@@ -161,7 +231,7 @@ CmdStepExecuteCANRR::startStep()
 }
 
 CS_STEPACTION_T
-CmdStepExecuteCANRR::continueStep()
+CmdStepExecuteCANRR::continueStep( CmdSeqParameters *params )
 {
     printf( "CmdStepExecuteCANRR::continueStep - state: %d\n", getState() );
 
@@ -181,7 +251,7 @@ CmdStepExecuteCANRR::continueStep()
         case CS_STEPSTATE_POST_PROCESS:
             printf( "CmdStepExecuteCANRR::continueStep - post process\n" );
 
-            distributeResult();
+            distributeResult( params );
 
             setState( CS_STEPSTATE_DONE );
             return CS_STEPACTION_DONE;
@@ -196,19 +266,9 @@ CmdStepExecuteCANRR::continueStep()
 }
 
 void
-CmdStepExecuteCANRR::distributeResult()
+CmdStepExecuteCANRR::distributeResult( CmdSeqParameters *params )
 {
     printf( "CmdStepExecuteCANRR::distributeResult()\n" );
-}
-
-CmdSeqParameters::CmdSeqParameters()
-{
-
-}
-
-CmdSeqParameters::~CmdSeqParameters()
-{
-
 }
 
 CmdSequence::CmdSequence()
@@ -274,6 +334,8 @@ CmdSequence::setupBeforeExecution( CmdSeqParameters *param )
 {
     printf( "CmdSequence::setupBeforeExecution\n" );
 
+    m_cmdParams = param;
+
     m_curStep = NULL;
     m_curStepIndex = 0;
 
@@ -314,7 +376,7 @@ CmdSequence::processPendingWork()
 
             printf( "CmdSequence::start step: 0x%x\n", m_curStep );
 
-            switch( m_curStep->startStep() )
+            switch( m_curStep->startStep( m_cmdParams ) )
             {
                 case CS_STEPACTION_CANREQ:
                     return CS_ACTION_CANREQ;
@@ -333,7 +395,7 @@ CmdSequence::processPendingWork()
 
         case CS_STATE_EXECUTING:
             printf("Sequence Executing\n");
-            switch( m_curStep->continueStep() )
+            switch( m_curStep->continueStep( m_cmdParams ) )
             {
                 case CS_STEPACTION_DONE:
                     setState( CS_STATE_NEXTSTEP );
@@ -366,7 +428,7 @@ CmdSequence::processPendingWork()
 
             printf( "CmdSequence::continue start step: 0x%x\n", m_curStep );
 
-            switch( m_curStep->startStep() )
+            switch( m_curStep->startStep( m_cmdParams ) )
             {
                 case CS_STEPACTION_CANREQ:
                     return CS_ACTION_CANREQ;
@@ -399,6 +461,7 @@ CmdSequence::getStepTargetAxisID( std::string &id )
     return m_curStep->getTargetAxisID( id );
 }
 
+/*
 CS_RESULT_T
 CmdSequence::getCANRR( CANReqRsp **rrObj )
 {
@@ -409,16 +472,38 @@ CmdSequence::getCANRR( CANReqRsp **rrObj )
 
     return CS_RESULT_SUCCESS;
 }
+*/
 
 CS_ACTION_T
-CmdSequence::completeCANRR()
+CmdSequence::setupCANRequest( CANReqRsp *rrObj )
 {
     if( m_curStep == NULL )
         return CS_ACTION_ERROR;
 
-    printf( "CmdSequence::completeStepCANRR: 0x%x\n", m_curStep );
+    printf( "CmdSequence::setupCANRequest: 0x%x\n", m_curStep );
 
-    switch( ((CmdStepExecuteCANRR*) m_curStep)->completeCANRR() )
+    switch( ((CmdStepExecuteCANRR*) m_curStep)->setupCANRequest( m_cmdParams, rrObj ) )
+    {
+        case CS_STEPACTION_START_POST:
+            return CS_ACTION_SCHEDULE;
+        break;
+
+        case CS_STEPACTION_ERROR:
+        break;
+    }
+
+    return CS_ACTION_ERROR;
+}
+
+CS_ACTION_T
+CmdSequence::completeCANResponse( CANReqRsp *rrObj )
+{
+    if( m_curStep == NULL )
+        return CS_ACTION_ERROR;
+
+    printf( "CmdSequence::completeCANResponse: 0x%x\n", m_curStep );
+
+    switch( ((CmdStepExecuteCANRR*) m_curStep)->completeCANResponse( m_cmdParams, rrObj ) )
     {
         case CS_STEPACTION_START_POST:
             return CS_ACTION_SCHEDULE;

@@ -2,38 +2,34 @@
 cansend can0 0428008C#
 
 
-cansend can0 04280090#01
+cansend can0 04280090#01 - MT Get Working Current?
 
-cansend can0 04280095#01
+cansend can0 04280095#01 - Motor Driver ON
 
-cansend can0 04280095#
+cansend can0 04280095# - Read Motor Driver State
 
-cansend can0 0428009F#
+cansend can0 0428009F# - Read Relative Position
 
-cansend can0 0428009F#e8.03.00.00
+cansend can0 0428009F#e8.03.00.00 - Add a 1000 to desired relative position
 
-cansend can0 0428009E#
+cansend can0 0428009E# - Read Speed Setting
 
-cansend can0 0428009E#e8.03.00.00
+cansend can0 0428009E#e8.03.00.00 - Add 1000 to desired speed
 
-cansend can0 04280096#
+cansend can0 04280096# - Begin Motion
 
-cansend can0 0428009F#e8.03.00.00
+cansend can0 0428009F#e8.03.00.00 - Add 1000 Relative Position
 
-cansend can0 0428009E#e8.03.00.00
+cansend can0 0428009E#e8.03.00.00 - Add 1000 Speed
 
-cansend can0 04280096#
+cansend can0 04280096# - Begin Motion
 
-cansend can0 0428009F#e8.03.00.00
+cansend can0 0428009F#e8.03.00.00 - Add Position
 
-cansend can0 04280096#
+cansend can0 04280096# - Begin Motion
 
-cansend can0 0428009F#e8.03.00.00
+cansend can0 0428009F#e8.03.00.00 - Add Position
 
-cansend can0 04280096#
+cansend can0 04280096# - Begin Motion
 
-cansend can0 0428009F#18.FC.FF.FF
-
-cansend can0 04280096#
-
-cansend can0 042800A0#
+cansend can0 0428009F#18.FC.FF.FF - Sub Position

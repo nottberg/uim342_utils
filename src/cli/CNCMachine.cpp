@@ -184,39 +184,37 @@ CNCMachine::getCANBusForAxis( std::string id, CANBus **busPtr )
 }
 
 void
-CNCMachine::startCANRR()
+CNCMachine::startCANRequest()
 {
     std::string  axisID;
     CANBus      *busPtr;
     CANReqRsp   *rrObj;
 
-    printf( "CNCMachine::startCANRR - begin\n" );
+    printf( "CNCMachine::startCANRequest - begin\n" );
 
     m_curSeq->getStepTargetAxisID( axisID ); 
 
-    printf( "CNCMachine::startCANRR - axisID: %s\n", axisID.c_str() );
+    printf( "CNCMachine::startCANRequest - axisID: %s\n", axisID.c_str() );
 
     getCANBusForAxis( axisID, &busPtr );
 
-    printf( "CNCMachine::startCANRR - bus aquired\n" );
+    printf( "CNCMachine::startCANRequest - bus aquired\n" );
 
-    m_curSeq->getCANRR( &rrObj );
-
-    printf( "CNCMachine::startCANRR - 1\n" );
-
+    //m_curSeq->getCANRR( &rrObj );
+    rrObj = busPtr->allocateReqRspObj( 5 );
     rrObj->setEventsCB( this );
 
-    printf( "CNCMachine::startCANRR - 2\n" );
+    m_curSeq->setupCANRequest( rrObj );
 
     busPtr->sendFrame( rrObj );
 
-    printf( "CNCMachine::startCANRR - end\n" );
+    printf( "CNCMachine::startCANRequest - end\n" );
 }
 
 void
-CNCMachine::completeCANRR( CANReqRsp *rrObj )
+CNCMachine::completeCANResponse( CANReqRsp *rrObj )
 {
-    printf("CNCMachine::completeCANRR - begin\n");
+    printf("CNCMachine::completeCANResponse - begin\n");
 
     // If there is a sequence running, let it know a request has finished.
     if( m_curSeq == NULL )
@@ -225,7 +223,7 @@ CNCMachine::completeCANRR( CANReqRsp *rrObj )
         return;
     }
 
-    switch( m_curSeq->completeCANRR() )
+    switch( m_curSeq->completeCANResponse( rrObj ) )
     {
         case CS_ACTION_SCHEDULE:
             signalPendingWork();
@@ -337,7 +335,7 @@ CNCMachine::eventFD( int fd )
             switch( m_curSeq->processPendingWork() )
             {
                 case CS_ACTION_CANREQ:
-                    startCANRR();
+                    startCANRequest();
                 break;
 
                 case CS_ACTION_WAIT:

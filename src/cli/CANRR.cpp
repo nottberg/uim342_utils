@@ -15,7 +15,7 @@
 
 CANReqRsp::CANReqRsp()
 {
-    printf( "CANReqRsp::CANReqRsp\n" );
+    //printf( "CANReqRsp::CANReqRsp\n" );
 
     m_reqConsumerID  = 5;
     m_reqCtrlWord    = 0;
@@ -57,7 +57,7 @@ CANReqRsp::setTargetID( uint id )
 uint
 CANReqRsp::getReqConsumerID()
 {
-    printf( "CANReqRsp::getReqConsumerID: %d", m_reqConsumerID );
+    //printf( "CANReqRsp::getReqConsumerID: %d\n", m_reqConsumerID );
     return m_reqConsumerID;
 }
 
@@ -153,9 +153,12 @@ CANRR_RESULT_T
 CANReqRsp::read32( uint32_t &value )
 {
     if( (m_rspDataReadIndex + 4) > m_rspDataLen )
+    {
+        printf( "ERROR: over read 32\n" );
         return CANRR_RESULT_FAILURE;
+    }
 
-    value |= m_rspData[m_rspDataReadIndex];
+    value = m_rspData[m_rspDataReadIndex];
     m_rspDataReadIndex += 1;
     value |= m_rspData[m_rspDataReadIndex] << 8;
     m_rspDataReadIndex += 1;
@@ -171,9 +174,12 @@ CANRR_RESULT_T
 CANReqRsp::read16( uint16_t &value )
 {
     if( (m_rspDataReadIndex + 2) > m_rspDataLen )
+    {
+        printf( "ERROR: over read 16\n" );
         return CANRR_RESULT_FAILURE;
+    }
 
-    value |= m_rspData[m_rspDataReadIndex];
+    value = m_rspData[m_rspDataReadIndex];
     m_rspDataReadIndex += 1;
     value |= m_rspData[m_rspDataReadIndex] << 8;
     m_rspDataReadIndex += 1;
@@ -196,7 +202,9 @@ CANReqRsp::read8( uint8_t &value )
 CANRR_RESULT_T
 CANReqRsp::processResponse( struct can_frame *framePtr )
 {
-    printf("Process Response\n");
+    //printf("Process Response\n");
+
+    printf( "processResponse - canid: 0x%x, dlc: %d, data0: 0x%x data1: 0x%x\n", framePtr->can_id, framePtr->can_dlc, framePtr->data[0], framePtr->data[1] );
 
     m_rspProducerID = ( (framePtr->can_id & 0x1f000000) >> 24 ) | ( ( framePtr->can_id & 0x30000 ) >> (16 - 5) );
     m_rspConsumerID = ( (framePtr->can_id & 0xf80000) >> 19 ) | ( ( framePtr->can_id & 0xc000 ) >> (14 - 5) );
@@ -217,7 +225,7 @@ CANReqRsp::processResponse( struct can_frame *framePtr )
 void
 CANReqRsp::parseResponse()
 {
-    printf("CANReqRsp::parseResponse\n");
+    //printf("CANReqRsp::parseResponse\n");
     return;
 }
 
@@ -230,31 +238,31 @@ CANReqRsp::getNextAction()
 CANRR_RESULT_T
 CANReqRsp::getFrameToSend( uint producerID, struct can_frame &frame, uint &frameSize )
 {
-    printf( "getFrameToSend - this: 0x%x, producerID: %d\n", this, producerID );
+    //printf( "getFrameToSend - this: 0x%x, producerID: %d\n", this, producerID );
 
     frame.can_id  = CAN_EFF_FLAG;
 
     frame.can_id |= (( producerID & 0x1F ) << 24 );
     frame.can_id |= ((( producerID & 0x20 ) >> 4 ) << 16 );
 
-    printf( "getFrameToSend - 1\n" );
+    //printf( "getFrameToSend - 1\n" );
 
     frame.can_id |= (( getReqConsumerID() & 0x1F ) << 19 );
     frame.can_id |= ((( getReqConsumerID() & 0x20 ) << 4 ) << 14 );
 
-    printf( "getFrameToSend - 2\n" );
+    //printf( "getFrameToSend - 2\n" );
 
     frame.can_id |= ( getReqControlWord() & 0xFF );
 
-    printf( "getFrameToSend - 3\n" );
+    //printf( "getFrameToSend - 3\n" );
 
 	frame.can_dlc = getReqDataLength();
 
     if( frame.can_dlc > 0 )
         getReqData( frame.data );
 
-    printf( "getFrameToSend - canID: 0x%x\n", frame.can_id );
-    printf( "getFrameToSend -  dLen: %d\n", frame.can_dlc );
+    //printf( "getFrameToSend - canID: 0x%x\n", frame.can_id );
+    //printf( "getFrameToSend -  dLen: %d\n", frame.can_dlc );
 
     frameSize = sizeof(frame);
 
@@ -275,7 +283,7 @@ CANReqRsp::debugPrint()
 void
 CANReqRsp::finish()
 {
-    printf( "CANReqRsp::finish\n" );
+    //printf( "CANReqRsp::finish\n" );
 
     if( m_eventCB )
     {
@@ -385,13 +393,19 @@ CANBus::allocateReqRspObj( uint targetID )
     return rtnPtr;
 }
 
+void
+CANBus::freeReqRspObj( CANReqRsp *rrObj )
+{
+    delete rrObj;
+}
+
 CANRR_RESULT_T
 CANBus::sendFrame( CANReqRsp *rrObj )
 {
     struct can_frame frame;
     uint frameSize;
 
-    printf( "CANBus::sendFrame - start: 0x%x\n", rrObj );
+    //printf( "CANBus::sendFrame - start: 0x%x\n", rrObj );
 
     // Remember the active command
     m_curRR = rrObj;
@@ -399,7 +413,7 @@ CANBus::sendFrame( CANReqRsp *rrObj )
     // Get the frame
     m_curRR->getFrameToSend( m_producerID, frame, frameSize );
 
-    printf( "canid: 0x%x, dlc: %d, data0: 0x%x, len: %d\n", frame.can_id, frame.can_dlc, frame.data[0], frameSize );
+    printf( "sendFrame - canid: 0x%x, dlc: %d, data0: 0x%x, len: %d\n", frame.can_id, frame.can_dlc, frame.data[0], frameSize );
 
     if( write( m_busFD, &frame, frameSize ) != frameSize )
     {
@@ -407,7 +421,7 @@ CANBus::sendFrame( CANReqRsp *rrObj )
 	    return CANRR_RESULT_FAILURE;
 	}
 
-    printf( "frameSent\n" );
+    //printf( "frameSent\n" );
 
     return CANRR_RESULT_SUCCESS;
 }

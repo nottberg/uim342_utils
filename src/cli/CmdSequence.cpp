@@ -125,13 +125,13 @@ CmdStep::getTargetAxisID( std::string &id )
 void
 CmdStep::closeout()
 {
-    printf( "CmdStep::closeout\n" );
+    //printf( "CmdStep::closeout\n" );
 }
 
 void
 CmdStep::updateAxis( std::string axisID, std::string name, std::string value )
 {
-    printf( "CmdStep::updateAxis - axisID: %s,  name: %s,  value: %s\n", axisID.c_str(), name.c_str(), value.c_str() );
+    //printf( "CmdStep::updateAxis - axisID: %s,  name: %s,  value: %s\n", axisID.c_str(), name.c_str(), value.c_str() );
 
     if( m_parent )
         m_parent->updateAxis( axisID, name, value );
@@ -185,7 +185,7 @@ CmdStepExecuteCANRR::completeRR( CANReqRsp *rrObj )
 CS_RESULT_T
 CmdStepExecuteCANRR::initCANRR()
 {
-    printf( "CmdStepExecuteCANRR::initCANRR: 0x%x\n", this );
+    //printf( "CmdStepExecuteCANRR::initCANRR: 0x%x\n", this );
 
     return CS_RESULT_SUCCESS;
 }
@@ -193,7 +193,7 @@ CmdStepExecuteCANRR::initCANRR()
 CS_STEPACTION_T
 CmdStepExecuteCANRR::setupCANRequest( CmdSeqParameters *params, CANReqRsp *rrObj )
 {
-    printf( "CmdStepExecuteCANRR::setupCANRequest - begin\n" );
+    //printf( "CmdStepExecuteCANRR::setupCANRequest - begin\n" );
 
     setupRequestCANRR( params, rrObj );
 
@@ -208,7 +208,7 @@ CmdStepExecuteCANRR::completeCANResponse( CmdSeqParameters *params, CANReqRsp *r
     //if( m_RR != rrObj )
     //    return CS_STEPACTION_ERROR;
 
-    printf( "CmdStepExecuteCANRR::completeCANResponse: 0x%x\n", this );
+    //printf( "CmdStepExecuteCANRR::completeCANResponse: 0x%x\n", this );
 
     parseResponseCANRR( params, rrObj );
     //debugPrint();
@@ -221,7 +221,7 @@ CmdStepExecuteCANRR::completeCANResponse( CmdSeqParameters *params, CANReqRsp *r
 CS_STEPACTION_T
 CmdStepExecuteCANRR::startStep( CmdSeqParameters *params )
 {
-    printf( "CmdStepExecuteCANRR::startStep - begin\n" );
+    //printf( "CmdStepExecuteCANRR::startStep - begin\n" );
 
     //setupRequestCANRR( params );
 
@@ -233,7 +233,7 @@ CmdStepExecuteCANRR::startStep( CmdSeqParameters *params )
 CS_STEPACTION_T
 CmdStepExecuteCANRR::continueStep( CmdSeqParameters *params )
 {
-    printf( "CmdStepExecuteCANRR::continueStep - state: %d\n", getState() );
+    //printf( "CmdStepExecuteCANRR::continueStep - state: %d\n", getState() );
 
     switch( getState() )
     {
@@ -249,7 +249,7 @@ CmdStepExecuteCANRR::continueStep( CmdSeqParameters *params )
         break;
 
         case CS_STEPSTATE_POST_PROCESS:
-            printf( "CmdStepExecuteCANRR::continueStep - post process\n" );
+            //printf( "CmdStepExecuteCANRR::continueStep - post process\n" );
 
             distributeResult( params );
 
@@ -303,7 +303,7 @@ CmdSequence::setHardwareInterface( CSHardwareInterface *hwIntf )
 void
 CmdSequence::updateAxis( std::string axisID, std::string name, std::string value )
 {
-    printf( "CmdSequence::updateAxis - axisID: %s,  name: %s,  value: %s\n", axisID.c_str(), name.c_str(), value.c_str() );
+    //printf( "CmdSequence::updateAxis - axisID: %s,  name: %s,  value: %s\n", axisID.c_str(), name.c_str(), value.c_str() );
 
     if( m_hwIntf )
         m_hwIntf->updateAxis( axisID, name, value );
@@ -332,7 +332,7 @@ CmdSequence::appendStep( CmdStep *stepObj )
 CS_RESULT_T
 CmdSequence::setupBeforeExecution( CmdSeqParameters *param )
 {
-    printf( "CmdSequence::setupBeforeExecution\n" );
+    //printf( "CmdSequence::setupBeforeExecution\n" );
 
     m_cmdParams = param;
 
@@ -347,7 +347,7 @@ CmdSequence::setupBeforeExecution( CmdSeqParameters *param )
 void
 CmdSequence::StepCompleteNotify()
 {
-    printf( "CmdSequence::StepCompleteNotify\n" );
+    //printf( "CmdSequence::StepCompleteNotify\n" );
 
     setState( CS_STATE_FINISHED );
 }
@@ -355,9 +355,9 @@ CmdSequence::StepCompleteNotify()
 CS_ACTION_T
 CmdSequence::processPendingWork()
 {
-    printf( "CmdSequence::processPendingWork\n" );
+    //printf( "CmdSequence::processPendingWork\n" );
 
-    printf( "CmdSequence::processPendingEvent - state: %d\n", m_state );
+    //printf( "CmdSequence::processPendingEvent - state: %d\n", m_state );
 
     // Take action
     switch( m_state )
@@ -374,7 +374,7 @@ CmdSequence::processPendingWork()
 
             m_curStep = m_stepList[ m_curStepIndex ];
 
-            printf( "CmdSequence::start step: 0x%x\n", m_curStep );
+            printf( "\n" );
 
             switch( m_curStep->startStep( m_cmdParams ) )
             {
@@ -394,7 +394,6 @@ CmdSequence::processPendingWork()
         break;
 
         case CS_STATE_EXECUTING:
-            printf("Sequence Executing\n");
             switch( m_curStep->continueStep( m_cmdParams ) )
             {
                 case CS_STEPACTION_DONE:
@@ -426,7 +425,8 @@ CmdSequence::processPendingWork()
 
             m_curStep = m_stepList[ m_curStepIndex ];
 
-            printf( "CmdSequence::continue start step: 0x%x\n", m_curStep );
+            //printf( "CmdSequence::continue start step: 0x%x\n", m_curStep );
+            printf( "\n" );
 
             switch( m_curStep->startStep( m_cmdParams ) )
             {
@@ -480,7 +480,7 @@ CmdSequence::setupCANRequest( CANReqRsp *rrObj )
     if( m_curStep == NULL )
         return CS_ACTION_ERROR;
 
-    printf( "CmdSequence::setupCANRequest: 0x%x\n", m_curStep );
+    //printf( "CmdSequence::setupCANRequest: 0x%x\n", m_curStep );
 
     switch( ((CmdStepExecuteCANRR*) m_curStep)->setupCANRequest( m_cmdParams, rrObj ) )
     {
@@ -501,7 +501,7 @@ CmdSequence::completeCANResponse( CANReqRsp *rrObj )
     if( m_curStep == NULL )
         return CS_ACTION_ERROR;
 
-    printf( "CmdSequence::completeCANResponse: 0x%x\n", m_curStep );
+    //printf( "CmdSequence::completeCANResponse: 0x%x\n", m_curStep );
 
     switch( ((CmdStepExecuteCANRR*) m_curStep)->completeCANResponse( m_cmdParams, rrObj ) )
     {
@@ -519,7 +519,7 @@ CmdSequence::completeCANResponse( CANReqRsp *rrObj )
 bool
 CmdSequence::hasError()
 {
-    printf( "CmdSequence::hasError\n" );
+    //printf( "CmdSequence::hasError\n" );
     return false;
 }
 

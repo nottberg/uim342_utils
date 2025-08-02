@@ -111,6 +111,8 @@ class CANBus
 
         CANReqRsp *allocateReqRspObj( uint targetID );
 
+        void freeReqRspObj( CANReqRsp *rrObj );
+
         CANRR_RESULT_T sendFrame( CANReqRsp *rrObj );
 
         //CANRR_RESULT_T processPending();

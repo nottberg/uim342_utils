@@ -190,15 +190,15 @@ CNCMachine::startCANRequest()
     CANBus      *busPtr;
     CANReqRsp   *rrObj;
 
-    printf( "CNCMachine::startCANRequest - begin\n" );
+    //printf( "CNCMachine::startCANRequest - begin\n" );
 
     m_curSeq->getStepTargetAxisID( axisID ); 
 
-    printf( "CNCMachine::startCANRequest - axisID: %s\n", axisID.c_str() );
+    //printf( "CNCMachine::startCANRequest - axisID: %s\n", axisID.c_str() );
 
     getCANBusForAxis( axisID, &busPtr );
 
-    printf( "CNCMachine::startCANRequest - bus aquired\n" );
+    //printf( "CNCMachine::startCANRequest - bus aquired\n" );
 
     //m_curSeq->getCANRR( &rrObj );
     rrObj = busPtr->allocateReqRspObj( 5 );
@@ -208,13 +208,18 @@ CNCMachine::startCANRequest()
 
     busPtr->sendFrame( rrObj );
 
-    printf( "CNCMachine::startCANRequest - end\n" );
+    //printf( "CNCMachine::startCANRequest - end\n" );
 }
 
 void
 CNCMachine::completeCANResponse( CANReqRsp *rrObj )
 {
-    printf("CNCMachine::completeCANResponse - begin\n");
+    std::string  axisID;
+    CANBus *busPtr;
+    
+    //printf("CNCMachine::completeCANResponse - begin\n");
+    m_curSeq->getStepTargetAxisID( axisID ); 
+    getCANBusForAxis( axisID, &busPtr );
 
     // If there is a sequence running, let it know a request has finished.
     if( m_curSeq == NULL )
@@ -227,15 +232,16 @@ CNCMachine::completeCANResponse( CANReqRsp *rrObj )
     {
         case CS_ACTION_SCHEDULE:
             signalPendingWork();
-            return;
         break;
 
+        default:
         case CS_ACTION_ERROR:
+            m_curSeq->setErrorState(); 
+            signalPendingWork();
         break;
     }
 
-    m_curSeq->setErrorState(); 
-    signalPendingWork();
+    busPtr->freeReqRspObj( rrObj );
 }
 
 void
@@ -247,7 +253,7 @@ CNCMachine::addSequence( std::string seqID, CmdSequence *seqObj )
 CNCM_RESULT_T
 CNCMachine::startSequence( std::string seqID, CmdSeqParameters *params )
 {
-    printf( "CNCMachine::startSequence - begin\n" );
+    //printf( "CNCMachine::startSequence - begin\n" );
 
     if( m_curSeq != NULL )
     {
@@ -302,7 +308,7 @@ CNCMachine::lookupAxisByID( std::string axisID )
 void
 CNCMachine::updateAxis( std::string axisID, std::string name, std::string value )
 {
-    printf( "CNCMachine::updateAxis - axisID: %s,  name: %s,  value: %s\n", axisID.c_str(), name.c_str(), value.c_str() );
+    //printf( "CNCMachine::updateAxis - axisID: %s,  name: %s,  value: %s\n", axisID.c_str(), name.c_str(), value.c_str() );
 
     // Lookup the axis.
     CNCAxis *axis = lookupAxisByID( axisID);
@@ -321,7 +327,7 @@ CNCMachine::eventFD( int fd )
     {
         clearPendingWork();
         
-        printf("CNCMachine::processing pending...\n");
+        //printf("CNCMachine::processing pending...\n");
 
         // If a sequence is running then call its pending work call
         if( m_curSeq != NULL )

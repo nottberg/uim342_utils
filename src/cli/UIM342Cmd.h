@@ -190,7 +190,6 @@ class UIM342GetMotorDriverStep : public CmdStepExecuteCANRR
     private:
 
         UIM342_MTP_TYPE_T m_paramID;
-        std::string m_axisID;
 
         uint m_value;
 };
@@ -332,7 +331,7 @@ class UIM342AxisInfoCommand : public CmdSequence
         std::string m_axisID;
 
         UIM342GetMotorSNStep         m_getSN_Step;
-/*
+
         UIM342GetMotorModelStep      m_getModel_Step;
         UIM342GetMotorCANBitrateStep m_getCANBitrate_Step;
         UIM342GetMotorCANNodeIDStep  m_getCANNodeID_Step;
@@ -367,7 +366,6 @@ class UIM342AxisInfoCommand : public CmdSequence
 
         UIM342GetRelativePositionStep m_getRelPosStep;
         UIM342GetAbsolutePositionStep m_getAbsPosStep;
-*/
 };
 
 

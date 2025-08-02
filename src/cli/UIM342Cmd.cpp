@@ -136,6 +136,8 @@ UIM342GetMotorCANBitrateStep::parseResponseCANRR( CmdSeqParameters *params, CANR
     rrObj->read8(PIndex);
     rrObj->read8(PValue);
 
+    printf( "CAN Bit Rate Rsp - index: %d, value: %d\n", PIndex, PValue );
+
     switch(PValue)
     {
         case 0:
@@ -594,6 +596,8 @@ UIM342GetMotorDriverStep::parseResponseCANRR( CmdSeqParameters *params, CANReqRs
     rrObj->read8(PIndex);
     rrObj->read16(PValue);
 
+    printf( "UIM342GetMotorDriverStep::parseResponseCANRR - pindex: %d  value: %d\n", PIndex, PValue );
+
     m_value = PValue;
 
     return CS_RESULT_SUCCESS;
@@ -769,7 +773,7 @@ UIM342GetAbsolutePositionStep::distributeResult( CmdSeqParameters *params )
 {    
     char tmpBuf[128];
 
-    printf( "UIM342GetRelativePositionStep::distributeResult\n" );
+    printf( "UIM342GetAbsolutePositionStep::distributeResult\n" );
 
     std::string axisID;
     if( params->lookup("axisID", axisID) != CS_RESULT_SUCCESS )
@@ -988,7 +992,6 @@ UIM342WaitMotionCompleteStep::distributeResult( CmdSeqParameters *params )
 }
 
 UIM342AxisInfoCommand::UIM342AxisInfoCommand( std::string axisID )
-/*
 : m_getICStep_P0( UIM342_ICP_MOTOR_DRIVER_ON_POWER ),
 m_getICStep_P1( UIM342_ICP_POSITIVE_DIRECTION ),
 m_getICStep_P2( UIM342_ICP_EXEC_USER_ON_POWER ),
@@ -1010,7 +1013,6 @@ m_getMTStep_P0( UIM342_MTP_MICROSTEP_RES ),
 m_getMTStep_P1( UIM342_MTP_WORKING_CURRENT ),
 m_getMTStep_P2( UIM342_MTP_PERCENT_IDLE_OVER_WORKING ),
 m_getMTStep_P3( UIM342_MTP_DELAY_TO_ENABLE )
-*/
 {
     m_axisID = axisID;
 }
@@ -1024,7 +1026,7 @@ void
 UIM342AxisInfoCommand::initCmdSteps()
 {
     m_getSN_Step.setParent( this );
-/*
+
     m_getModel_Step.setParent( this );
     m_getCANBitrate_Step.setParent( this );
     m_getCANNodeID_Step.setParent( this );
@@ -1065,9 +1067,9 @@ UIM342AxisInfoCommand::initCmdSteps()
     //m_getSN_Step.setRR( &m_getSN_CANRR );
 
     //m_getSN_Step.addUpdateTarget( m_assocAxis );
-*/
+
     appendStep( &m_getSN_Step );
-/*
+
     appendStep( &m_getModel_Step );
     appendStep( &m_getCANBitrate_Step );
     appendStep( &m_getCANNodeID_Step );
@@ -1102,7 +1104,7 @@ UIM342AxisInfoCommand::initCmdSteps()
 
     appendStep( &m_getRelPosStep );
     appendStep( &m_getAbsPosStep );
-*/
+
     // Indicate the sequence is ready
     setState( CS_STATE_INIT );
 }

@@ -143,7 +143,7 @@ App::execute()
     switch( m_cmd )
     {
         case APP_CMD_AXIS_INFO:
-            m_curMachine->startSequence( "motorInfoX", &m_cmdParams );
+            m_curMachine->startSequence( SEQID_AXIS_INFO, &m_cmdParams );
 
             m_eventLoop.run();
         break;

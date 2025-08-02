@@ -42,7 +42,7 @@ UIM342SingleAxisMachine::setup()
 
     cmdSeq->initCmdSteps();
     
-    addSequence( "motorInfoX", cmdSeq );
+    addSequence( SEQID_AXIS_INFO, cmdSeq );
 
     return CNCM_RESULT_SUCCESS;
 }

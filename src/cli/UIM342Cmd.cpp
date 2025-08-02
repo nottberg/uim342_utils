@@ -37,16 +37,9 @@ UIM342GetMotorSNStep::distributeResult( CmdSeqParameters *params )
 
     printf("UIM342GetMotorSNStep::distributeResult\n");
 
-    std::string axisID;
-    if( params->lookup("axisID", axisID) != CS_RESULT_SUCCESS )
-    {
-        printf( "ERROR: axisID was not specified\n" );
-        return;
-    }
-
     sprintf( tmpBuf, "%d", m_serialNumber );
 
-    updateAxis( axisID, "SerialNumber", tmpBuf );
+    updateAxis( params->getAxisID(), "SerialNumber", tmpBuf );
 }
 
 
@@ -96,15 +89,8 @@ UIM342GetMotorModelStep::distributeResult( CmdSeqParameters *params )
 {
     printf("UIM342GetMotorModelStep::distributeResult\n");
 
-    std::string axisID;
-    if( params->lookup("axisID", axisID) != CS_RESULT_SUCCESS )
-    {
-        printf( "ERROR: axisID was not specified\n" );
-        return;
-    }
-
-    updateAxis( axisID, "Model", m_model );
-    updateAxis( axisID, "FWVersion", m_fwVer );
+    updateAxis( params->getAxisID(), "Model", m_model );
+    updateAxis( params->getAxisID(), "FWVersion", m_fwVer );
 }
 
 
@@ -175,19 +161,12 @@ UIM342GetMotorCANBitrateStep::distributeResult( CmdSeqParameters *params )
 
     printf("UIM342GetMotorCANBitrateStep::distributeResult\n");
 
-    std::string axisID;
-    if( params->lookup("axisID", axisID) != CS_RESULT_SUCCESS )
-    {
-        printf( "ERROR: axisID was not specified\n" );
-        return;
-    }
-
     if( m_bitrate == 0 )
         sprintf( tmpBuf, "Unknown" );
     else
         sprintf( tmpBuf, "%dK", m_bitrate );
 
-    updateAxis( axisID, "CAN_Bitrate", tmpBuf );
+    updateAxis( params->getAxisID(), "CAN_Bitrate", tmpBuf );
 }
 
 
@@ -231,16 +210,9 @@ UIM342GetMotorCANNodeIDStep::distributeResult( CmdSeqParameters *params )
 
     printf("UIM342GetMotorCANNodeIDStep::distributeResult\n");
 
-    std::string axisID;
-    if( params->lookup("axisID", axisID) != CS_RESULT_SUCCESS )
-    {
-        printf( "ERROR: axisID was not specified\n" );
-        return;
-    }
-
     sprintf( tmpBuf, "%d", m_nodeID );
 
-    updateAxis( axisID, "CAN_NodeID", tmpBuf );
+    updateAxis( params->getAxisID(), "CAN_NodeID", tmpBuf );
 }
 
 
@@ -284,16 +256,9 @@ UIM342GetMotorCANGroupIDStep::distributeResult( CmdSeqParameters *params )
 
     printf("UIM342GetMotorCANGroupIDStep::distributeResult\n");
 
-    std::string axisID;
-    if( params->lookup("axisID", axisID) != CS_RESULT_SUCCESS )
-    {
-        printf( "ERROR: axisID was not specified\n" );
-        return;
-    }
-
     sprintf( tmpBuf, "%d", m_groupID );
 
-    updateAxis( axisID, "CAN_GroupID", tmpBuf );
+    updateAxis( params->getAxisID(), "CAN_GroupID", tmpBuf );
 }
 
 UIM342GetInitialConfigurationStep::UIM342GetInitialConfigurationStep( UIM342_ICP_TYPE_T paramID )
@@ -339,69 +304,62 @@ UIM342GetInitialConfigurationStep::distributeResult( CmdSeqParameters *params )
 
     printf( "UIM342GetInitialConfigurationStep::distributeResult - param: %d\n", m_paramID );
 
-    std::string axisID;
-    if( params->lookup("axisID", axisID) != CS_RESULT_SUCCESS )
-    {
-        printf( "ERROR: axisID was not specified\n" );
-        return;
-    }
-
     switch( m_paramID )
     {
         case UIM342_ICP_MOTOR_DRIVER_ON_POWER:
             if( m_value == 0 )
-                updateAxis( axisID, "IC_MotorDriverOnAfterPowerIsOn", "disabled" );
+                updateAxis( params->getAxisID(), "IC_MotorDriverOnAfterPowerIsOn", "disabled" );
             else
-                updateAxis( axisID, "IC_MotorDriverOnAfterPowerIsOn", "enabled" );
+                updateAxis( params->getAxisID(), "IC_MotorDriverOnAfterPowerIsOn", "enabled" );
         break;
 
         case UIM342_ICP_POSITIVE_DIRECTION:
             if( m_value == 0 )
-                updateAxis( axisID, "IC_PositiveMotorDirection", "CW" );
+                updateAxis( params->getAxisID(), "IC_PositiveMotorDirection", "CW" );
             else
-                updateAxis( axisID, "IC_PositiveMotorDirection", "CCW" );        
+                updateAxis( params->getAxisID(), "IC_PositiveMotorDirection", "CCW" );        
         break;
 
         case UIM342_ICP_EXEC_USER_ON_POWER:
             if( m_value == 0 )
-                updateAxis( axisID, "IC_ExecuteTheUserProgramAfterPowerIsOn", "NO" );
+                updateAxis( params->getAxisID(), "IC_ExecuteTheUserProgramAfterPowerIsOn", "NO" );
             else
-                updateAxis( axisID, "IC_ExecuteTheUserProgramAfterPowerIsOn", "YES" );
+                updateAxis( params->getAxisID(), "IC_ExecuteTheUserProgramAfterPowerIsOn", "YES" );
         break;
 
         case UIM342_ICP_LOCK_ON_ESTOP:
             if( m_value == 0 )
-                updateAxis( axisID, "IC_LockDownOnEStop", "disabled" );
+                updateAxis( params->getAxisID(), "IC_LockDownOnEStop", "disabled" );
             else
-                updateAxis( axisID, "IC_LockDownOnEStop", "enabled" );
+                updateAxis( params->getAxisID(), "IC_LockDownOnEStop", "enabled" );
         break;
 
         case UIM342_ICP_UNITS_ACDC:
             if( m_value == 0 )
-                updateAxis( axisID, "IC_UnitsOfACAndDC", "pulse/sec^2" );
+                updateAxis( params->getAxisID(), "IC_UnitsOfACAndDC", "pulse/sec^2" );
             else
-                updateAxis( axisID, "IC_UnitsOfACAndDC", "millisecond" );
+                updateAxis( params->getAxisID(), "IC_UnitsOfACAndDC", "millisecond" );
         break;
 
         case UIM342_ICP_ENCODER_TYPE:
             if( m_value == 0 )
-                updateAxis( axisID, "IC_EncoderType", "Incremental" );
+                updateAxis( params->getAxisID(), "IC_EncoderType", "Incremental" );
             else
-                updateAxis( axisID, "IC_EncoderType", "Absolute" );
+                updateAxis( params->getAxisID(), "IC_EncoderType", "Absolute" );
         break;
 
         case UIM342_ICP_CONTROL_TYPE:
             if( m_value == 0 )
-                updateAxis( axisID, "IC_ControlType", "open-loop" );
+                updateAxis( params->getAxisID(), "IC_ControlType", "open-loop" );
             else
-                updateAxis( axisID, "IC_ControlType", "closed-loop" );
+                updateAxis( params->getAxisID(), "IC_ControlType", "closed-loop" );
         break;
 
         case UIM342_ICP_SOFTWARE_LIMIT:
             if( m_value == 0 )
-                updateAxis( axisID, "IC_SoftwareLimit", "disabled" );
+                updateAxis( params->getAxisID(), "IC_SoftwareLimit", "disabled" );
             else
-                updateAxis( axisID, "IC_SoftwareLimit", "enabled" );
+                updateAxis( params->getAxisID(), "IC_SoftwareLimit", "enabled" );
         break;
     }
 }
@@ -446,41 +404,34 @@ UIM342GetInformationEnableStep::distributeResult( CmdSeqParameters *params )
 
     printf( "UIM342GetInformationEnableStep::distributeResult - param: %d\n", m_paramID );
 
-    std::string axisID;
-    if( params->lookup("axisID", axisID) != CS_RESULT_SUCCESS )
-    {
-        printf( "ERROR: axisID was not specified\n" );
-        return;
-    }
-
     switch( m_paramID )
     {
         case UIM342_IEP_IN1_CHANGE_NOTIFY:
             if( m_value == 0 )
-                updateAxis( axisID, "IE_PIN1ChangeNotification", "disabled" );
+                updateAxis( params->getAxisID(), "IE_PIN1ChangeNotification", "disabled" );
             else
-                updateAxis( axisID, "IE_PIN1ChangeNotification", "enabled" );
+                updateAxis( params->getAxisID(), "IE_PIN1ChangeNotification", "enabled" );
         break;
 
         case UIM342_IEP_IN2_CHANGE_NOTIFY:
             if( m_value == 0 )
-                updateAxis( axisID, "IE_PIN2ChangeNotification", "disabled" );
+                updateAxis( params->getAxisID(), "IE_PIN2ChangeNotification", "disabled" );
             else
-                updateAxis( axisID, "IE_PIN2ChangeNotification", "enabled" );        
+                updateAxis( params->getAxisID(), "IE_PIN2ChangeNotification", "enabled" );        
         break;
 
         case UIM342_IEP_IN3_CHANGE_NOTIFY:
             if( m_value == 0 )
-                updateAxis( axisID, "IE_PIN3ChangeNotification", "disabled" );
+                updateAxis( params->getAxisID(), "IE_PIN3ChangeNotification", "disabled" );
             else
-                updateAxis( axisID, "IE_PIN3ChangeNotification", "enabled" );
+                updateAxis( params->getAxisID(), "IE_PIN3ChangeNotification", "enabled" );
         break;
 
         case UIM342_IEP_PTP_FINISH_NOTIFY:
             if( m_value == 0 )
-                updateAxis( axisID, "IE_PTPFinishNotification", "disabled" );
+                updateAxis( params->getAxisID(), "IE_PTPFinishNotification", "disabled" );
             else
-                updateAxis( axisID, "IE_PTPFinishNotification", "enabled" );
+                updateAxis( params->getAxisID(), "IE_PTPFinishNotification", "enabled" );
         break;
     }
 }
@@ -526,40 +477,33 @@ UIM342GetQuadratureEncoderStep::distributeResult( CmdSeqParameters *params )
 
     printf( "UIM342GetQuadratureEncoderStep::distributeResult - param: %d\n", m_paramID );
 
-    std::string axisID;
-    if( params->lookup("axisID", axisID) != CS_RESULT_SUCCESS )
-    {
-        printf( "ERROR: axisID was not specified\n" );
-        return;
-    }
-
     switch( m_paramID )
     {
         case UIM342_QEP_LINES_PER_REV:
             sprintf( tmpBuf, "%d", m_value );
-            updateAxis( axisID, "QE_LinesPerRevolutionOfEncoder", tmpBuf );
+            updateAxis( params->getAxisID(), "QE_LinesPerRevolutionOfEncoder", tmpBuf );
         break;
 
         case UIM342_QEP_STALL_TOLERANCE:
             sprintf( tmpBuf, "%d", m_value );
-            updateAxis( axisID, "QE_StallTolerance", tmpBuf );       
+            updateAxis( params->getAxisID(), "QE_StallTolerance", tmpBuf );       
         break;
 
         case UIM342_QEP_SINGLE_TURN_BITS:
             sprintf( tmpBuf, "%d", m_value );
-            updateAxis( axisID, "QE_SingleTurnBits", tmpBuf );
+            updateAxis( params->getAxisID(), "QE_SingleTurnBits", tmpBuf );
         break;
 
         case UIM342_QEP_BATTERY_STATUS:
             if( m_value == 0 )
-                updateAxis( axisID, "QE_BatteryStatus", "Low" );
+                updateAxis( params->getAxisID(), "QE_BatteryStatus", "Low" );
             else
-                updateAxis( axisID, "QE_BatteryStatus", "Ok" );
+                updateAxis( params->getAxisID(), "QE_BatteryStatus", "Ok" );
         break;
 
         case UIM342_QEP_COUNTS_PER_REV:
             sprintf( tmpBuf, "%d", m_value );
-            updateAxis( axisID, "QE_CountsPerRevolution", tmpBuf );
+            updateAxis( params->getAxisID(), "QE_CountsPerRevolution", tmpBuf );
         break;
     }
 }
@@ -610,33 +554,26 @@ UIM342GetMotorDriverStep::distributeResult( CmdSeqParameters *params )
 
     printf( "UIM342GetMotorDriverStep::distributeResult - param: %d\n", m_paramID );
 
-    std::string axisID;
-    if( params->lookup("axisID", axisID) != CS_RESULT_SUCCESS )
-    {
-        printf( "ERROR: axisID was not specified\n" );
-        return;
-    }
-
     switch( m_paramID )
     {
         case UIM342_MTP_MICROSTEP_RES:
             sprintf( tmpBuf, "%d", m_value );
-            updateAxis( axisID, "MT_MicrostepResolution", tmpBuf );
+            updateAxis( params->getAxisID(), "MT_MicrostepResolution", tmpBuf );
         break;
 
         case UIM342_MTP_WORKING_CURRENT:
             sprintf( tmpBuf, "%d", m_value );
-            updateAxis( axisID, "MT_WorkingCurrent", tmpBuf );       
+            updateAxis( params->getAxisID(), "MT_WorkingCurrent", tmpBuf );       
         break;
 
         case UIM342_MTP_PERCENT_IDLE_OVER_WORKING:
             sprintf( tmpBuf, "%d", m_value );
-            updateAxis( axisID, "MT_PercentIdleCurrentOverWorkingCurrent", tmpBuf );
+            updateAxis( params->getAxisID(), "MT_PercentIdleCurrentOverWorkingCurrent", tmpBuf );
         break;
 
         case UIM342_MTP_DELAY_TO_ENABLE:
             sprintf( tmpBuf, "%d", m_value );
-            updateAxis( axisID, "MT_DelayAutomaticEnableAfterPowerOn", tmpBuf );
+            updateAxis( params->getAxisID(), "MT_DelayAutomaticEnableAfterPowerOn", tmpBuf );
         break;
     }
 }
@@ -676,17 +613,10 @@ UIM342GetMTStateStep::distributeResult( CmdSeqParameters *params )
 {    
     printf( "UIM342GetMTStateStep::distributeResult\n" );
 
-    std::string axisID;
-    if( params->lookup("axisID", axisID) != CS_RESULT_SUCCESS )
-    {
-        printf( "ERROR: axisID was not specified\n" );
-        return;
-    }
-
     if( m_value == 1 )
-        updateAxis( axisID, "MT_State", "ON" );
+        updateAxis( params->getAxisID(), "MT_State", "ON" );
     else
-        updateAxis( axisID, "MT_State", "OFF" );
+        updateAxis( params->getAxisID(), "MT_State", "OFF" );
 }
 
 UIM342GetRelativePositionStep::UIM342GetRelativePositionStep()
@@ -726,15 +656,8 @@ UIM342GetRelativePositionStep::distributeResult( CmdSeqParameters *params )
 
     printf( "UIM342GetRelativePositionStep::distributeResult\n" );
 
-    std::string axisID;
-    if( params->lookup("axisID", axisID) != CS_RESULT_SUCCESS )
-    {
-        printf( "ERROR: axisID was not specified\n" );
-        return;
-    }
-
     sprintf( tmpBuf, "%d", m_value );
-    updateAxis( axisID, "RelativePosition", tmpBuf );
+    updateAxis( params->getAxisID(), "RelativePosition", tmpBuf );
 }
 
 
@@ -775,15 +698,8 @@ UIM342GetAbsolutePositionStep::distributeResult( CmdSeqParameters *params )
 
     printf( "UIM342GetAbsolutePositionStep::distributeResult\n" );
 
-    std::string axisID;
-    if( params->lookup("axisID", axisID) != CS_RESULT_SUCCESS )
-    {
-        printf( "ERROR: axisID was not specified\n" );
-        return;
-    }
-
     sprintf( tmpBuf, "%d", m_value );
-    updateAxis( axisID, "AbsolutePosition", tmpBuf );
+    updateAxis( params->getAxisID(), "AbsolutePosition", tmpBuf );
 }
 
 UIM342SetMDEnableStep::UIM342SetMDEnableStep()

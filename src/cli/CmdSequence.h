@@ -67,6 +67,8 @@ class CSHardwareInterface
 //
 //};
 
+#define CSPID_AXIS_ID  "axisID"
+
 class CmdSeqParameters
 {
     public:
@@ -80,6 +82,10 @@ class CmdSeqParameters
         CS_RESULT_T setCANID( uint value );
 
         CS_RESULT_T lookupCANID( uint &value );
+
+        void setAxisID( std::string axisID );
+
+        std::string getAxisID();
 
     private:
 

@@ -59,6 +59,23 @@ CmdSeqParameters::lookupCANID( uint &value )
     return CS_RESULT_SUCCESS;
 }
 
+void
+CmdSeqParameters::setAxisID( std::string axisID )
+{
+    setValue( CSPID_AXIS_ID, axisID );
+}
+
+std::string
+CmdSeqParameters::getAxisID()
+{
+    std::string rtnVal;
+
+    if( lookup( CSPID_AXIS_ID, rtnVal ) == CS_RESULT_SUCCESS )
+        return rtnVal;
+
+    rtnVal = "";
+    return rtnVal;
+}
 
 
 CmdStep::CmdStep()

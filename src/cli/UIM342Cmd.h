@@ -318,18 +318,15 @@ class UIM342WaitMotionCompleteStep : public CmdStepExecuteCANRR
 };
 
 
-class UIM342AxisInfoCommand : public CmdSequence
+class UIM342AxisInfoSequence : public CmdSequence
 {
     public:
-        UIM342AxisInfoCommand( std::string axisID );
-       ~UIM342AxisInfoCommand();
+        UIM342AxisInfoSequence();
+       ~UIM342AxisInfoSequence();
 
         void initCmdSteps();
 
     private:
-
-        std::string m_axisID;
-
         UIM342GetMotorSNStep         m_getSN_Step;
 
         UIM342GetMotorModelStep      m_getModel_Step;

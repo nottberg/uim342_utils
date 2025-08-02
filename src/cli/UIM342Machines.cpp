@@ -36,12 +36,12 @@ UIM342SingleAxisMachine::setup()
     axis->setID( "X" );
     setAxis( axis );
 
-    UIM342AxisInfoCommand *cmdSeq = new UIM342AxisInfoCommand("X");
+    UIM342AxisInfoSequence *cmdSeq = new UIM342AxisInfoSequence();
     
     cmdSeq->setHardwareInterface( this );
 
     cmdSeq->initCmdSteps();
-    
+
     addSequence( SEQID_AXIS_INFO, cmdSeq );
 
     return CNCM_RESULT_SUCCESS;

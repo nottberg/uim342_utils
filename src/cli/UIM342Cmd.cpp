@@ -907,7 +907,7 @@ UIM342WaitMotionCompleteStep::distributeResult( CmdSeqParameters *params )
 //    updateAxis( m_axisID, "AbsolutePosition", tmpBuf );
 }
 
-UIM342AxisInfoCommand::UIM342AxisInfoCommand( std::string axisID )
+UIM342AxisInfoSequence::UIM342AxisInfoSequence()
 : m_getICStep_P0( UIM342_ICP_MOTOR_DRIVER_ON_POWER ),
 m_getICStep_P1( UIM342_ICP_POSITIVE_DIRECTION ),
 m_getICStep_P2( UIM342_ICP_EXEC_USER_ON_POWER ),
@@ -930,16 +930,16 @@ m_getMTStep_P1( UIM342_MTP_WORKING_CURRENT ),
 m_getMTStep_P2( UIM342_MTP_PERCENT_IDLE_OVER_WORKING ),
 m_getMTStep_P3( UIM342_MTP_DELAY_TO_ENABLE )
 {
-    m_axisID = axisID;
+
 }
 
-UIM342AxisInfoCommand::~UIM342AxisInfoCommand()
+UIM342AxisInfoSequence::~UIM342AxisInfoSequence()
 {
 
 }
 
 void
-UIM342AxisInfoCommand::initCmdSteps()
+UIM342AxisInfoSequence::initCmdSteps()
 {
     m_getSN_Step.setParent( this );
 

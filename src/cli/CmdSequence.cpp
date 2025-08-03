@@ -1,6 +1,9 @@
 #include <unistd.h>
 #include <sys/eventfd.h>
 
+#include <algorithm>
+#include <cctype>
+
 #include "CmdSequence.h"
 
 CmdSeqParameters::CmdSeqParameters()
@@ -77,6 +80,53 @@ CmdSeqParameters::getAxisID()
     return rtnVal;
 }
 
+bool
+CmdSeqParameters::isEqual( std::string paramID, std::string value )
+{
+    std::string strVal;
+    uint rtnValue;
+
+    if( lookup( paramID, strVal ) != CS_RESULT_SUCCESS )
+        return false;
+
+    if( strVal == value )
+        return true;
+    
+    return false;
+}
+
+std::string
+CmdSeqParameters::to_lower( std::string s )
+{
+    std::transform( s.begin(), s.end(), s.begin(), [](unsigned char c){ return std::tolower(c); } );
+    return s;
+}
+
+bool
+CmdSeqParameters::isSetOn( std::string paramID )
+{
+    std::string strVal;
+    uint rtnValue;
+
+    if( lookup( paramID, strVal ) != CS_RESULT_SUCCESS )
+        return false;
+
+    strVal = to_lower( strVal );
+
+    if( strVal == "on" )
+        return true;
+    
+    if( strVal == "true" )
+        return true;
+
+    if( strVal == "enable" )
+        return true;        
+
+    if( strVal == "1" )
+        return true;        
+
+    return false;
+}
 
 CmdStep::CmdStep()
 {

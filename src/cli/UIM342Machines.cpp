@@ -36,13 +36,25 @@ UIM342SingleAxisMachine::setup()
     axis->setID( "X" );
     setAxis( axis );
 
-    UIM342AxisInfoSequence *cmdSeq = new UIM342AxisInfoSequence();
-    
-    cmdSeq->setHardwareInterface( this );
+    UIM342AxisInfoSequence *cmdSeq1 = new UIM342AxisInfoSequence;
+    cmdSeq1->setHardwareInterface( this );
+    cmdSeq1->initCmdSteps();
+    addSequence( SEQID_AXIS_INFO, cmdSeq1 );
 
-    cmdSeq->initCmdSteps();
+    UIM342ChangeAxisDriverEnableSequence *cmdSeq2 = new  UIM342ChangeAxisDriverEnableSequence;
+    cmdSeq2->setHardwareInterface( this );
+    cmdSeq2->initCmdSteps();
+    addSequence( SEQID_AXIS_MD_ENABLE, cmdSeq2 );
 
-    addSequence( SEQID_AXIS_INFO, cmdSeq );
+    UIM342SetupAxisMotionSequence *cmdSeq3 = new  UIM342SetupAxisMotionSequence;
+    cmdSeq3->setHardwareInterface( this );
+    cmdSeq3->initCmdSteps();
+    addSequence( SEQID_AXIS_SETUP_MOTION, cmdSeq3 );
+
+    UIM342ExecuteAxisMotionSequence *cmdSeq4 = new  UIM342ExecuteAxisMotionSequence;
+    cmdSeq4->setHardwareInterface( this );
+    cmdSeq4->initCmdSteps();
+    addSequence( SEQID_AXIS_EXEC_MOTION, cmdSeq4 );
 
     return CNCM_RESULT_SUCCESS;
 }

@@ -4,6 +4,8 @@
 #include "UIM342Machines.h"
 #include "CmdSequence.h"
 
+#define CMDPID_MD_ENABLE  "md_enable"
+
 class UIM342GetMotorSNStep : public CmdStepExecuteCANRR
 {
     public:
@@ -365,30 +367,60 @@ class UIM342AxisInfoSequence : public CmdSequence
         UIM342GetAbsolutePositionStep m_getAbsPosStep;
 };
 
-
-class UIM342AxisMoveCommand : public CmdSequence
+class UIM342ChangeAxisDriverEnableSequence : public CmdSequence
 {
     public:
-        UIM342AxisMoveCommand( std::string axisID );
-       ~UIM342AxisMoveCommand();
+        UIM342ChangeAxisDriverEnableSequence();
+       ~UIM342ChangeAxisDriverEnableSequence();
 
         void initCmdSteps();
 
     private:
 
-        std::string m_axisID;
-        
-        UIM342SetMDEnableStep             m_setMD_ON_Step;
+        UIM342SetMDEnableStep m_setMDEnable_Step;
+
+};
+
+class UIM342SetupAxisMotionSequence : public CmdSequence
+{
+    public:
+        UIM342SetupAxisMotionSequence();
+       ~UIM342SetupAxisMotionSequence();
+
+        void initCmdSteps();
+
+    private:
 
         UIM342SetMotionSpeedStep             m_setMotionSpeed_Step;
-
         UIM342SetMotionRelativePositionStep  m_setMotionRelPos_Step;
 
-        UIM342SetBeginMotionStep             m_setBeginMotion_Step;
+};
 
+class UIM342ExecuteAxisMotionSequence : public CmdSequence
+{
+    public:
+        UIM342ExecuteAxisMotionSequence();
+       ~UIM342ExecuteAxisMotionSequence();
+
+        void initCmdSteps();
+
+    private:
+
+        UIM342SetBeginMotionStep             m_setBeginMotion_Step;
         UIM342WaitMotionCompleteStep         m_waitMotionComplete_Step;
 
-        UIM342SetMDEnableStep             m_setMD_OFF_Step;
+};
+
+class UIM342ExecuteGroupMotionSequence : public CmdSequence
+{
+    public:
+        UIM342ExecuteGroupMotionSequence();
+       ~UIM342ExecuteGroupMotionSequence();
+
+        void initCmdSteps();
+
+    private:
+
 };
 
 #endif // __UIM342_CMD_H__

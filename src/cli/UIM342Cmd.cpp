@@ -715,7 +715,12 @@ UIM342SetMDEnableStep::~UIM342SetMDEnableStep()
 CS_RESULT_T
 UIM342SetMDEnableStep::setupRequestCANRR( CmdSeqParameters *params, CANReqRsp *rrObj )
 {
-    rrObj->setReqControlWord( 0xA0 );
+    rrObj->setReqControlWord( 0x95 );
+
+    if( params->isEqual( CMDPID_MD_ENABLE, "on") == true )    
+        rrObj->append8( 0x01 );
+    else
+        rrObj->append8( 0x00 );
 
     return CS_RESULT_SUCCESS;
 }
@@ -1025,9 +1030,86 @@ UIM342AxisInfoSequence::initCmdSteps()
     setState( CS_STATE_INIT );
 }
 
+UIM342ChangeAxisDriverEnableSequence::UIM342ChangeAxisDriverEnableSequence()
+{
 
+}
 
+UIM342ChangeAxisDriverEnableSequence::~UIM342ChangeAxisDriverEnableSequence()
+{
 
+}
 
+void
+UIM342ChangeAxisDriverEnableSequence::initCmdSteps()
+{
+    m_setMDEnable_Step.setParent( this );
 
+    appendStep( &m_setMDEnable_Step );
 
+    // Indicate the sequence is ready
+    setState( CS_STATE_INIT );
+}
+
+UIM342SetupAxisMotionSequence::UIM342SetupAxisMotionSequence()
+{
+
+}
+
+UIM342SetupAxisMotionSequence::~UIM342SetupAxisMotionSequence()
+{
+
+}
+
+void
+UIM342SetupAxisMotionSequence::initCmdSteps()
+{
+    m_setMotionSpeed_Step.setParent( this );;
+    m_setMotionRelPos_Step.setParent( this );;
+
+    appendStep( &m_setMotionSpeed_Step );
+    appendStep( &m_setMotionRelPos_Step );
+
+    // Indicate the sequence is ready
+    setState( CS_STATE_INIT );
+}
+
+UIM342ExecuteAxisMotionSequence::UIM342ExecuteAxisMotionSequence()
+{
+
+}
+
+UIM342ExecuteAxisMotionSequence::~UIM342ExecuteAxisMotionSequence()
+{
+
+}
+
+void
+UIM342ExecuteAxisMotionSequence::initCmdSteps()
+{
+    m_setBeginMotion_Step.setParent( this );;
+    m_waitMotionComplete_Step.setParent( this );;
+
+    appendStep( &m_setBeginMotion_Step );
+    appendStep( &m_waitMotionComplete_Step );
+
+    // Indicate the sequence is ready
+    setState( CS_STATE_INIT );
+}
+
+UIM342ExecuteGroupMotionSequence::UIM342ExecuteGroupMotionSequence()
+{
+
+}
+
+UIM342ExecuteGroupMotionSequence::~UIM342ExecuteGroupMotionSequence()
+{
+
+}
+
+void
+UIM342ExecuteGroupMotionSequence::initCmdSteps()
+{
+    // Indicate the sequence is ready
+    setState( CS_STATE_INIT );
+}

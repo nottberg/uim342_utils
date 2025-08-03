@@ -87,7 +87,13 @@ class CmdSeqParameters
 
         std::string getAxisID();
 
+        bool isEqual( std::string paramID, std::string value );
+
+        bool isSetOn( std::string paramID );
+
     private:
+
+        static std::string to_lower( std::string s );
 
         std::map< std::string, std::string > m_pMap;
 };

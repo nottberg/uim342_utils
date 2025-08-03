@@ -3,7 +3,10 @@
 
 #include "CNCMachine.h"
 
-#define SEQID_AXIS_INFO "axisInfo"
+#define SEQID_AXIS_INFO         "axisInfo"
+#define SEQID_AXIS_MD_ENABLE    "axisMDEnable"
+#define SEQID_AXIS_SETUP_MOTION "axisSetupMotion"
+#define SEQID_AXIS_EXEC_MOTION  "axisExecuteMotion"
 
 class UIM342MotorAxis : public CNCStepperAxis
 {

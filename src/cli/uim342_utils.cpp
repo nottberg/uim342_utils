@@ -150,6 +150,14 @@ App::execute()
 
         case APP_CMD_SINGLE_AXIS_MOTION:
 
+            m_cmdParams.setValue( CMDPID_MD_ENABLE, "on" );
+            m_curMachine->startSequence( SEQID_AXIS_MD_ENABLE , &m_cmdParams );
+            m_eventLoop.run();
+
+            m_cmdParams.setValue( CMDPID_MD_ENABLE, "off" );
+            m_curMachine->startSequence( SEQID_AXIS_MD_ENABLE , &m_cmdParams );
+            m_eventLoop.run();
+
         break;
     }
 

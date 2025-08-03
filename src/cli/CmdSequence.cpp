@@ -19,6 +19,14 @@ CmdSeqParameters::~CmdSeqParameters()
 CS_RESULT_T
 CmdSeqParameters::setValue( std::string paramID, std::string value )
 {
+    std::map< std::string, std::string >::iterator it = m_pMap.find( paramID );
+
+    if( it != m_pMap.end() )
+    {
+        m_pMap[paramID] = value;
+        return CS_RESULT_SUCCESS;
+    }
+
     m_pMap.insert( std::pair< std::string, std::string >( paramID, value ) );
     return CS_RESULT_SUCCESS;
 }
@@ -112,6 +120,8 @@ CmdSeqParameters::isSetOn( std::string paramID )
         return false;
 
     strVal = to_lower( strVal );
+
+    printf( "isSetOn: %s == %s\n", paramID.c_str(), strVal.c_str() );
 
     if( strVal == "on" )
         return true;

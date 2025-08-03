@@ -717,10 +717,16 @@ UIM342SetMDEnableStep::setupRequestCANRR( CmdSeqParameters *params, CANReqRsp *r
 {
     rrObj->setReqControlWord( 0x95 );
 
-    if( params->isEqual( CMDPID_MD_ENABLE, "on") == true )    
+    if( params->isSetOn( CMDPID_MD_ENABLE ) == true )
+    {
+        printf( "UIM342SetMDEnableStep::setup: on\n" );
         rrObj->append8( 0x01 );
+    }
     else
+    {
+        printf( "UIM342SetMDEnableStep::setup: off\n" );
         rrObj->append8( 0x00 );
+    }
 
     return CS_RESULT_SUCCESS;
 }
@@ -730,6 +736,8 @@ UIM342SetMDEnableStep::parseResponseCANRR( CmdSeqParameters *params, CANReqRsp *
 {
     uint PValue;
 
+    printf( "UIM342SetMDEnableStep::result: \n" );
+    
     //rrObj->read32(PValue);
 
     //m_value = PValue;

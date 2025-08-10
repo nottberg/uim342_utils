@@ -769,7 +769,16 @@ UIM342SetMotionSpeedStep::~UIM342SetMotionSpeedStep()
 CS_RESULT_T
 UIM342SetMotionSpeedStep::setupRequestCANRR( CmdSeqParameters *params, CANReqRsp *rrObj )
 {
-    rrObj->setReqControlWord( 0xA0 );
+    int speed;
+
+    rrObj->setReqControlWord( 0x9E );
+
+    if( params->lookupAsInt( CMDPID_SPEED, speed ) != CS_RESULT_SUCCESS )
+        return CS_RESULT_FAILURE;
+
+    rrObj->append8( 2 ); // Desired speed
+    
+    rrObj->append32( speed );
 
     return CS_RESULT_SUCCESS;
 }
@@ -810,7 +819,14 @@ UIM342SetMotionRelativePositionStep::~UIM342SetMotionRelativePositionStep()
 CS_RESULT_T
 UIM342SetMotionRelativePositionStep::setupRequestCANRR( CmdSeqParameters *params, CANReqRsp *rrObj )
 {
-    rrObj->setReqControlWord( 0xA0 );
+    int increment;
+
+    rrObj->setReqControlWord( 0x9F );
+
+    if( params->lookupAsInt( CMDPID_INCREMENT, increment ) != CS_RESULT_SUCCESS )
+        return CS_RESULT_FAILURE;
+
+    rrObj->append32( increment );
 
     return CS_RESULT_SUCCESS;
 }
@@ -879,6 +895,8 @@ UIM342SetBeginMotionStep::distributeResult( CmdSeqParameters *params )
 //    updateAxis( m_axisID, "AbsolutePosition", tmpBuf );
 }
 
+
+
 UIM342WaitMotionCompleteStep::UIM342WaitMotionCompleteStep()
 {
 
@@ -915,6 +933,47 @@ UIM342WaitMotionCompleteStep::distributeResult( CmdSeqParameters *params )
 //    char tmpBuf[128];
 
 //    printf( "UIM342WaitMotionCompleteStep::distributeResult\n" );
+
+//    sprintf( tmpBuf, "%d", m_value );
+//    updateAxis( m_axisID, "AbsolutePosition", tmpBuf );
+}
+
+UIM342SetStopMotionStep::UIM342SetStopMotionStep()
+{
+
+}
+
+UIM342SetStopMotionStep::~UIM342SetStopMotionStep()
+{
+
+}
+
+CS_RESULT_T
+UIM342SetStopMotionStep::setupRequestCANRR( CmdSeqParameters *params, CANReqRsp *rrObj )
+{
+    rrObj->setReqControlWord( 0x97 );
+
+    return CS_RESULT_SUCCESS;
+}
+
+CS_RESULT_T
+UIM342SetStopMotionStep::parseResponseCANRR( CmdSeqParameters *params, CANReqRsp *rrObj )
+{
+    uint PValue;
+
+    //rrObj->read32(PValue);
+
+    //m_value = PValue;
+
+    return CS_RESULT_SUCCESS;
+}
+
+void
+UIM342SetStopMotionStep::distributeResult( CmdSeqParameters *params )
+{    
+//    char tmpBuf[128];
+
+//    printf( "UIM342SetBeginMotionStep::distributeResult\n" );
 
 //    sprintf( tmpBuf, "%d", m_value );
 //    updateAxis( m_axisID, "AbsolutePosition", tmpBuf );
@@ -1097,9 +1156,11 @@ UIM342ExecuteAxisMotionSequence::initCmdSteps()
 {
     m_setBeginMotion_Step.setParent( this );;
     m_waitMotionComplete_Step.setParent( this );;
+    m_setStopMotion_Step.setParent( this );;
 
     appendStep( &m_setBeginMotion_Step );
     appendStep( &m_waitMotionComplete_Step );
+    appendStep( &m_setStopMotion_Step );
 
     // Indicate the sequence is ready
     setState( CS_STATE_INIT );

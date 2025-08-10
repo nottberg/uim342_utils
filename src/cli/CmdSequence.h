@@ -77,7 +77,11 @@ class CmdSeqParameters
 
         CS_RESULT_T setValue( std::string paramID, std::string value );
 
+        CS_RESULT_T setValueFromInt( std::string paramID, int value );
+
         CS_RESULT_T lookup( std::string paramID, std::string &value );
+
+        CS_RESULT_T lookupAsInt( std::string paramID, int &value );
 
         CS_RESULT_T setCANID( uint value );
 

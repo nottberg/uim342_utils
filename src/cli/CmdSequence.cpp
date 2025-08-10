@@ -32,6 +32,16 @@ CmdSeqParameters::setValue( std::string paramID, std::string value )
 }
 
 CS_RESULT_T
+CmdSeqParameters::setValueFromInt( std::string paramID, int value )
+{
+    char tmpBuf[64];
+
+    sprintf( tmpBuf, "%i", value );
+
+    return setValue( paramID, tmpBuf );
+}
+
+CS_RESULT_T
 CmdSeqParameters::lookup( std::string paramID, std::string &value )
 {
     std::map< std::string, std::string >::iterator it = m_pMap.find( paramID );
@@ -40,6 +50,25 @@ CmdSeqParameters::lookup( std::string paramID, std::string &value )
         return CS_RESULT_FAILURE;
 
     value = it->second;
+
+    return CS_RESULT_SUCCESS;
+}        
+
+CS_RESULT_T
+CmdSeqParameters::lookupAsInt( std::string paramID, int &value )
+{
+    CS_RESULT_T result;
+    std::string lookupValue;
+    int rtnValue;
+
+    result = lookup( paramID, lookupValue );
+    if( result != CS_RESULT_SUCCESS )
+        return result;
+    
+    if( sscanf( lookupValue.c_str(), "%i", &rtnValue ) != 1 )
+        return CS_RESULT_FAILURE;
+
+    value = rtnValue;
 
     return CS_RESULT_SUCCESS;
 }        

@@ -55,6 +55,8 @@ class App : public CNCMachineEventsCB
 
         APP_RESULT_T commandValid();
 
+        APP_RESULT_T setIncrementFromStr( std::string value );
+
         APP_RESULT_T init();
 
         APP_RESULT_T execute();
@@ -71,6 +73,8 @@ class App : public CNCMachineEventsCB
         EventLoop m_eventLoop;
 
         CNCMachine *m_curMachine;
+
+        int m_increment;
 };
 
 App::App()
@@ -78,6 +82,8 @@ App::App()
     m_cmd = APP_CMD_NOTSET;
     
     m_curMachine = NULL;
+
+    m_increment = 0;
 }
 
 App::~App()
@@ -105,6 +111,15 @@ APP_RESULT_T
 App::setAxisID( std::string id )
 {
     m_cmdParams.setValue( "axisID", id );
+    return APP_RESULT_SUCCESS;
+}
+
+APP_RESULT_T
+App::setIncrementFromStr( std::string value )
+{
+    if( sscanf( value.c_str(), "%i", &m_increment ) != 1 )
+        return APP_RESULT_FAILURE;
+
     return APP_RESULT_SUCCESS;
 }
 
@@ -150,6 +165,9 @@ App::execute()
 
         case APP_CMD_SINGLE_AXIS_MOTION:
 
+            m_cmdParams.setValueFromInt( CMDPID_INCREMENT, m_increment );
+            m_cmdParams.setValueFromInt( CMDPID_SPEED, 1000 );
+
             m_cmdParams.setValue( CMDPID_MD_ENABLE, "on" );
             m_curMachine->startSequence( SEQID_AXIS_MD_ENABLE , &m_cmdParams );
             m_eventLoop.run();
@@ -186,6 +204,7 @@ static struct option gAppOptions[] =
     // These options don’t set a flag.
     // We distinguish them by their indices. 
     {"cmd",     required_argument, 0, 'c'},
+    {"increment", required_argument, 0, 'i'},
     {"append",  no_argument,       0, 'b'},
     {"delete",  required_argument, 0, 'd'},
     {"file",    required_argument, 0, 'f'},
@@ -230,10 +249,19 @@ main( int argc, char **argv )
             break;
 
             case 'c':
-                printf ("option -c with value `%s'\n", optarg);
+                printf( "option -c with value `%s'\n", optarg );
                 if( context.setCommand( optarg ) != APP_RESULT_SUCCESS )
                 {
                     fprintf( stderr, "ERROR: Command is not supported: %s\n", optarg );
+                    exit(1);
+                }
+            break;
+
+            case 'i':
+                printf( "option --inrement with value `%s'\n", optarg );
+                if( context.setIncrementFromStr( optarg ) != APP_RESULT_SUCCESS )
+                {
+                    fprintf( stderr, "ERROR: Increment is not supported: %s\n", optarg );
                     exit(1);
                 }
             break;

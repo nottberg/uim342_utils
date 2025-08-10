@@ -5,6 +5,8 @@
 #include "CmdSequence.h"
 
 #define CMDPID_MD_ENABLE  "md_enable"
+#define CMDPID_INCREMENT  "move_increment"
+#define CMDPID_SPEED      "move_speed"
 
 class UIM342GetMotorSNStep : public CmdStepExecuteCANRR
 {
@@ -304,6 +306,21 @@ class UIM342SetBeginMotionStep : public CmdStepExecuteCANRR
 
 };
 
+class UIM342SetStopMotionStep : public CmdStepExecuteCANRR
+{
+    public:
+        UIM342SetStopMotionStep();
+        ~UIM342SetStopMotionStep();
+
+        virtual CS_RESULT_T setupRequestCANRR( CmdSeqParameters *params, CANReqRsp *rrObj );
+        virtual CS_RESULT_T parseResponseCANRR( CmdSeqParameters *params, CANReqRsp *rrObj );
+
+        virtual void distributeResult( CmdSeqParameters *params );
+
+    private:
+
+};
+
 class UIM342WaitMotionCompleteStep : public CmdStepExecuteCANRR
 {
     public:
@@ -408,7 +425,7 @@ class UIM342ExecuteAxisMotionSequence : public CmdSequence
 
         UIM342SetBeginMotionStep             m_setBeginMotion_Step;
         UIM342WaitMotionCompleteStep         m_waitMotionComplete_Step;
-
+        UIM342SetStopMotionStep              m_setStopMotion_Step;
 };
 
 class UIM342ExecuteGroupMotionSequence : public CmdSequence

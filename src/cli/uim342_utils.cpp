@@ -120,6 +120,8 @@ App::setIncrementFromStr( std::string value )
     if( sscanf( value.c_str(), "%i", &m_increment ) != 1 )
         return APP_RESULT_FAILURE;
 
+    printf( "m_increment set: %i\n", m_increment );
+
     return APP_RESULT_SUCCESS;
 }
 
@@ -172,6 +174,12 @@ App::execute()
             m_curMachine->startSequence( SEQID_AXIS_MD_ENABLE , &m_cmdParams );
             m_eventLoop.run();
 
+            m_curMachine->startSequence( SEQID_AXIS_SETUP_MOTION , &m_cmdParams );
+            m_eventLoop.run();
+
+            m_curMachine->startSequence( SEQID_AXIS_EXEC_MOTION , &m_cmdParams );
+            m_eventLoop.run();
+
             m_cmdParams.setValue( CMDPID_MD_ENABLE, "off" );
             m_curMachine->startSequence( SEQID_AXIS_MD_ENABLE , &m_cmdParams );
             m_eventLoop.run();
@@ -222,7 +230,7 @@ main( int argc, char **argv )
         // getopt_long stores the option index here.
         int option_index = 0;
 
-        c = getopt_long( argc, argv, "abc:d:f:", gAppOptions, &option_index );
+        c = getopt_long( argc, argv, "abc:i:d:f:", gAppOptions, &option_index );
 
         // Detect the end of the options.
         if( c == -1 )

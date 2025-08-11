@@ -1,3 +1,5 @@
+#include <unistd.h>
+
 #include "UIM342Cmd.h"
 
 UIM342GetMotorSNStep::UIM342GetMotorSNStep()
@@ -776,8 +778,6 @@ UIM342SetMotionSpeedStep::setupRequestCANRR( CmdSeqParameters *params, CANReqRsp
     if( params->lookupAsInt( CMDPID_SPEED, speed ) != CS_RESULT_SUCCESS )
         return CS_RESULT_FAILURE;
 
-    rrObj->append8( 2 ); // Desired speed
-    
     rrObj->append32( speed );
 
     return CS_RESULT_SUCCESS;
@@ -867,7 +867,7 @@ UIM342SetBeginMotionStep::~UIM342SetBeginMotionStep()
 CS_RESULT_T
 UIM342SetBeginMotionStep::setupRequestCANRR( CmdSeqParameters *params, CANReqRsp *rrObj )
 {
-    rrObj->setReqControlWord( 0xA0 );
+    rrObj->setReqControlWord( 0x96 );
 
     return CS_RESULT_SUCCESS;
 }
@@ -910,6 +910,10 @@ UIM342WaitMotionCompleteStep::~UIM342WaitMotionCompleteStep()
 CS_RESULT_T
 UIM342WaitMotionCompleteStep::setupRequestCANRR( CmdSeqParameters *params, CANReqRsp *rrObj )
 {
+    // Temporary sleep for 10 seconds to facilitate testing.
+    sleep(10);
+
+    // Temporary read abs position
     rrObj->setReqControlWord( 0xA0 );
 
     return CS_RESULT_SUCCESS;
@@ -1131,11 +1135,11 @@ UIM342SetupAxisMotionSequence::~UIM342SetupAxisMotionSequence()
 void
 UIM342SetupAxisMotionSequence::initCmdSteps()
 {
-    m_setMotionSpeed_Step.setParent( this );;
     m_setMotionRelPos_Step.setParent( this );;
+    m_setMotionSpeed_Step.setParent( this );;
 
-    appendStep( &m_setMotionSpeed_Step );
     appendStep( &m_setMotionRelPos_Step );
+    appendStep( &m_setMotionSpeed_Step );
 
     // Indicate the sequence is ready
     setState( CS_STATE_INIT );

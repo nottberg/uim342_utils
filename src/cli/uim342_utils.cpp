@@ -6,7 +6,7 @@
 #include <getopt.h>
 #include <sys/epoll.h>
 
-#include "EventLoop.h"
+//#include "EventLoop.h"
 #include "CmdSequence.h"
 #include "CNCMachine.h"
 #include "UIM342Cmd.h"
@@ -70,7 +70,7 @@ class App : public CNCMachineEventsCB
 
         CmdSeqParameters m_cmdParams;
 
-        EventLoop m_eventLoop;
+        //EventLoop m_eventLoop;
 
         CNCMachine *m_curMachine;
 
@@ -139,17 +139,19 @@ App::init()
 {
     printf("App Init\r\n");
 
-    m_eventLoop.init();
+    //m_eventLoop.init();
 
     m_curMachine = new UIM342SingleAxisMachine;
     
     m_curMachine->setup();
 
-    m_curMachine->openFileDescriptors();
+    //m_curMachine->openFileDescriptors();
 
-    m_curMachine->attachToEventLoop( &m_eventLoop );
+    //m_curMachine->attachToEventLoop( &m_eventLoop );
 
     m_curMachine->addEventObserver( this );
+
+    m_curMachine->prepareBeforeRun( &m_cmdParams );
 
     return APP_RESULT_SUCCESS;
 }
@@ -162,7 +164,9 @@ App::execute()
         case APP_CMD_AXIS_INFO:
             m_curMachine->startSequence( SEQID_AXIS_INFO, &m_cmdParams );
 
-            m_eventLoop.run();
+            // FIX
+            m_curMachine->start(&m_cmdParams);
+//            m_eventLoop.run();
         break;
 
         case APP_CMD_SINGLE_AXIS_MOTION:
@@ -172,17 +176,17 @@ App::execute()
 
             m_cmdParams.setValue( CMDPID_MD_ENABLE, "on" );
             m_curMachine->startSequence( SEQID_AXIS_MD_ENABLE , &m_cmdParams );
-            m_eventLoop.run();
+//            m_eventLoop.run();
 
             m_curMachine->startSequence( SEQID_AXIS_SETUP_MOTION , &m_cmdParams );
-            m_eventLoop.run();
+//            m_eventLoop.run();
 
             m_curMachine->startSequence( SEQID_AXIS_EXEC_MOTION , &m_cmdParams );
-            m_eventLoop.run();
+//            m_eventLoop.run();
 
             m_cmdParams.setValue( CMDPID_MD_ENABLE, "off" );
             m_curMachine->startSequence( SEQID_AXIS_MD_ENABLE , &m_cmdParams );
-            m_eventLoop.run();
+//            m_eventLoop.run();
 
         break;
     }
@@ -194,7 +198,8 @@ void
 App::sequenceComplete()
 {
     printf( "App::sequenceComplete\n" );
-    m_eventLoop.signalQuit();
+    //m_eventLoop.signalQuit();
+    m_curMachine->stop();
 }
 
 void

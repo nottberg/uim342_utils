@@ -8,15 +8,14 @@
 #define SEQID_AXIS_SETUP_MOTION "axisSetupMotion"
 #define SEQID_AXIS_EXEC_MOTION  "axisExecuteMotion"
 
-class UIM342MotorAxis : public CNCStepperAxis
+class UIM342Motor : public CANDevice
 {
     public:
-        UIM342MotorAxis();
-       ~UIM342MotorAxis();
+        UIM342Motor();
+       ~UIM342Motor();
 
     private:
 
-        CANDevice   m_motor;
 };
 
 class UIM342SingleAxisMachine : public CNCMachine
@@ -29,6 +28,10 @@ class UIM342SingleAxisMachine : public CNCMachine
 
     private:
 
+        CANBus      m_canBus;
+        UIM342Motor m_motor;
+
+        CNCAxis     m_axisX;
 };
 
 #endif // __UIM342_MACHINES_H__

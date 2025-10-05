@@ -15,6 +15,30 @@ class ELEventCB
         virtual void eventFD( int fd ) = 0;
 };
 
+class ELEventFD
+{
+    public:
+        ELEventFD();
+       ~ELEventFD();
+
+        int getFD();
+
+        EVLP_RESULT_T init( ELEventCB *callback );
+
+        void signalEvent();
+        void clearEvent();
+
+        void makeCallback();
+        
+    private:
+
+        int        m_fd;
+        
+        ELEventCB *m_callback;
+};
+
+
+
 class EventLoop
 {
     public:
@@ -24,6 +48,8 @@ class EventLoop
         EVLP_RESULT_T init();
 
         EVLP_RESULT_T registerFD( int fd, ELEventCB *callback );
+
+        ELEventFD* createEventFD( ELEventCB *callback );
 
         EVLP_RESULT_T run();
 
@@ -36,6 +62,8 @@ class EventLoop
         int m_quitFD;
 
         std::map< int, ELEventCB* > m_fdList;
+
+        std::map< int, ELEventFD* > m_evtList;
 };
 
 #endif // __EVENT_LOOP_H__

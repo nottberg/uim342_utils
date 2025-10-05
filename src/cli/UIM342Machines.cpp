@@ -2,12 +2,12 @@
 #include "UIM342Cmd.h"
 #include "UIM342Machines.h"
 
-UIM342MotorAxis::UIM342MotorAxis()
+UIM342Motor::UIM342Motor()
 {
 
 }
 
-UIM342MotorAxis::~UIM342MotorAxis()
+UIM342Motor::~UIM342Motor()
 {
 
 }
@@ -30,11 +30,22 @@ UIM342SingleAxisMachine::setup()
 
     //m_curMachine = new CNCMachine();
 
-    setCanBus( "cbus0", new CANBus() );
+    //setCanBus( "cbus0", new CANBus() );
+    m_axisX.setID( "XAxis" );
 
-    UIM342MotorAxis *axis = new UIM342MotorAxis;
+    m_canBus.setID( "cbus0" );
+    m_axisX.addComponent( m_canBus.getID(), CNCA_AXISCOMP_TYPE_CANBUS, &m_canBus );
+
+    m_motor.setID( "XMotor" );
+    m_motor.setBusConnection( &m_canBus, 5, 100 );
+    m_axisX.addComponent( m_motor.getID(), CNCA_AXISCOMP_TYPE_MOTOR, &m_motor );
+
+/*    
+    UIM342MotorAxis *axis = new UIM342Motor;
+    axis->setBusID( 5, 100 );
     axis->setID( "X" );
     setAxis( axis );
+*/
 
     UIM342AxisInfoSequence *cmdSeq1 = new UIM342AxisInfoSequence;
     cmdSeq1->setHardwareInterface( this );
@@ -56,5 +67,7 @@ UIM342SingleAxisMachine::setup()
     cmdSeq4->initCmdSteps();
     addSequence( SEQID_AXIS_EXEC_MOTION, cmdSeq4 );
 
+
     return CNCM_RESULT_SUCCESS;
 }
+

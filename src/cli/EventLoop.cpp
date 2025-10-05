@@ -11,6 +11,55 @@
 
 #define MAX_EVENTS 10
 
+ELEventFD::ELEventFD()
+{
+    m_fd = 0;
+
+    m_callback = NULL;
+}
+
+ELEventFD::~ELEventFD()
+{
+
+}
+
+int
+ELEventFD::getFD()
+{
+    return m_fd;
+}
+
+EVLP_RESULT_T
+ELEventFD::init( ELEventCB *callback )
+{
+    m_callback = callback;
+
+    m_fd = eventfd(0, EFD_SEMAPHORE);
+
+    return EVLP_RESULT_SUCCESS;
+}
+
+void
+ELEventFD::signalEvent()
+{
+    uint64_t u = 1;
+    write( m_fd, &u, sizeof(u) );
+}
+
+void
+ELEventFD::clearEvent()
+{
+    uint64_t u = 0;
+    read( m_fd, &u, sizeof(u) );
+}
+
+void
+ELEventFD::makeCallback()
+{
+    if( m_callback )
+        m_callback->eventFD( m_fd );
+}
+
 EventLoop::EventLoop()
 {
 }
@@ -75,6 +124,33 @@ EventLoop::registerFD( int fd,  ELEventCB *callback )
     return EVLP_RESULT_SUCCESS;
 }
 
+ELEventFD*
+EventLoop::createEventFD( ELEventCB *callback )
+{
+    struct epoll_event ev;
+    ELEventFD *newEvt = new ELEventFD;
+
+    newEvt->init( callback );
+
+    int fd = newEvt->getFD();
+
+    printf( "Adding event fd to epoll: %d\n", fd );
+
+    ev.events = EPOLLIN;
+    ev.data.fd = fd;
+
+    if( epoll_ctl( m_epollFD, EPOLL_CTL_ADD, fd, &ev ) == -1 )
+    {
+        perror( "epoll_ctl: CAN socket" );
+        delete newEvt;
+        return NULL;
+    }
+
+    m_evtList.insert( std::pair< int, ELEventFD* >( fd, newEvt ) );
+
+    return newEvt;
+}
+
 void
 EventLoop::signalQuit()
 {
@@ -120,7 +196,18 @@ EventLoop::run()
             if( it != m_fdList.end() )
             {
                 it->second->eventFD( events[n].data.fd );
+                continue;
             }
+
+            std::map< int, ELEventFD* >::iterator et = m_evtList.find( events[n].data.fd );
+
+            if( et != m_evtList.end() )
+            {
+                et->second->clearEvent();
+                et->second->makeCallback();
+                continue;
+            }
+
         }
     }
 

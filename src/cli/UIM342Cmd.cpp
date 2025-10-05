@@ -13,19 +13,19 @@ UIM342GetMotorSNStep::~UIM342GetMotorSNStep()
 }
 
 CS_RESULT_T
-UIM342GetMotorSNStep::setupRequestCANRR( CmdSeqParameters *params, CANReqRsp *rrObj )
+UIM342GetMotorSNStep::initCANTXFrame( CmdSeqParameters *params, CANFrame *frame )
 {
-    printf( "UIM342GetMotorSNStep::setupRequestCANRR\n" );
+    printf( "UIM342GetMotorSNStep::initCANTXFrame\n" );
 
-    rrObj->setReqControlWord( 0x8C );
+    frame->setCmd( 0x8C );
 
     return CS_RESULT_SUCCESS;
 }
 
 CS_RESULT_T
-UIM342GetMotorSNStep::parseResponseCANRR( CmdSeqParameters *params, CANReqRsp *rrObj )
+UIM342GetMotorSNStep::parseCANRXFrame( CmdSeqParameters *params, CANFrame *frame )
 {
-    rrObj->read32( m_serialNumber );
+    frame->read32( m_serialNumber );
 
     printf( "UIM342GetMotorSNStep::parseResponse - %d\n", m_serialNumber );
 
@@ -56,24 +56,24 @@ UIM342GetMotorModelStep::~UIM342GetMotorModelStep()
 }
 
 CS_RESULT_T
-UIM342GetMotorModelStep::setupRequestCANRR( CmdSeqParameters *params, CANReqRsp *rrObj )
+UIM342GetMotorModelStep::initCANTXFrame( CmdSeqParameters *params, CANFrame *frame )
 {
-    rrObj->setReqControlWord( 0x8B );
+    frame->setCmd( 0x8B );
 
     return CS_RESULT_SUCCESS;
 }
 
 CS_RESULT_T
-UIM342GetMotorModelStep::parseResponseCANRR( CmdSeqParameters *params, CANReqRsp *rrObj )
+UIM342GetMotorModelStep::parseCANRXFrame( CmdSeqParameters *params, CANFrame *frame )
 {
     uint8_t  tmp;
     uint8_t  buf[3];
     uint16_t fwVer;
     char tmpStr[128];
 
-    rrObj->readRspData( buf, 3 );
-    rrObj->read8( tmp );
-    rrObj->read16( fwVer );
+    frame->readData( buf, 3 );
+    frame->read8( tmp );
+    frame->read16( fwVer );
 
     printf("model: 0x%x, 0x%x, 0x%x, fwVer: 0x%x\n", buf[0], buf[1], buf[2], fwVer );
 
@@ -107,22 +107,22 @@ UIM342GetMotorCANBitrateStep::~UIM342GetMotorCANBitrateStep()
 }
 
 CS_RESULT_T
-UIM342GetMotorCANBitrateStep::setupRequestCANRR( CmdSeqParameters *params, CANReqRsp *rrObj )
+UIM342GetMotorCANBitrateStep::initCANTXFrame( CmdSeqParameters *params, CANFrame *frame )
 {
-    rrObj->setReqControlWord( 0x81 );
-    rrObj->append8( 5 );
+    frame->setCmd( 0x81 );
+    frame->append8( 5 );
 
     return CS_RESULT_SUCCESS;
 }
 
 CS_RESULT_T
-UIM342GetMotorCANBitrateStep::parseResponseCANRR( CmdSeqParameters *params, CANReqRsp *rrObj )
+UIM342GetMotorCANBitrateStep::parseCANRXFrame( CmdSeqParameters *params, CANFrame *frame )
 {
     uint8_t PIndex;
     uint8_t PValue;
 
-    rrObj->read8(PIndex);
-    rrObj->read8(PValue);
+    frame->read8(PIndex);
+    frame->read8(PValue);
 
     printf( "CAN Bit Rate Rsp - index: %d, value: %d\n", PIndex, PValue );
 
@@ -183,22 +183,22 @@ UIM342GetMotorCANNodeIDStep::~UIM342GetMotorCANNodeIDStep()
 }
 
 CS_RESULT_T
-UIM342GetMotorCANNodeIDStep::setupRequestCANRR( CmdSeqParameters *params, CANReqRsp *rrObj )
+UIM342GetMotorCANNodeIDStep::initCANTXFrame( CmdSeqParameters *params, CANFrame *frame )
 {
-    rrObj->setReqControlWord( 0x81 );
-    rrObj->append8( 7 );
+    frame->setCmd( 0x81 );
+    frame->append8( 7 );
 
     return CS_RESULT_SUCCESS;
 }
 
 CS_RESULT_T
-UIM342GetMotorCANNodeIDStep::parseResponseCANRR( CmdSeqParameters *params, CANReqRsp *rrObj )
+UIM342GetMotorCANNodeIDStep::parseCANRXFrame( CmdSeqParameters *params, CANFrame *frame )
 {
     uint8_t PIndex;
     uint8_t PValue;
 
-    rrObj->read8(PIndex);
-    rrObj->read8(PValue);
+    frame->read8(PIndex);
+    frame->read8(PValue);
 
     m_nodeID = PValue;
 
@@ -229,22 +229,22 @@ UIM342GetMotorCANGroupIDStep::~UIM342GetMotorCANGroupIDStep()
 }
 
 CS_RESULT_T
-UIM342GetMotorCANGroupIDStep::setupRequestCANRR( CmdSeqParameters *params, CANReqRsp *rrObj )
+UIM342GetMotorCANGroupIDStep::initCANTXFrame( CmdSeqParameters *params, CANFrame *frame )
 {
-    rrObj->setReqControlWord( 0x81 );
-    rrObj->append8( 8 );
+    frame->setCmd( 0x81 );
+    frame->append8( 8 );
 
     return CS_RESULT_SUCCESS;
 }
 
 CS_RESULT_T
-UIM342GetMotorCANGroupIDStep::parseResponseCANRR( CmdSeqParameters *params, CANReqRsp *rrObj )
+UIM342GetMotorCANGroupIDStep::parseCANRXFrame( CmdSeqParameters *params, CANFrame *frame )
 {
     uint8_t PIndex;
     uint8_t PValue;
 
-    rrObj->read8(PIndex);
-    rrObj->read8(PValue);
+    frame->read8(PIndex);
+    frame->read8(PValue);
 
     m_groupID = PValue;
 
@@ -277,22 +277,22 @@ UIM342GetInitialConfigurationStep::~UIM342GetInitialConfigurationStep()
 }
 
 CS_RESULT_T
-UIM342GetInitialConfigurationStep::setupRequestCANRR( CmdSeqParameters *params, CANReqRsp *rrObj )
+UIM342GetInitialConfigurationStep::initCANTXFrame( CmdSeqParameters *params, CANFrame *frame )
 {
-    rrObj->setReqControlWord( 0x86 );
-    rrObj->append8( m_paramID );
+    frame->setCmd( 0x86 );
+    frame->append8( m_paramID );
 
     return CS_RESULT_SUCCESS;
 }
 
 CS_RESULT_T
-UIM342GetInitialConfigurationStep::parseResponseCANRR( CmdSeqParameters *params, CANReqRsp *rrObj )
+UIM342GetInitialConfigurationStep::parseCANRXFrame( CmdSeqParameters *params, CANFrame *frame )
 {
     uint8_t  PIndex;
     uint16_t PValue;
 
-    rrObj->read8(PIndex);
-    rrObj->read16(PValue);
+    frame->read8(PIndex);
+    frame->read16(PValue);
 
     m_value = PValue;
 
@@ -377,22 +377,22 @@ UIM342GetInformationEnableStep::~UIM342GetInformationEnableStep()
 }
 
 CS_RESULT_T
-UIM342GetInformationEnableStep::setupRequestCANRR( CmdSeqParameters *params, CANReqRsp *rrObj )
+UIM342GetInformationEnableStep::initCANTXFrame( CmdSeqParameters *params, CANFrame *frame )
 {
-    rrObj->setReqControlWord( 0x87 );
-    rrObj->append8( m_paramID );
+    frame->setCmd( 0x87 );
+    frame->append8( m_paramID );
 
     return CS_RESULT_SUCCESS;
 }
 
 CS_RESULT_T
-UIM342GetInformationEnableStep::parseResponseCANRR( CmdSeqParameters *params, CANReqRsp *rrObj )
+UIM342GetInformationEnableStep::parseCANRXFrame( CmdSeqParameters *params, CANFrame *frame )
 {
     uint8_t  PIndex;
     uint16_t PValue;
 
-    rrObj->read8(PIndex);
-    rrObj->read16(PValue);
+    frame->read8(PIndex);
+    frame->read16(PValue);
 
     m_value = PValue;
 
@@ -450,22 +450,22 @@ UIM342GetQuadratureEncoderStep::~UIM342GetQuadratureEncoderStep()
 }
 
 CS_RESULT_T
-UIM342GetQuadratureEncoderStep::setupRequestCANRR( CmdSeqParameters *params, CANReqRsp *rrObj )
+UIM342GetQuadratureEncoderStep::initCANTXFrame( CmdSeqParameters *params, CANFrame *frame )
 {
-    rrObj->setReqControlWord( 0xBD );
-    rrObj->append8( m_paramID );
+    frame->setCmd( 0xBD );
+    frame->append8( m_paramID );
 
     return CS_RESULT_SUCCESS;
 }
 
 CS_RESULT_T
-UIM342GetQuadratureEncoderStep::parseResponseCANRR( CmdSeqParameters *params, CANReqRsp *rrObj )
+UIM342GetQuadratureEncoderStep::parseCANRXFrame( CmdSeqParameters *params, CANFrame *frame )
 {
     uint8_t  PIndex;
     uint16_t PValue;
 
-    rrObj->read8(PIndex);
-    rrObj->read16(PValue);
+    frame->read8(PIndex);
+    frame->read16(PValue);
 
     m_value = PValue;
 
@@ -523,26 +523,26 @@ UIM342GetMotorDriverStep::~UIM342GetMotorDriverStep()
 }
 
 CS_RESULT_T
-UIM342GetMotorDriverStep::setupRequestCANRR( CmdSeqParameters *params, CANReqRsp *rrObj )
+UIM342GetMotorDriverStep::initCANTXFrame( CmdSeqParameters *params, CANFrame *frame )
 {
     uint canID;
     
-    rrObj->setReqControlWord( 0x90 );
-    rrObj->append8( m_paramID );
+    frame->setCmd( 0x90 );
+    frame->append8( m_paramID );
 
     return CS_RESULT_SUCCESS;
 }
 
 CS_RESULT_T
-UIM342GetMotorDriverStep::parseResponseCANRR( CmdSeqParameters *params, CANReqRsp *rrObj )
+UIM342GetMotorDriverStep::parseCANRXFrame( CmdSeqParameters *params, CANFrame *frame )
 {
     uint8_t  PIndex;
     uint16_t PValue;
 
-    rrObj->read8(PIndex);
-    rrObj->read16(PValue);
+    frame->read8(PIndex);
+    frame->read16(PValue);
 
-    printf( "UIM342GetMotorDriverStep::parseResponseCANRR - pindex: %d  value: %d\n", PIndex, PValue );
+    printf( "UIM342GetMotorDriverStep::parseCANRXFrame - pindex: %d  value: %d\n", PIndex, PValue );
 
     m_value = PValue;
 
@@ -591,19 +591,19 @@ UIM342GetMTStateStep::~UIM342GetMTStateStep()
 }
 
 CS_RESULT_T
-UIM342GetMTStateStep::setupRequestCANRR( CmdSeqParameters *params, CANReqRsp *rrObj )
+UIM342GetMTStateStep::initCANTXFrame( CmdSeqParameters *params, CANFrame *frame )
 {
-    rrObj->setReqControlWord( 0x95 );
+    frame->setCmd( 0x95 );
 
     return CS_RESULT_SUCCESS;
 }
 
 CS_RESULT_T
-UIM342GetMTStateStep::parseResponseCANRR( CmdSeqParameters *params, CANReqRsp *rrObj )
+UIM342GetMTStateStep::parseCANRXFrame( CmdSeqParameters *params, CANFrame *frame )
 {
     uint8_t PValue;
 
-    rrObj->read8(PValue);
+    frame->read8(PValue);
 
     m_value = PValue;
 
@@ -632,19 +632,19 @@ UIM342GetRelativePositionStep::~UIM342GetRelativePositionStep()
 }
 
 CS_RESULT_T
-UIM342GetRelativePositionStep::setupRequestCANRR( CmdSeqParameters *params, CANReqRsp *rrObj )
+UIM342GetRelativePositionStep::initCANTXFrame( CmdSeqParameters *params, CANFrame *frame )
 {
-    rrObj->setReqControlWord( 0x9F );
+    frame->setCmd( 0x9F );
 
     return CS_RESULT_SUCCESS;
 }
 
 CS_RESULT_T
-UIM342GetRelativePositionStep::parseResponseCANRR( CmdSeqParameters *params, CANReqRsp *rrObj )
+UIM342GetRelativePositionStep::parseCANRXFrame( CmdSeqParameters *params, CANFrame *frame )
 {
     uint PValue;
 
-    rrObj->read32(PValue);
+    frame->read32(PValue);
 
     m_value = PValue;
 
@@ -674,19 +674,19 @@ UIM342GetAbsolutePositionStep::~UIM342GetAbsolutePositionStep()
 }
 
 CS_RESULT_T
-UIM342GetAbsolutePositionStep::setupRequestCANRR( CmdSeqParameters *params, CANReqRsp *rrObj )
+UIM342GetAbsolutePositionStep::initCANTXFrame( CmdSeqParameters *params, CANFrame *frame )
 {
-    rrObj->setReqControlWord( 0xA0 );
+    frame->setCmd( 0xA0 );
 
     return CS_RESULT_SUCCESS;
 }
 
 CS_RESULT_T
-UIM342GetAbsolutePositionStep::parseResponseCANRR( CmdSeqParameters *params, CANReqRsp *rrObj )
+UIM342GetAbsolutePositionStep::parseCANRXFrame( CmdSeqParameters *params, CANFrame *frame )
 {
     uint PValue;
 
-    rrObj->read32(PValue);
+    frame->read32(PValue);
 
     m_value = PValue;
 
@@ -715,32 +715,32 @@ UIM342SetMDEnableStep::~UIM342SetMDEnableStep()
 }
 
 CS_RESULT_T
-UIM342SetMDEnableStep::setupRequestCANRR( CmdSeqParameters *params, CANReqRsp *rrObj )
+UIM342SetMDEnableStep::initCANTXFrame( CmdSeqParameters *params, CANFrame *frame )
 {
-    rrObj->setReqControlWord( 0x95 );
+    frame->setCmd( 0x95 );
 
     if( params->isSetOn( CMDPID_MD_ENABLE ) == true )
     {
         printf( "UIM342SetMDEnableStep::setup: on\n" );
-        rrObj->append8( 0x01 );
+        frame->append8( 0x01 );
     }
     else
     {
         printf( "UIM342SetMDEnableStep::setup: off\n" );
-        rrObj->append8( 0x00 );
+        frame->append8( 0x00 );
     }
 
     return CS_RESULT_SUCCESS;
 }
 
 CS_RESULT_T
-UIM342SetMDEnableStep::parseResponseCANRR( CmdSeqParameters *params, CANReqRsp *rrObj )
+UIM342SetMDEnableStep::parseCANRXFrame( CmdSeqParameters *params, CANFrame *frame )
 {
     uint PValue;
 
     printf( "UIM342SetMDEnableStep::result: \n" );
     
-    //rrObj->read32(PValue);
+    //frame->read32(PValue);
 
     //m_value = PValue;
 
@@ -769,26 +769,26 @@ UIM342SetMotionSpeedStep::~UIM342SetMotionSpeedStep()
 }
 
 CS_RESULT_T
-UIM342SetMotionSpeedStep::setupRequestCANRR( CmdSeqParameters *params, CANReqRsp *rrObj )
+UIM342SetMotionSpeedStep::initCANTXFrame( CmdSeqParameters *params, CANFrame *frame )
 {
     int speed;
 
-    rrObj->setReqControlWord( 0x9E );
+    frame->setCmd( 0x9E );
 
     if( params->lookupAsInt( CMDPID_SPEED, speed ) != CS_RESULT_SUCCESS )
         return CS_RESULT_FAILURE;
 
-    rrObj->append32( speed );
+    frame->append32( speed );
 
     return CS_RESULT_SUCCESS;
 }
 
 CS_RESULT_T
-UIM342SetMotionSpeedStep::parseResponseCANRR( CmdSeqParameters *params, CANReqRsp *rrObj )
+UIM342SetMotionSpeedStep::parseCANRXFrame( CmdSeqParameters *params, CANFrame *frame )
 {
     uint PValue;
 
-    //rrObj->read32(PValue);
+    //frame->read32(PValue);
 
     //m_value = PValue;
 
@@ -817,26 +817,26 @@ UIM342SetMotionRelativePositionStep::~UIM342SetMotionRelativePositionStep()
 }
 
 CS_RESULT_T
-UIM342SetMotionRelativePositionStep::setupRequestCANRR( CmdSeqParameters *params, CANReqRsp *rrObj )
+UIM342SetMotionRelativePositionStep::initCANTXFrame( CmdSeqParameters *params, CANFrame *frame )
 {
     int increment;
 
-    rrObj->setReqControlWord( 0x9F );
+    frame->setCmd( 0x9F );
 
     if( params->lookupAsInt( CMDPID_INCREMENT, increment ) != CS_RESULT_SUCCESS )
         return CS_RESULT_FAILURE;
 
-    rrObj->append32( increment );
+    frame->append32( increment );
 
     return CS_RESULT_SUCCESS;
 }
 
 CS_RESULT_T
-UIM342SetMotionRelativePositionStep::parseResponseCANRR( CmdSeqParameters *params, CANReqRsp *rrObj )
+UIM342SetMotionRelativePositionStep::parseCANRXFrame( CmdSeqParameters *params, CANFrame *frame )
 {
     uint PValue;
 
-    //rrObj->read32(PValue);
+    //frame->read32(PValue);
 
     //m_value = PValue;
 
@@ -865,19 +865,19 @@ UIM342SetBeginMotionStep::~UIM342SetBeginMotionStep()
 }
 
 CS_RESULT_T
-UIM342SetBeginMotionStep::setupRequestCANRR( CmdSeqParameters *params, CANReqRsp *rrObj )
+UIM342SetBeginMotionStep::initCANTXFrame( CmdSeqParameters *params, CANFrame *frame )
 {
-    rrObj->setReqControlWord( 0x96 );
+    frame->setCmd( 0x96 );
 
     return CS_RESULT_SUCCESS;
 }
 
 CS_RESULT_T
-UIM342SetBeginMotionStep::parseResponseCANRR( CmdSeqParameters *params, CANReqRsp *rrObj )
+UIM342SetBeginMotionStep::parseCANRXFrame( CmdSeqParameters *params, CANFrame *frame )
 {
     uint PValue;
 
-    //rrObj->read32(PValue);
+    //frame->read32(PValue);
 
     //m_value = PValue;
 
@@ -908,23 +908,23 @@ UIM342WaitMotionCompleteStep::~UIM342WaitMotionCompleteStep()
 }
 
 CS_RESULT_T
-UIM342WaitMotionCompleteStep::setupRequestCANRR( CmdSeqParameters *params, CANReqRsp *rrObj )
+UIM342WaitMotionCompleteStep::initCANTXFrame( CmdSeqParameters *params, CANFrame *frame )
 {
     // Temporary sleep for 10 seconds to facilitate testing.
     sleep(10);
 
     // Temporary read abs position
-    rrObj->setReqControlWord( 0xA0 );
+    frame->setCmd( 0xA0 );
 
     return CS_RESULT_SUCCESS;
 }
 
 CS_RESULT_T
-UIM342WaitMotionCompleteStep::parseResponseCANRR( CmdSeqParameters *params, CANReqRsp *rrObj )
+UIM342WaitMotionCompleteStep::parseCANRXFrame( CmdSeqParameters *params, CANFrame *frame )
 {
     uint PValue;
 
-    //rrObj->read32(PValue);
+    //frame->read32(PValue);
 
     //m_value = PValue;
 
@@ -953,19 +953,19 @@ UIM342SetStopMotionStep::~UIM342SetStopMotionStep()
 }
 
 CS_RESULT_T
-UIM342SetStopMotionStep::setupRequestCANRR( CmdSeqParameters *params, CANReqRsp *rrObj )
+UIM342SetStopMotionStep::initCANTXFrame( CmdSeqParameters *params, CANFrame *frame )
 {
-    rrObj->setReqControlWord( 0x97 );
+    frame->setCmd( 0x97 );
 
     return CS_RESULT_SUCCESS;
 }
 
 CS_RESULT_T
-UIM342SetStopMotionStep::parseResponseCANRR( CmdSeqParameters *params, CANReqRsp *rrObj )
+UIM342SetStopMotionStep::parseCANRXFrame( CmdSeqParameters *params, CANFrame *frame )
 {
     uint PValue;
 
-    //rrObj->read32(PValue);
+    //frame->read32(PValue);
 
     //m_value = PValue;
 
@@ -1017,42 +1017,42 @@ UIM342AxisInfoSequence::~UIM342AxisInfoSequence()
 void
 UIM342AxisInfoSequence::initCmdSteps()
 {
-    m_getSN_Step.setParent( this );
+    //m_getSN_Step.setParent( this );
 
-    m_getModel_Step.setParent( this );
-    m_getCANBitrate_Step.setParent( this );
-    m_getCANNodeID_Step.setParent( this );
-    m_getCANGroupID_Step.setParent( this );
+    //m_getModel_Step.setParent( this );
+    //m_getCANBitrate_Step.setParent( this );
+    //m_getCANNodeID_Step.setParent( this );
+    //m_getCANGroupID_Step.setParent( this );
 
-    m_getICStep_P0.setParent( this );
-    m_getICStep_P1.setParent( this );
-    m_getICStep_P2.setParent( this );
-    m_getICStep_P3.setParent( this );
-    m_getICStep_P4.setParent( this );
-    m_getICStep_P5.setParent( this );
-    m_getICStep_P6.setParent( this );
-    m_getICStep_P7.setParent( this );
+    //m_getICStep_P0.setParent( this );
+    //m_getICStep_P1.setParent( this );
+    //m_getICStep_P2.setParent( this );
+    //m_getICStep_P3.setParent( this );
+    //m_getICStep_P4.setParent( this );
+    //m_getICStep_P5.setParent( this );
+    //m_getICStep_P6.setParent( this );
+    //m_getICStep_P7.setParent( this );
 
-    m_getIEStep_P0.setParent( this );
-    m_getIEStep_P1.setParent( this );
-    m_getIEStep_P2.setParent( this );
-    m_getIEStep_P8.setParent( this );
+    //m_getIEStep_P0.setParent( this );
+    //m_getIEStep_P1.setParent( this );
+    //m_getIEStep_P2.setParent( this );
+    //m_getIEStep_P8.setParent( this );
 
-    m_getQEStep_P0.setParent( this );
-    m_getQEStep_P1.setParent( this );
-    m_getQEStep_P2.setParent( this );
-    m_getQEStep_P3.setParent( this );
-    m_getQEStep_P4.setParent( this );
+    //m_getQEStep_P0.setParent( this );
+    //m_getQEStep_P1.setParent( this );
+    //m_getQEStep_P2.setParent( this );
+    //m_getQEStep_P3.setParent( this );
+    //m_getQEStep_P4.setParent( this );
 
-    m_getMTStep_P0.setParent( this );
-    m_getMTStep_P1.setParent( this );
-    m_getMTStep_P2.setParent( this );
-    m_getMTStep_P3.setParent( this );
+    //m_getMTStep_P0.setParent( this );
+    //m_getMTStep_P1.setParent( this );
+    //m_getMTStep_P2.setParent( this );
+    //m_getMTStep_P3.setParent( this );
 
-    m_getMTStateStep.setParent( this );
+    //m_getMTStateStep.setParent( this );
 
-    m_getRelPosStep.setParent( this );
-    m_getAbsPosStep.setParent( this );
+    //m_getRelPosStep.setParent( this );
+    //m_getAbsPosStep.setParent( this );
 
     // Create a CAN request
     //m_getSN_Step.setTargetBus( "cbus0" );
@@ -1098,7 +1098,7 @@ UIM342AxisInfoSequence::initCmdSteps()
     appendStep( &m_getAbsPosStep );
 
     // Indicate the sequence is ready
-    setState( CS_STATE_INIT );
+    //setState( CS_STATE_INIT );
 }
 
 UIM342ChangeAxisDriverEnableSequence::UIM342ChangeAxisDriverEnableSequence()
@@ -1114,12 +1114,12 @@ UIM342ChangeAxisDriverEnableSequence::~UIM342ChangeAxisDriverEnableSequence()
 void
 UIM342ChangeAxisDriverEnableSequence::initCmdSteps()
 {
-    m_setMDEnable_Step.setParent( this );
+    //m_setMDEnable_Step.setParent( this );
 
     appendStep( &m_setMDEnable_Step );
 
     // Indicate the sequence is ready
-    setState( CS_STATE_INIT );
+   //setState( CS_STATE_INIT );
 }
 
 UIM342SetupAxisMotionSequence::UIM342SetupAxisMotionSequence()
@@ -1135,14 +1135,14 @@ UIM342SetupAxisMotionSequence::~UIM342SetupAxisMotionSequence()
 void
 UIM342SetupAxisMotionSequence::initCmdSteps()
 {
-    m_setMotionRelPos_Step.setParent( this );;
-    m_setMotionSpeed_Step.setParent( this );;
+    //m_setMotionRelPos_Step.setParent( this );;
+    //m_setMotionSpeed_Step.setParent( this );;
 
     appendStep( &m_setMotionRelPos_Step );
     appendStep( &m_setMotionSpeed_Step );
 
     // Indicate the sequence is ready
-    setState( CS_STATE_INIT );
+    //setState( CS_STATE_INIT );
 }
 
 UIM342ExecuteAxisMotionSequence::UIM342ExecuteAxisMotionSequence()
@@ -1158,16 +1158,16 @@ UIM342ExecuteAxisMotionSequence::~UIM342ExecuteAxisMotionSequence()
 void
 UIM342ExecuteAxisMotionSequence::initCmdSteps()
 {
-    m_setBeginMotion_Step.setParent( this );;
-    m_waitMotionComplete_Step.setParent( this );;
-    m_setStopMotion_Step.setParent( this );;
+    //m_setBeginMotion_Step.setParent( this );;
+    //m_waitMotionComplete_Step.setParent( this );;
+    //m_setStopMotion_Step.setParent( this );;
 
     appendStep( &m_setBeginMotion_Step );
     appendStep( &m_waitMotionComplete_Step );
     appendStep( &m_setStopMotion_Step );
 
     // Indicate the sequence is ready
-    setState( CS_STATE_INIT );
+    //setState( CS_STATE_INIT );
 }
 
 UIM342ExecuteGroupMotionSequence::UIM342ExecuteGroupMotionSequence()
@@ -1184,5 +1184,5 @@ void
 UIM342ExecuteGroupMotionSequence::initCmdSteps()
 {
     // Indicate the sequence is ready
-    setState( CS_STATE_INIT );
+    //setState( CS_STATE_INIT );
 }

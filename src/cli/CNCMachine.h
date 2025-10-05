@@ -13,39 +13,6 @@ typedef enum CNCMachineResultTypes
     CNCM_RESULT_FAILURE
 }CNCM_RESULT_T;
 
-class CNCAxis
-{
-    public:
-        CNCAxis();
-       ~CNCAxis();
-
-        void setID( std::string value );
-        std::string getID();
-
-        CNCM_RESULT_T getBusID( std::string &id );
-
-        CNCM_RESULT_T getParameter( std::string name, std::string &value );
-
-        void updateParameter( std::string name, std::string value );
-
-        virtual void debugPrint();
-
-    private:
-
-        std::string m_id;
-
-        std::map< std::string, std::string > m_parameters;
-};
-
-class CNCStepperAxis : public CNCAxis
-{
-    public:
-        CNCStepperAxis();
-       ~CNCStepperAxis();
-
-    private:
-};
-
 class CNCMachineEventsCB
 {
     public:
@@ -53,7 +20,47 @@ class CNCMachineEventsCB
 
 };
 
-class CNCMachine : public CSHardwareInterface, ELEventCB, CANReqRspEvents
+class CNCSequencerCallbacks
+{
+    public:
+        virtual void CNCSCSequenceComplete( std::string execID ) = 0;
+};
+
+class CNCSequencer : public ELEventCB
+{
+    public:
+        CNCSequencer();
+       ~CNCSequencer();
+
+        void addSequence( std::string seqID, CmdSequence *seqObj );
+
+        CNCM_RESULT_T startSequence( std::string seqID, CmdSeqParameters *params, std::string &execID );
+
+        void freeExecution( std::string execID );
+
+        CNCM_RESULT_T registerWithEventLoop( EventLoop *loop );
+
+        virtual void eventFD( int fd );
+
+        void registerCallback( CNCSequencerCallbacks *cbObj );
+
+    private:
+
+        void finishCurrentSequence();
+
+        ELEventFD *m_pendingFD;
+
+        CmdSeqExecution *m_curSeqExec;
+        CmdSequence* m_curSeq;
+        
+        std::map< std::string, CmdSequence* > m_cmdSequences;
+
+        std::map< std::string, CmdSeqExecution* > m_activeSequences;
+
+        std::set< CNCSequencerCallbacks* > m_callbacks;
+};
+
+class CNCMachine : public CSHardwareInterface, public  CNCSequencerCallbacks
 {
     public:
         CNCMachine();
@@ -62,47 +69,76 @@ class CNCMachine : public CSHardwareInterface, ELEventCB, CANReqRspEvents
         void addEventObserver( CNCMachineEventsCB *obsPtr );
         void removeEventObserver( CNCMachineEventsCB *obsPtr );
 
-        void setCanBus( std::string id, CANBus *bus );
+        //void setCanBus( std::string id, CANBus *bus );
 
-        void setAxis( CNCAxis *axisObj );
+        void addBus( std::string busID, CANBus *busObj );
+        void removeBus( std::string busID );
 
-        CNCM_RESULT_T openFileDescriptors();
+        CNCM_RESULT_T getBus( std::string busID, CANBus **busPtr );
 
-        CNCM_RESULT_T attachToEventLoop( EventLoop *evlp );
+        void addAxis( std::string axisID, CNCAxis *axisObj );
+        void removeAxis( std::string axisID );
 
-        virtual void eventFD( int fd );
+        CNCM_RESULT_T getAxis( std::string axisID, CNCAxis **axisPtr );
 
-        CNCM_RESULT_T getCANBusForAxis( std::string id, CANBus **busPtr );
-        
-        CNCM_RESULT_T sendCanBus( std::string busID,  CANReqRsp *rrObj );
+        CNCM_RESULT_T prepareBeforeRun( CmdSeqParameters *params );
 
-        void startCANRequest();
+        CNCM_RESULT_T start( CmdSeqParameters *params );
 
-        virtual void completeCANResponse( CANReqRsp *rrObj );
-
-        void addSequence( std::string seqID, CmdSequence *seqObj );
+        void stop();
 
         CNCM_RESULT_T startSequence( std::string seqID, CmdSeqParameters *params );
+
+        CNCM_RESULT_T executeSequence( std::string seqID, CmdSeqParameters *params );
+
+        CNCM_RESULT_T cleanupAfterRun( CmdSeqParameters *params );
+
+        virtual void CNCSCSequenceComplete( std::string execID );
+
+        //CNCM_RESULT_T openFileDescriptors();
+
+        //CNCM_RESULT_T attachToEventLoop( EventLoop *evlp );
+
+        //virtual void eventFD( int fd );
+
+        //CNCM_RESULT_T getCANBusForAxis( std::string id, CANBus **busPtr );
+        
+        //CNCM_RESULT_T sendCanBus( std::string busID,  CANReqRsp *rrObj );
+
+        //void startCANRequest();
+
+        //virtual void completeCANResponse( CANReqRsp *rrObj );
+
+        void addSequence( std::string seqID, CmdSequence *seqObj );
 
         virtual CNCM_RESULT_T setup() = 0;
 
         virtual void updateAxis( std::string axisID, std::string name, std::string value );
 
+        virtual void getBusID( uint &deviceID, uint &groupID );
+        virtual void processFrame( CANFrame *frame );
+
+        virtual void requestComplete();
+
         virtual void debugPrint();
 
     private:
 
-        CNCAxis *lookupAxisByID( std::string axisID );
+        //CNCAxis *lookupAxisByID( std::string axisID );
 
-        void signalPendingWork();
+        //void signalPendingWork();
 
-        void clearPendingWork();
+        //void clearPendingWork();
 
         void notifySequenceComplete();
 
-        int m_pendingFD;
+        EventLoop m_eventLoop;
 
-        CmdSequence* m_curSeq;
+        CNCSequencer m_sequencer;
+
+        //int m_pendingFD;
+
+        //CmdSequence* m_curSeq;
 
         std::vector< CNCMachineEventsCB* > m_obsList;
 
@@ -110,7 +146,7 @@ class CNCMachine : public CSHardwareInterface, ELEventCB, CANReqRspEvents
 
         std::map< std::string, CNCAxis* > m_axes; 
 
-        std::map< std::string, CmdSequence* > m_cmdSequences;
+        //std::map< std::string, CmdSequence* > m_cmdSequences;
 };
 
 #endif // __CNC_MACHINE_H__

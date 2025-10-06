@@ -5,6 +5,7 @@
 
 #include "EventLoop.h"
 #include "CANRR.h"
+#include "CNCAxis.h"
 #include "CmdSequence.h"
 
 typedef enum CNCMachineResultTypes
@@ -113,7 +114,6 @@ class CNCMachine : public CSHardwareInterface, public  CNCSequencerCallbacks
 
         virtual CNCM_RESULT_T setup() = 0;
 
-        virtual void updateAxis( std::string axisID, std::string name, std::string value );
 
         virtual void getBusID( uint &deviceID, uint &groupID );
         virtual void processFrame( CANFrame *frame );
@@ -121,6 +121,10 @@ class CNCMachine : public CSHardwareInterface, public  CNCSequencerCallbacks
         virtual void requestComplete();
 
         virtual void debugPrint();
+
+        virtual CANDevice *lookupCANDevice( std::string axisID, std::string deviceFunc );
+
+        //virtual void updateAxis( std::string axisID, std::string name, std::string value );
 
     private:
 

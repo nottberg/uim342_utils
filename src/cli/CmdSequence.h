@@ -61,7 +61,9 @@ class CmdSequence;
 class CSHardwareInterface
 {
     public:
-        virtual void updateAxis( std::string axisID, std::string name, std::string value ) = 0;
+        virtual CANDevice *lookupCANDevice( std::string axisID, std::string deviceFunc ) = 0;
+
+        //virtual void updateAxis( std::string axisID, std::string name, std::string value ) = 0;
 };
 
 //class CmdStepEventsCB
@@ -169,13 +171,16 @@ class CmdStep
 
         CS_RESULT_T takeNextAction( CmdSeqExecution *exec, CS_STEPACTION_T &rtnAction );
 
+        // Get the step ready for execution
+        virtual void readyStep( CmdSeqExecution *exec );
+
         virtual CS_STEPACTION_T startStep( CmdSeqExecution *exec ) = 0;
 
         virtual CS_STEPACTION_T continueStep( CmdSeqExecution *exec ) = 0;
 
         virtual void distributeResult( CmdSeqExecution *exec ) = 0;
 
-        virtual void closeout();
+        virtual void closeout( CmdSeqExecution *exec );
         
         void updateAxis( std::string axisID, std::string name, std::string value );
 
@@ -211,9 +216,9 @@ class CmdStepExecuteCANRR : public CmdStep
 
     private:
 
-        virtual CS_RESULT_T initCANTXFrame( CmdSeqParameters *params, CANFrame *frame ) = 0;
+        virtual CS_RESULT_T createTXFrame( CmdSeqExecution *exec, CANFrame *frame ) = 0;
 
-        virtual CS_RESULT_T parseCANRXFrame( CmdSeqParameters *params, CANFrame *frame ) = 0;
+        virtual CS_RESULT_T parseRXFrame( CmdSeqExecution *exec, CANFrame *frame ) = 0;
 
         //CANReqRsp    m_RR;
 
@@ -230,7 +235,7 @@ class CmdSequence
 
         //void setState( CS_STATE_T newState );
 
-        void setHardwareInterface( CSHardwareInterface *hwIntf );
+        //void setHardwareInterface( CSHardwareInterface *hwIntf );
 
         void calculateTimeout( uint curTime );
         uint getTimeout();
@@ -259,7 +264,7 @@ class CmdSequence
 
         void setErrorState();
 
-        void updateAxis( std::string axisID, std::string name, std::string value );
+        //void updateAxis( std::string axisID, std::string name, std::string value );
 
     private:
 
@@ -273,7 +278,7 @@ class CmdSequence
 
         //CmdSeqExecution *m_curExec;
 
-        CSHardwareInterface *m_hwIntf;
+        //CSHardwareInterface *m_hwIntf;
 
         std::vector< CmdStep* > m_stepList;
 };

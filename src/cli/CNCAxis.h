@@ -5,41 +5,14 @@
 #include <map>
 
 #include "EventLoop.h"
+#include "CNCAxisComponent.h"
+#include "CANRR.h"
 
 typedef enum CNCAxisResultTypes
 {
     CNCA_RESULT_SUCCESS,
     CNCA_RESULT_FAILURE
 }CNCA_RESULT_T;
-
-typedef enum CNCAxisComponentType
-{
-    CNCA_AXISCOMP_TYPE_NOTSET,
-    CNCA_AXISCOMP_TYPE_CANBUS,
-    CNCA_AXISCOMP_TYPE_MOTOR
-}CNCA_AXISCOMP_TYPE_T;
-
-class CNCAxisComponent : public ELEventCB 
-{
-    public:
-        CNCAxisComponent();
-       ~CNCAxisComponent();
-
-        void setID( std::string id );
-        std::string getID();
-
-        void setType( CNCA_AXISCOMP_TYPE_T type );
-        CNCA_AXISCOMP_TYPE_T getType();
-
-        virtual void eventFD( int fd );
-
-        virtual CNCA_RESULT_T registerWithEventLoop( EventLoop *loop );
-
-    private:
-
-        std::string          m_id;
-        CNCA_AXISCOMP_TYPE_T m_type;
-};
 
 class CNCAxis
 {
@@ -50,11 +23,12 @@ class CNCAxis
         void setID( std::string value );
         std::string getID();
 
-        CNCA_RESULT_T addComponent( std::string compID, CNCA_AXISCOMP_TYPE_T compType, CNCAxisComponent *component );
+        CNCA_RESULT_T addComponent( std::string compID, std::string function, CNCAxisComponent *component );
         CNCA_RESULT_T removeComponent( std::string compID );
 
         CNCA_RESULT_T getComponentByID( std::string compID, CNCAxisComponent **component );
 
+        CNCA_RESULT_T lookupCANDeviceByFunction( std::string deviceFunc, CANDevice **device );
         //CNCM_RESULT_T getBusID( std::string &id );
 
         CNCA_RESULT_T getParameter( std::string name, std::string &value );

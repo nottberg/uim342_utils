@@ -3,54 +3,6 @@
 
 #include "CNCAxis.h"
 
-CNCAxisComponent::CNCAxisComponent()
-{
-    m_type = CNCA_AXISCOMP_TYPE_NOTSET;
-}
-
-CNCAxisComponent::~CNCAxisComponent()
-{
-
-}
-
-void
-CNCAxisComponent::setID( std::string id )
-{
-    m_id = id;
-}
-
-std::string
-CNCAxisComponent::getID()
-{
-    return m_id;
-}
-
-void
-CNCAxisComponent::setType( CNCA_AXISCOMP_TYPE_T type )
-{
-    m_type = type;
-}
-
-CNCA_AXISCOMP_TYPE_T
-CNCAxisComponent::getType()
-{
-    return m_type;
-}
-
-void
-CNCAxisComponent::eventFD( int fd )
-{
-    printf( "CNCAxisComponent::eventFD - default\n" );
-}
-
-CNCA_RESULT_T
-CNCAxisComponent::registerWithEventLoop( EventLoop *loop )
-{
-    printf( "CNCAxisComponent::registerWithEventLoop - default\n" );
-
-    return CNCA_RESULT_SUCCESS;
-}
-
 CNCAxis::CNCAxis()
 {
 
@@ -74,12 +26,12 @@ CNCAxis::getID()
 }
 
 CNCA_RESULT_T
-CNCAxis::addComponent( std::string compID, CNCA_AXISCOMP_TYPE_T compType, CNCAxisComponent *component )
+CNCAxis::addComponent( std::string compID, std::string function, CNCAxisComponent *component )
 {
     if( component == NULL )
         return CNCA_RESULT_FAILURE;
 
-    component->setType( compType );
+    component->setFunction( function );
 
     std::map< std::string, CNCAxisComponent* >::iterator it = m_components.find( compID );
 
@@ -162,6 +114,22 @@ CNCAxis::registerWithEventLoop( EventLoop *loop )
     }
 
     return CNCA_RESULT_SUCCESS;
+}
+
+CNCA_RESULT_T
+CNCAxis::lookupCANDeviceByFunction( std::string deviceFunc, CANDevice **device )
+{
+    for( std::map< std::string, CNCAxisComponent* >::iterator it = m_components.begin(); it != m_components.end(); it++ )
+    {
+        if( it->second->getFunction() == deviceFunc )
+        {
+            // FIXME: Better type checking to make sure this is a CAN Device
+            *device = (CANDevice*) it->second;
+            return CNCA_RESULT_SUCCESS;
+        }   
+    }
+
+    return CNCA_RESULT_FAILURE;
 }
 
 void

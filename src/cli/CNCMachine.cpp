@@ -488,6 +488,29 @@ CNCMachine::lookupAxisByID( std::string axisID )
 }
 */
 
+CANDevice *
+CNCMachine::lookupCANDevice( std::string axisID, std::string deviceFunc )
+{
+    // Lookup the axis
+    std::map< std::string, CNCAxis* >::iterator it = m_axes.find( axisID );
+    
+    if( it == m_axes.end() )
+    {
+        return NULL;
+    }
+
+    // Lookup the device by function
+    CANDevice *rtnDevice;
+
+    if( it->second->lookupCANDeviceByFunction( deviceFunc, &rtnDevice ) != CNCA_RESULT_SUCCESS )
+    {
+        return NULL;
+    }
+
+    return rtnDevice;
+}
+
+/*
 void
 CNCMachine::updateAxis( std::string axisID, std::string name, std::string value )
 {
@@ -502,6 +525,7 @@ CNCMachine::updateAxis( std::string axisID, std::string name, std::string value 
     // Apply the parameter update
     //axis->updateParameter( name, value );
 }
+*/
 
 /*
 void

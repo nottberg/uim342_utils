@@ -11,7 +11,7 @@
 #include <linux/can.h>
 #include <linux/can/raw.h>
 
-#include "CNCAxis.h"
+#include "CNCAxisComponent.h"
 
 #define CANFRAME_MAX_DATA_LENGTH    8
 

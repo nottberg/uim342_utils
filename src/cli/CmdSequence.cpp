@@ -403,10 +403,58 @@ CmdStep::setParent( CmdSequence *parent )
 }
 */
 
+/*
+typedef enum CommandSequenceStepStates
+{
+    CS_STEPSTATE_NOTSET,
+    CS_STEPSTATE_READY,
+    CS_STEPSTATE_WAITRSP,
+    CS_STEPSTATE_PROCESSRSP,
+    CS_STEPSTATE_POST_PROCESS,
+    CS_STEPSTATE_DONE
+}CS_STEPSTATE_T;
+
+typedef enum CommandSequenceStepActions
+{
+    CS_STEPACTION_NOP,
+    CS_STEPACTION_WAIT,
+    CS_STEPACTION_RESCHEDULE,
+    CS_STEPACTION_PROCESS_RSP,
+    CS_STEPACTION_START_POST,
+    CS_STEPACTION_DONE,
+    CS_STEPACTION_ERROR
+}CS_STEPACTION_T;
+*/
+
+
 CS_RESULT_T
 CmdStep::takeNextAction( CmdSeqExecution *exec, CS_STEPACTION_T &rtnAction )
 {
-    printf( "CmdStep::takeNextAction - start state: %s\n", exec->getStepStateAsStr() );
+    CS_STEPACTION_T stepAction = CS_STEPACTION_NOP;
+
+    printf( "CmdStep::takeNextAction - start state: %s\n", exec->getStepStateAsStr().c_str() );
+
+    switch( exec->getStepState() )
+    {
+        case CS_STEPSTATE_READY:
+        {
+            stepAction = startStep( exec );
+
+            printf( "CmdStep::takeNextAction - step action: %s\n", gCSStepActionAsStr( stepAction ).c_str() );
+
+            exit( 1 );
+        }
+        break;
+
+        case CS_STEPSTATE_WAITRSP:
+        case CS_STEPSTATE_PROCESSRSP:
+        case CS_STEPSTATE_POST_PROCESS:
+        case CS_STEPSTATE_DONE:
+        break;
+
+        case CS_STEPSTATE_NOTSET:
+        break;
+    }
 
     rtnAction = CS_STEPACTION_DONE;
     return CS_RESULT_SUCCESS;
@@ -447,10 +495,19 @@ CmdStep::getTargetAxisID( std::string &id )
 }
 */
 
-void
-CmdStep::closeout()
+void 
+CmdStep::readyStep( CmdSeqExecution *exec )
 {
-    //printf( "CmdStep::closeout\n" );
+    printf( "CmdStep::readyStep\n" );
+
+    exec->setStepState( CS_STEPSTATE_READY );
+    exec->activateStep();
+}
+
+void
+CmdStep::closeout( CmdSeqExecution *exec )
+{
+    printf( "CmdStep::closeout\n" );
 }
 
 void
@@ -458,8 +515,8 @@ CmdStep::updateAxis( std::string axisID, std::string name, std::string value )
 {
     //printf( "CmdStep::updateAxis - axisID: %s,  name: %s,  value: %s\n", axisID.c_str(), name.c_str(), value.c_str() );
 
-    if( m_parent )
-        m_parent->updateAxis( axisID, name, value );
+    //if( m_parent )
+    //    m_parent->updateAxis( axisID, name, value );
 }
 
 CmdStepExecuteCANRR::CmdStepExecuteCANRR()
@@ -520,7 +577,7 @@ CmdStepExecuteCANRR::setupCANRequest( CmdSeqParameters *params, CANReqRsp *rrObj
 {
     //printf( "CmdStepExecuteCANRR::setupCANRequest - begin\n" );
 
-    initCANTXFrame( params, rrObj->getTxFramePtr() );
+    //initTXFrame( params, rrObj->getTxFramePtr() );
 
     //setState(CS_STEPSTATE_WAITRSP);
 
@@ -535,7 +592,7 @@ CmdStepExecuteCANRR::completeCANResponse( CmdSeqParameters *params, CANReqRsp *r
 
     //printf( "CmdStepExecuteCANRR::completeCANResponse: 0x%x\n", this );
 
-    parseCANRXFrame( params, rrObj->getRxFramePtr() );
+    //parseRXFrame( params, rrObj->getRxFramePtr() );
     //debugPrint();
 
     //setState(CS_STEPSTATE_POST_PROCESS);
@@ -546,13 +603,27 @@ CmdStepExecuteCANRR::completeCANResponse( CmdSeqParameters *params, CANReqRsp *r
 CS_STEPACTION_T
 CmdStepExecuteCANRR::startStep( CmdSeqExecution *exec )
 {
-    //printf( "CmdStepExecuteCANRR::startStep - begin\n" );
+    CANFrame *frame;
 
-    //setupRequestCANRR( params );
+    printf( "CmdStepExecuteCANRR::startStep - begin\n" );
 
+    // Lookup the target device
+
+
+
+    // Build a tx-frame
+    if( createTXFrame( exec, frame ) != CS_RESULT_SUCCESS )
+    {
+
+    }
+
+    // Submit it to the device
+
+
+    // 
     exec->setStepState(CS_STEPSTATE_WAITRSP);
 
-    return CS_STEPACTION_RESCHEDULE;
+    return CS_STEPACTION_WAIT;
 }
 
 CS_STEPACTION_T
@@ -602,7 +673,7 @@ CmdSequence::CmdSequence()
 
     //m_state = CS_STATE_NOTSET;
 
-    m_hwIntf = NULL;
+    //m_hwIntf = NULL;
 
     //m_curStep = NULL;
 
@@ -613,6 +684,7 @@ CmdSequence::~CmdSequence()
 {
 }
 
+/*
 void
 CmdSequence::setHardwareInterface( CSHardwareInterface *hwIntf )
 {
@@ -627,6 +699,7 @@ CmdSequence::updateAxis( std::string axisID, std::string name, std::string value
     if( m_hwIntf )
         m_hwIntf->updateAxis( axisID, name, value );
 }
+*/
 
 void
 CmdSequence::calculateTimeout( uint curTime )
@@ -672,6 +745,8 @@ CmdSequence::StepCompleteNotify()
 CS_RESULT_T
 CmdSequence::takeNextAction( CmdSeqExecution *exec, CS_ACTION_T &rtnAction )
 {
+    CmdStep *curStep = NULL;
+
     printf( "CmdSequence::takeNextAction - state: %s\n", exec->getSeqStateAsStr().c_str() );
 
     // Take action
@@ -698,7 +773,9 @@ CmdSequence::takeNextAction( CmdSeqExecution *exec, CS_ACTION_T &rtnAction )
                 return CS_RESULT_SUCCESS;
             }
 
-            exec->activateStep();
+            curStep = m_stepList[ exec->getStepIndex() ];
+            
+            curStep->readyStep( exec );
 
             rtnAction = CS_ACTION_SEQ_RUN;
             return CS_RESULT_SUCCESS;
@@ -708,7 +785,6 @@ CmdSequence::takeNextAction( CmdSeqExecution *exec, CS_ACTION_T &rtnAction )
         case CS_STATE_EXECUTING:
         {
             CS_STEPACTION_T stepAction;
-            CmdStep *curStep = NULL;
             
             if( exec->hasActiveStep() == false )
             {
@@ -722,11 +798,17 @@ CmdSequence::takeNextAction( CmdSeqExecution *exec, CS_ACTION_T &rtnAction )
                     rtnAction = CS_ACTION_DONE;
                     return CS_RESULT_SUCCESS;
                 }
+    
+                curStep = m_stepList[ exec->getStepIndex() ];
+            
+                curStep->readyStep( exec );
 
                 exec->activateStep();
             }
-
-            curStep = m_stepList[ exec->getStepIndex() ];
+            else
+            {
+                curStep = m_stepList[ exec->getStepIndex() ];
+            }
 
             curStep->takeNextAction( exec, stepAction );
 

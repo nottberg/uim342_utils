@@ -265,6 +265,8 @@ CANFrame::readFrame( uint fd )
 
 CANReqRsp::CANReqRsp()
 {
+    m_userData = NULL;
+
     //printf( "CANReqRsp::CANReqRsp\n" );
 
     //m_reqConsumerID  = 5;
@@ -284,6 +286,18 @@ CANReqRsp::CANReqRsp()
 CANReqRsp::~CANReqRsp()
 {
 
+}
+
+void
+CANReqRsp::setUserData( void *dataPtr )
+{
+    m_userData = dataPtr;
+}
+
+void*
+CANReqRsp::getUserData()
+{
+    return m_userData;
 }
 
 void
@@ -546,7 +560,7 @@ CANBus::receiveFrame()
 }
 
 CANReqRsp*
-CANBus::allocateReqRspObj( uint targetID )
+CANBus::allocateRequest()
 {
     CANReqRsp *rtnPtr = new CANReqRsp;
     
@@ -556,10 +570,18 @@ CANBus::allocateReqRspObj( uint targetID )
 }
 
 void
-CANBus::freeReqRspObj( CANReqRsp *rrObj )
+CANBus::releaseRequest( CANReqRsp *rrObj )
 {
     delete rrObj;
 }
+
+CANRR_RESULT_T
+CANBus::makeRequest( CANReqRsp *rrObj, CANBusRequestSink *sinkCB )
+{
+    CANFrame *frame = rrObj->getTxFramePtr();
+    return frame->sendFrame( m_busFD );
+}
+
 
 CANRR_RESULT_T
 CANBus::sendFrame( CANFrame *frame )
@@ -723,10 +745,35 @@ CANDevice::processFrame( CANFrame *frame )
     printf("CANDevice::processFrame\n");
 }
 
+CANReqRsp*
+CANDevice::allocateRequest()
+{
+    if( m_bus == NULL )
+        return NULL;
+
+    return m_bus->allocateRequest();
+}
+
+void
+CANDevice::releaseRequest( CANReqRsp *rrObj )
+{
+    if( m_bus == NULL )
+        return;
+
+    m_bus->releaseRequest( rrObj );
+}
+
 CANRR_RESULT_T
-CANDevice::makeRequest( CANReqRsp *rrObj )
+CANDevice::makeRequest( CANReqRsp *rrObj, CANDeviceRequestSink *sinkCB )
 {
     printf("CANDevice::makeRequest\n");
     
-    return CANRR_RESULT_SUCCESS;
+    return m_bus->makeRequest( rrObj, this );
+}
+
+void
+CANDevice::requestComplete( CANReqRsp *rrObj )
+{
+    printf("CANDevice::requestComplete\n");
+
 }

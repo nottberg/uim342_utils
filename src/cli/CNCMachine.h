@@ -122,7 +122,7 @@ class CNCMachine : public CSHardwareInterface, public  CNCSequencerCallbacks
 
         virtual void debugPrint();
 
-        virtual CANDevice *lookupCANDevice( std::string axisID, std::string deviceFunc );
+        virtual CS_RESULT_T lookupCANDevice( std::string axisID, std::string deviceFunc, CANDevice **device );
 
         //virtual void updateAxis( std::string axisID, std::string name, std::string value );
 

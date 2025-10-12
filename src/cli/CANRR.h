@@ -90,6 +90,12 @@ class CANBusEventSink
         virtual void processFrame( CANFrame *frame ) = 0;
 };
 
+class CANBusRequestSink
+{
+    public:
+        virtual void requestComplete( CANReqRsp *rrObj ) = 0;    
+};
+
 class CANBus : public CNCAxisComponent
 {
     public:
@@ -109,11 +115,12 @@ class CANBus : public CNCAxisComponent
 
         CANRR_RESULT_T receiveFrame();
 
-        CANReqRsp *allocateReqRspObj( uint targetID );
-
-        void freeReqRspObj( CANReqRsp *rrObj );
+        CANReqRsp *allocateRequest();
+        void releaseRequest( CANReqRsp *rrObj );
 
         CANRR_RESULT_T sendFrame( CANFrame *frame );
+
+        CANRR_RESULT_T makeRequest( CANReqRsp *rrObj, CANBusRequestSink *sinkCB );
 
         //CANRR_RESULT_T processPending();
 
@@ -141,6 +148,9 @@ class CANReqRsp
     public:
         CANReqRsp();
        ~CANReqRsp();
+
+        void setUserData( void *ptr );
+        void *getUserData();
 
         CANFrame *getTxFramePtr();
 
@@ -174,6 +184,8 @@ class CANReqRsp
 
     private:
 
+        void *m_userData;
+
         CANFrame m_txFrame;
         CANFrame m_rxFrame;
         //uint m_reqProducerID;
@@ -199,11 +211,16 @@ class CANReqRsp
 class CANDeviceEventSink
 {
     public:
-        virtual void requestComplete() = 0;
-
+        virtual void event() = 0;
 };
 
-class CANDevice : public CNCAxisComponent, CANBusEventSink
+class CANDeviceRequestSink
+{
+    public:
+        virtual void requestComplete( CANReqRsp *rrObj ) = 0;
+};
+
+class CANDevice : public CNCAxisComponent, CANBusEventSink, CANBusRequestSink
 {
     public:
         CANDevice();
@@ -221,7 +238,12 @@ class CANDevice : public CNCAxisComponent, CANBusEventSink
         virtual void getBusID( uint &deviceID, uint &groupID );
         virtual void processFrame( CANFrame *frame );
 
-        virtual CANRR_RESULT_T makeRequest( CANReqRsp *rrObj );
+        CANReqRsp *allocateRequest();
+        void releaseRequest( CANReqRsp *rrObj );
+
+        virtual CANRR_RESULT_T makeRequest( CANReqRsp *rrObj, CANDeviceRequestSink *sinkCB );
+
+        virtual void requestComplete( CANReqRsp *rrObj );
 
     private:
         //std::string m_id;

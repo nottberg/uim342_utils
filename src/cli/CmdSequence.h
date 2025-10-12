@@ -18,7 +18,8 @@ typedef enum CommandSequenceStepStates
     CS_STEPSTATE_WAITRSP,
     CS_STEPSTATE_PROCESSRSP,
     CS_STEPSTATE_POST_PROCESS,
-    CS_STEPSTATE_DONE
+    CS_STEPSTATE_DONE,
+    CS_STEPSTATE_ERROR
 }CS_STEPSTATE_T;
 
 typedef enum CommandSequenceStepActions
@@ -61,7 +62,7 @@ class CmdSequence;
 class CSHardwareInterface
 {
     public:
-        virtual CANDevice *lookupCANDevice( std::string axisID, std::string deviceFunc ) = 0;
+        virtual CS_RESULT_T lookupCANDevice( std::string axisID, std::string deviceFunc, CANDevice **device ) = 0;
 
         //virtual void updateAxis( std::string axisID, std::string name, std::string value ) = 0;
 };
@@ -137,6 +138,9 @@ class CmdSeqExecution
         CS_STEPSTATE_T getStepState();
         std::string getStepStateAsStr();
 
+        void setHardwareIntf( CSHardwareInterface *hwIntf );
+        CSHardwareInterface *getHardwareIntf();
+
     private:
 
         std::string m_id;
@@ -148,6 +152,8 @@ class CmdSeqExecution
         uint m_stepIndex;
 
         CS_STEPSTATE_T  m_stepState;
+
+        CSHardwareInterface *m_hwIntf;
 
         CmdSeqParameters *m_params;
 };
@@ -191,7 +197,7 @@ class CmdStep
         CS_STEPSTATE_T  m_state;
 };
 
-class CmdStepExecuteCANRR : public CmdStep
+class CmdStepExecuteCANRR : public CmdStep, CANDeviceRequestSink
 {
     public:
         CmdStepExecuteCANRR();
@@ -214,11 +220,13 @@ class CmdStepExecuteCANRR : public CmdStep
 
         virtual void distributeResult( CmdSeqExecution *exec );
 
+        virtual void requestComplete( CANReqRsp *rrObj );
+
     private:
 
-        virtual CS_RESULT_T createTXFrame( CmdSeqExecution *exec, CANFrame *frame ) = 0;
+        virtual CS_RESULT_T formatRequest( CmdSeqExecution *exec, CANReqRsp *rrObj ) = 0;
 
-        virtual CS_RESULT_T parseRXFrame( CmdSeqExecution *exec, CANFrame *frame ) = 0;
+        virtual CS_RESULT_T parseResponse( CmdSeqExecution *exec, CANReqRsp *rrObj ) = 0;
 
         //CANReqRsp    m_RR;
 

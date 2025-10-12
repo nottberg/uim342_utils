@@ -488,26 +488,24 @@ CNCMachine::lookupAxisByID( std::string axisID )
 }
 */
 
-CANDevice *
-CNCMachine::lookupCANDevice( std::string axisID, std::string deviceFunc )
+CS_RESULT_T
+CNCMachine::lookupCANDevice( std::string axisID, std::string deviceFunc, CANDevice **device )
 {
     // Lookup the axis
     std::map< std::string, CNCAxis* >::iterator it = m_axes.find( axisID );
     
     if( it == m_axes.end() )
     {
-        return NULL;
+        return CS_RESULT_FAILURE;
     }
 
     // Lookup the device by function
-    CANDevice *rtnDevice;
-
-    if( it->second->lookupCANDeviceByFunction( deviceFunc, &rtnDevice ) != CNCA_RESULT_SUCCESS )
+    if( it->second->lookupCANDeviceByFunction( deviceFunc, device ) != CNCA_RESULT_SUCCESS )
     {
-        return NULL;
+        return CS_RESULT_FAILURE;
     }
 
-    return rtnDevice;
+    return CS_RESULT_SUCCESS;
 }
 
 /*

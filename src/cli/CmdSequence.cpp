@@ -227,6 +227,8 @@ CmdSeqExecution::CmdSeqExecution( std::string id )
 
     m_stepState = CS_STEPSTATE_NOTSET;
 
+    m_hwIntf = NULL;
+
     m_params = NULL;
 }
 
@@ -245,6 +247,18 @@ std::string
 CmdSeqExecution::getID()
 {
     return m_id;
+}
+
+void
+CmdSeqExecution::setHardwareIntf( CSHardwareInterface *hwIntf )
+{
+    m_hwIntf = hwIntf;
+}
+
+CSHardwareInterface*
+CmdSeqExecution::getHardwareIntf()
+{
+    return m_hwIntf;
 }
 
 void
@@ -603,22 +617,36 @@ CmdStepExecuteCANRR::completeCANResponse( CmdSeqParameters *params, CANReqRsp *r
 CS_STEPACTION_T
 CmdStepExecuteCANRR::startStep( CmdSeqExecution *exec )
 {
-    CANFrame *frame;
+    CANDevice *device;
+    CANReqRsp *rrObj;
 
     printf( "CmdStepExecuteCANRR::startStep - begin\n" );
 
     // Lookup the target device
-
-
-
-    // Build a tx-frame
-    if( createTXFrame( exec, frame ) != CS_RESULT_SUCCESS )
+    if( exec->getHardwareIntf()->lookupCANDevice( "XAxis", CNCACOMP_FUNC_DRIVER, &device ) == CS_RESULT_SUCCESS )
     {
+        exec->setStepState( CS_STEPSTATE_ERROR );
+        return CS_STEPACTION_ERROR;
+    }
 
+    // Allocate the rr object
+    rrObj = device->allocateRequest();
+
+    rrObj->setUserData( exec );
+
+    // Build a CAN Request-Response
+    if( formatRequest( exec, rrObj ) != CS_RESULT_SUCCESS )
+    {
+        exec->setStepState( CS_STEPSTATE_ERROR );
+        return CS_STEPACTION_ERROR;
     }
 
     // Submit it to the device
-
+    if( device->makeRequest( rrObj, this ) != CANRR_RESULT_SUCCESS )
+    {
+        exec->setStepState( CS_STEPSTATE_ERROR );
+        return CS_STEPACTION_ERROR;
+    }
 
     // 
     exec->setStepState(CS_STEPSTATE_WAITRSP);
@@ -665,6 +693,12 @@ void
 CmdStepExecuteCANRR::distributeResult( CmdSeqExecution *exec )
 {
     printf( "CmdStepExecuteCANRR::distributeResult()\n" );
+}
+
+void
+CmdStepExecuteCANRR::requestComplete( CANReqRsp *rrObj )
+{
+    printf( "CmdStepExecuteCANRR::requestComplete()\n" );
 }
 
 CmdSequence::CmdSequence()

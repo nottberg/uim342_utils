@@ -38,8 +38,10 @@ UIM342SingleAxisMachine::setup()
 
     m_motor.setID( "XMotor" );
     m_motor.setBusConnection( &m_canBus, 5, 100 );
+    m_motor.addEventSink( getSequencerCANEventSink() );
     m_axisX.addComponent( m_motor.getID(), CNCACOMP_FUNC_DRIVER, &m_motor );
 
+    addAxis( m_axisX.getID(), &m_axisX );
 /*    
     UIM342MotorAxis *axis = new UIM342Motor;
     axis->setBusID( 5, 100 );
@@ -67,6 +69,8 @@ UIM342SingleAxisMachine::setup()
     cmdSeq4->initCmdSteps();
     addSequence( SEQID_AXIS_EXEC_MOTION, cmdSeq4 );
 
+    // Do O/S setup for the bus.
+    m_canBus.configureBus();
 
     return CNCM_RESULT_SUCCESS;
 }

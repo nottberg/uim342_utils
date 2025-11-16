@@ -28,6 +28,8 @@ CNCAxis::getID()
 CNCA_RESULT_T
 CNCAxis::addComponent( std::string compID, std::string function, CNCAxisComponent *component )
 {
+    printf("CNCAxis::addComponent - %s, %s, 0x%x\n", compID.c_str(), function.c_str(), component );
+
     if( component == NULL )
         return CNCA_RESULT_FAILURE;
 
@@ -119,12 +121,15 @@ CNCAxis::registerWithEventLoop( EventLoop *loop )
 CNCA_RESULT_T
 CNCAxis::lookupCANDeviceByFunction( std::string deviceFunc, CANDevice **device )
 {
+    printf( "CNCAxis::lookupCANDeviceByFunction - func: %s\n", deviceFunc.c_str() );
+
     for( std::map< std::string, CNCAxisComponent* >::iterator it = m_components.begin(); it != m_components.end(); it++ )
     {
         if( it->second->getFunction() == deviceFunc )
         {
+            printf( "CNCAxis::lookupCANDeviceByFunction - match compID: %s\n", it->second->getID().c_str() );
             // FIXME: Better type checking to make sure this is a CAN Device
-            *device = (CANDevice*) it->second;
+            *device = (CANDevice *) it->second;
             return CNCA_RESULT_SUCCESS;
         }   
     }

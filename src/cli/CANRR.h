@@ -49,7 +49,7 @@ class CANFrame
 
         uint getTgtID();
         uint getSrcID();
-        void getCmd();
+        uint getCmd();
 
         uint getCmdWord();
 
@@ -75,7 +75,8 @@ class CANFrame
         uint    m_srcID;
         uint    m_cmd;
 
-        //uint    m_ctrlWord;
+        uint    m_cmdWord;
+
         uint    m_dataLen;
         uint8_t m_data[CANFRAME_MAX_DATA_LENGTH];
 
@@ -90,11 +91,11 @@ class CANBusEventSink
         virtual void processFrame( CANFrame *frame ) = 0;
 };
 
-class CANBusRequestSink
-{
-    public:
-        virtual void requestComplete( CANReqRsp *rrObj ) = 0;    
-};
+//class CANBusRequestSink
+//{
+//    public:
+//        virtual void requestComplete( CANReqRsp *rrObj ) = 0;
+//};
 
 class CANBus : public CNCAxisComponent
 {
@@ -111,16 +112,20 @@ class CANBus : public CNCAxisComponent
         //int getPendingFD();
         int getBusFD();
 
+        CANRR_RESULT_T configureBus();
+
         CANRR_RESULT_T open();
 
         CANRR_RESULT_T receiveFrame();
 
-        CANReqRsp *allocateRequest();
-        void releaseRequest( CANReqRsp *rrObj );
+        //CANReqRsp *allocateRequest();
+        //void releaseRequest( CANReqRsp *rrObj );
 
         CANRR_RESULT_T sendFrame( CANFrame *frame );
 
-        CANRR_RESULT_T makeRequest( CANReqRsp *rrObj, CANBusRequestSink *sinkCB );
+        //CANRR_RESULT_T makeRequest( CANReqRsp *rrObj, CANBusRequestSink *sinkCB );
+
+        virtual CNCACOMP_RESULT_T registerWithEventLoop( EventLoop *loop );
 
         //CANRR_RESULT_T processPending();
 
@@ -128,9 +133,22 @@ class CANBus : public CNCAxisComponent
 
     private:
 
+        virtual void eventFD( int fd );
+
+        //CANRR_RESULT_T startNLSocket();
+        //void cleanupNLSocket();
+
+        //bool isBusUp();
+
+        CANRR_RESULT_T setBusUp();
+        CANRR_RESULT_T setBusDown();
+        CANRR_RESULT_T configureBusBitrate();
+
         //int m_pendingFD;
 
         std::string m_deviceName;
+
+        struct nl_sock *m_nlSocket;
 
         std::set< CANBusEventSink* > m_eventSinks;
 
@@ -170,7 +188,7 @@ class CANReqRsp
 
 
 
-        CANRR_RESULT_T processResponse( struct can_frame *framePtr );
+        CANRR_RESULT_T processResponse( CANFrame *framePtr );
 
         virtual void parseResponse();
 
@@ -212,15 +230,16 @@ class CANDeviceEventSink
 {
     public:
         virtual void event() = 0;
+        virtual void processFrame( CANFrame *frame ) = 0;
 };
 
-class CANDeviceRequestSink
-{
-    public:
-        virtual void requestComplete( CANReqRsp *rrObj ) = 0;
-};
+//class CANDeviceRequestSink
+//{
+//    public:
+//        virtual void requestComplete( CANReqRsp *rrObj ) = 0;
+//};
 
-class CANDevice : public CNCAxisComponent, CANBusEventSink, CANBusRequestSink
+class CANDevice : public CNCAxisComponent, CANBusEventSink
 {
     public:
         CANDevice();
@@ -236,14 +255,16 @@ class CANDevice : public CNCAxisComponent, CANBusEventSink, CANBusRequestSink
         //std::string getID();
 
         virtual void getBusID( uint &deviceID, uint &groupID );
+
+        CANRR_RESULT_T sendFrame( CANFrame *frame );
         virtual void processFrame( CANFrame *frame );
 
-        CANReqRsp *allocateRequest();
-        void releaseRequest( CANReqRsp *rrObj );
+        //CANReqRsp *allocateRequest();
+        //void releaseRequest( CANReqRsp *rrObj );
 
-        virtual CANRR_RESULT_T makeRequest( CANReqRsp *rrObj, CANDeviceRequestSink *sinkCB );
+        //virtual CANRR_RESULT_T makeRequest( CANReqRsp *rrObj, CANDeviceRequestSink *sinkCB );
 
-        virtual void requestComplete( CANReqRsp *rrObj );
+        //virtual void requestComplete( CANReqRsp *rrObj );
 
     private:
         //std::string m_id;

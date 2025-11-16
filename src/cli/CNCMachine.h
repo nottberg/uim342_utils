@@ -27,11 +27,14 @@ class CNCSequencerCallbacks
         virtual void CNCSCSequenceComplete( std::string execID ) = 0;
 };
 
-class CNCSequencer : public ELEventCB
+class CNCSequencer : public ELEventCB, CmdSequenceEventCallback, CANDeviceEventSink
 {
     public:
         CNCSequencer();
        ~CNCSequencer();
+
+        void setHardwareIntf( CSHardwareInterface *hwIntf );
+        CSHardwareInterface *getHardwareIntf();
 
         void addSequence( std::string seqID, CmdSequence *seqObj );
 
@@ -45,9 +48,17 @@ class CNCSequencer : public ELEventCB
 
         void registerCallback( CNCSequencerCallbacks *cbObj );
 
+        // CANDeviceEventSink
+        virtual void event();
+        virtual void processFrame( CANFrame *frame );
+
+        virtual void SEQEVReadyToSchedule();
+
     private:
 
         void finishCurrentSequence();
+
+        CSHardwareInterface *m_hwIntf;
 
         ELEventFD *m_pendingFD;
 
@@ -87,6 +98,8 @@ class CNCMachine : public CSHardwareInterface, public  CNCSequencerCallbacks
         CNCM_RESULT_T start( CmdSeqParameters *params );
 
         void stop();
+
+        CANDeviceEventSink* getSequencerCANEventSink();
 
         CNCM_RESULT_T startSequence( std::string seqID, CmdSeqParameters *params );
 

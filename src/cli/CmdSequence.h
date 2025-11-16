@@ -109,10 +109,16 @@ class CmdSeqParameters
         std::map< std::string, std::string > m_pMap;
 };
 
+class CmdSequenceEventCallback
+{
+    public:
+        virtual void SEQEVReadyToSchedule() = 0;
+};
+
 class CmdSeqExecution
 {
     public:
-        CmdSeqExecution( std::string id );
+        CmdSeqExecution( std::string id, CmdSequenceEventCallback *callback );
        ~CmdSeqExecution();
 
         void setID( std::string id );
@@ -141,9 +147,13 @@ class CmdSeqExecution
         void setHardwareIntf( CSHardwareInterface *hwIntf );
         CSHardwareInterface *getHardwareIntf();
 
+        void signalReadyToSchedule();
+
     private:
 
         std::string m_id;
+
+        CmdSequenceEventCallback *m_SEQEVCallback;
 
         CS_STATE_T m_seqState;
 
@@ -184,7 +194,9 @@ class CmdStep
 
         virtual CS_STEPACTION_T continueStep( CmdSeqExecution *exec ) = 0;
 
-        virtual void distributeResult( CmdSeqExecution *exec ) = 0;
+        virtual CS_STEPACTION_T processFrame( CmdSeqExecution *exec, CANFrame *frame );
+
+        //virtual void distributeResult( CmdSeqExecution *exec ) = 0;
 
         virtual void closeout( CmdSeqExecution *exec );
         
@@ -197,7 +209,7 @@ class CmdStep
         CS_STEPSTATE_T  m_state;
 };
 
-class CmdStepExecuteCANRR : public CmdStep, CANDeviceRequestSink
+class CmdStepExecuteCANRR : public CmdStep
 {
     public:
         CmdStepExecuteCANRR();
@@ -218,7 +230,9 @@ class CmdStepExecuteCANRR : public CmdStep, CANDeviceRequestSink
 
         virtual CS_STEPACTION_T continueStep( CmdSeqExecution *exec );
 
-        virtual void distributeResult( CmdSeqExecution *exec );
+        virtual CS_STEPACTION_T processFrame( CmdSeqExecution *exec, CANFrame *frame );
+
+        //virtual void distributeResult( CmdSeqExecution *exec );
 
         virtual void requestComplete( CANReqRsp *rrObj );
 
@@ -226,14 +240,14 @@ class CmdStepExecuteCANRR : public CmdStep, CANDeviceRequestSink
 
         virtual CS_RESULT_T formatRequest( CmdSeqExecution *exec, CANReqRsp *rrObj ) = 0;
 
-        virtual CS_RESULT_T parseResponse( CmdSeqExecution *exec, CANReqRsp *rrObj ) = 0;
+        virtual CS_RESULT_T parseResponse( CmdSeqExecution *exec, CANReqRsp *rrObj, CANFrame *frame ) = 0;
+
+        CANReqRsp *m_activeRR;
 
         //CANReqRsp    m_RR;
 
         //std::string  m_busID;
 };
-
-
 
 class CmdSequence
 {
@@ -271,6 +285,8 @@ class CmdSequence
         bool hasError();
 
         void setErrorState();
+
+        void processFrame( CmdSeqExecution *exec, CANFrame *frame );
 
         //void updateAxis( std::string axisID, std::string name, std::string value );
 

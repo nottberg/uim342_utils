@@ -1,5 +1,6 @@
 #include <cstring>
 #include <cstdio>
+#include <ctime>
 
 #include <unistd.h>
 #include <sys/eventfd.h>
@@ -8,6 +9,11 @@
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 
+#include <libmnl/libmnl.h>
+#include <linux/if.h>
+#include <linux/if_link.h>
+#include <linux/rtnetlink.h>
+#include <linux/can/netlink.h>
 #include <linux/can.h>
 #include <linux/can/raw.h>
 
@@ -15,6 +21,12 @@
 
 CANFrame::CANFrame()
 {
+    m_tgtID = 0;
+    m_srcID = 0;
+    m_cmd   = 0;
+
+    m_cmdWord = 0;
+
     m_dataLen       = 0;
     m_dataReadIndex = 0;
 }
@@ -25,9 +37,45 @@ CANFrame::~CANFrame()
 }
 
 void
+CANFrame::setTgtID( uint id )
+{
+    m_tgtID = id;
+}
+
+void
+CANFrame::setSrcID( uint id )
+{
+    m_srcID = id;
+}
+
+void
 CANFrame::setCmd( unsigned int value )
 {
     m_cmd = value;
+}
+
+uint
+CANFrame::getTgtID()
+{
+    return m_tgtID;
+}
+
+uint
+CANFrame::getSrcID()
+{
+    return m_srcID;
+}
+
+uint
+CANFrame::getCmd()
+{
+    return m_cmd;
+}
+
+uint
+CANFrame::getCmdWord()
+{
+    return m_cmdWord;
 }
 
 uint
@@ -223,7 +271,9 @@ CANFrame::readFrame( uint fd )
         return CANRR_RESULT_FAILURE;
     }
 
-    printf( "processResponse - canid: 0x%x, dlc: %d, data0: 0x%x data1: 0x%x\n", frame.can_id, frame.can_dlc, frame.data[0], frame.data[1] );
+    printf( "CANFrame::readFrame - canid: 0x%x, dlc: %d, data0: 0x%x data1: 0x%x\n", frame.can_id, frame.can_dlc, frame.data[0], frame.data[1] );
+
+    m_cmdWord = frame.can_id;
 
     m_srcID = ( (frame.can_id & 0x1f000000) >> 24 ) | ( ( frame.can_id & 0x30000 ) >> (16 - 5) );
     m_tgtID = ( (frame.can_id & 0xf80000) >> 19 ) | ( ( frame.can_id & 0xc000 ) >> (14 - 5) );
@@ -234,17 +284,6 @@ CANFrame::readFrame( uint fd )
         m_dataLen = sizeof(m_data);
 
     memcpy( m_data, frame.data, m_dataLen );
-
-//    if( m_curRR )
-//    {
-//        m_curRR->processResponse( &frame );
-
-//        CANReqRsp *doneRR = m_curRR;
-
-//        m_curRR = NULL;
-
-//        doneRR->finish();
-//    }
 
     return CANRR_RESULT_SUCCESS;
 }
@@ -345,35 +384,34 @@ CANReqRsp::getReqControlWord()
 }
 */
 
-/*
 CANRR_RESULT_T
-CANReqRsp::processResponse( struct can_frame *framePtr )
+CANReqRsp::processResponse( CANFrame *framePtr )
 {
-    //printf("Process Response\n");
+    printf("CANReqRsp::processResponse\n");
 
-    printf( "processResponse - canid: 0x%x, dlc: %d, data0: 0x%x data1: 0x%x\n", framePtr->can_id, framePtr->can_dlc, framePtr->data[0], framePtr->data[1] );
+    printf( "processResponse - canid: 0x%x/0x%x, cmd: 0x%x, dlc: %d\n",
+        framePtr->getSrcID(), framePtr->getTgtID(), framePtr->getCmd(), framePtr->getDataLength() );
 
-    m_rspProducerID = ( (framePtr->can_id & 0x1f000000) >> 24 ) | ( ( framePtr->can_id & 0x30000 ) >> (16 - 5) );
-    m_rspConsumerID = ( (framePtr->can_id & 0xf80000) >> 19 ) | ( ( framePtr->can_id & 0xc000 ) >> (14 - 5) );
-    m_rspCtrlWord   = framePtr->can_id & 0xFF;
+    //m_rspProducerID = ( (framePtr->can_id & 0x1f000000) >> 24 ) | ( ( framePtr->can_id & 0x30000 ) >> (16 - 5) );
+    //m_rspConsumerID = ( (framePtr->can_id & 0xf80000) >> 19 ) | ( ( framePtr->can_id & 0xc000 ) >> (14 - 5) );
+    //m_rspCtrlWord   = framePtr->can_id & 0xFF;
 
-    m_rspDataLen = framePtr->can_dlc;
-    if( m_rspDataLen > sizeof(m_rspData) )
-        m_rspDataLen = sizeof(m_rspData);
+    //m_rspDataLen = framePtr->can_dlc;
+    //if( m_rspDataLen > sizeof(m_rspData) )
+    //    m_rspDataLen = sizeof(m_rspData);
 
-    memcpy( m_rspData, framePtr->data, m_rspDataLen );
+    //memcpy( m_rspData, framePtr->data, m_rspDataLen );
 
     // 
     parseResponse();
 
     return CANRR_RESULT_SUCCESS;
 }
-*/
 
 void
 CANReqRsp::parseResponse()
 {
-    //printf("CANReqRsp::parseResponse\n");
+    printf("CANReqRsp::parseResponse\n");
     return;
 }
 
@@ -433,7 +471,7 @@ CANReqRsp::debugPrint()
 void
 CANReqRsp::finish()
 {
-    //printf( "CANReqRsp::finish\n" );
+    printf( "CANReqRsp::finish\n" );
 
     if( m_eventCB )
     {
@@ -450,6 +488,8 @@ CANBus::CANBus()
 
     m_deviceName = "can0";
 
+    m_nlSocket = NULL;
+
     m_busFD = -1;
 
     m_curRR = NULL;
@@ -459,6 +499,7 @@ CANBus::~CANBus()
 {
     //if( m_pendingFD )
     //    close( m_pendingFD );
+    //cleanupNLSocket();
 }
 
 /*
@@ -486,11 +527,184 @@ CANBus::removeEventSink( CANBusEventSink *sink )
     m_eventSinks.erase( it );
 }
 
+CANRR_RESULT_T
+CANBus::setBusUp()
+{
+	struct mnl_socket *nl;
+	char buf[MNL_SOCKET_BUFFER_SIZE];
+	struct nlmsghdr *nlh;
+	struct ifinfomsg *ifm;
+	int ret;
+	unsigned int seq, portid, change = 0, flags = 0;
+    struct nlattr *linkinfo;
+    struct nlattr *data;
+	struct can_bittiming bt = {};
+
+    // Transition to up
+    change |= IFF_UP;
+	flags |= IFF_UP;
+
+    // Start data payload
+	nlh = mnl_nlmsg_put_header( buf );
+
+	nlh->nlmsg_type	= RTM_NEWLINK;
+	nlh->nlmsg_flags = NLM_F_REQUEST | NLM_F_ACK;
+	nlh->nlmsg_seq = seq = time(NULL);
+	
+    ifm = (ifinfomsg*) mnl_nlmsg_put_extra_header( nlh, sizeof(*ifm) );
+	ifm->ifi_family = AF_UNSPEC;
+	ifm->ifi_change = change;
+	ifm->ifi_flags = flags;
+
+	mnl_attr_put_str( nlh, IFLA_IFNAME, m_deviceName.c_str() );
+
+    // Set the txqueue length
+    mnl_attr_put_u32( nlh, IFLA_TXQLEN, 0xFFFF );
+
+    // Set the bitrate
+    linkinfo = mnl_attr_nest_start( nlh, IFLA_LINKINFO );
+    mnl_attr_put_str( nlh, IFLA_INFO_KIND, "can" );
+    data = mnl_attr_nest_start( nlh, IFLA_INFO_DATA );
+
+    bt.bitrate = 500000;
+    mnl_attr_put( nlh, IFLA_CAN_BITTIMING, sizeof(bt), &bt );
+
+	mnl_attr_nest_end( nlh, data );
+	mnl_attr_nest_end( nlh, linkinfo );
+
+	nl = mnl_socket_open( NETLINK_ROUTE );
+	if( nl == NULL )
+    {
+		perror("mnl_socket_open");
+		return CANRR_RESULT_FAILURE;
+	}
+
+	if( mnl_socket_bind( nl, 0, MNL_SOCKET_AUTOPID ) < 0 )
+    {
+		perror("mnl_socket_bind");
+		return CANRR_RESULT_FAILURE;
+	}
+	portid = mnl_socket_get_portid( nl );
+
+	mnl_nlmsg_fprintf( stdout, nlh, nlh->nlmsg_len, sizeof(struct ifinfomsg) );
+
+	if( mnl_socket_sendto( nl, nlh, nlh->nlmsg_len ) < 0 )
+    {
+		perror("mnl_socket_sendto");
+		return CANRR_RESULT_FAILURE;
+	}
+
+	ret = mnl_socket_recvfrom( nl, buf, sizeof(buf) );
+	if( ret == -1 )
+    {
+		perror("mnl_socket_recvfrom");
+		return CANRR_RESULT_FAILURE;
+	}
+
+	ret = mnl_cb_run( buf, ret, seq, portid, NULL, NULL );
+	if( ret == -1 )
+    {
+		perror("mnl_cb_run");
+		return CANRR_RESULT_FAILURE;
+	}
+
+	mnl_socket_close( nl );
+
+    return CANRR_RESULT_SUCCESS;
+}
+
+CANRR_RESULT_T
+CANBus::setBusDown()
+{
+	struct mnl_socket *nl;
+	char buf[MNL_SOCKET_BUFFER_SIZE];
+	struct nlmsghdr *nlh;
+	struct ifinfomsg *ifm;
+	int ret;
+	unsigned int seq, portid, change = 0, flags = 0;
+    struct nlattr *linkinfo;
+    struct nlattr *data;
+	struct can_bittiming bt = {};
+
+    // Transition to down
+    change |= IFF_UP;
+	flags &= ~IFF_UP;
+
+    // Start data payload
+	nlh = mnl_nlmsg_put_header( buf );
+
+	nlh->nlmsg_type	= RTM_NEWLINK;
+	nlh->nlmsg_flags = NLM_F_REQUEST | NLM_F_ACK;
+	nlh->nlmsg_seq = seq = time(NULL);
+	
+    ifm = (ifinfomsg*) mnl_nlmsg_put_extra_header( nlh, sizeof(*ifm) );
+	ifm->ifi_family = AF_UNSPEC;
+	ifm->ifi_change = change;
+	ifm->ifi_flags = flags;
+
+	mnl_attr_put_str( nlh, IFLA_IFNAME, m_deviceName.c_str() );
+
+	nl = mnl_socket_open( NETLINK_ROUTE );
+	if( nl == NULL )
+    {
+		perror("mnl_socket_open");
+		return CANRR_RESULT_FAILURE;
+	}
+
+	if( mnl_socket_bind( nl, 0, MNL_SOCKET_AUTOPID ) < 0 )
+    {
+		perror("mnl_socket_bind");
+		return CANRR_RESULT_FAILURE;
+	}
+	portid = mnl_socket_get_portid( nl );
+
+	mnl_nlmsg_fprintf( stdout, nlh, nlh->nlmsg_len, sizeof(struct ifinfomsg) );
+
+	if( mnl_socket_sendto( nl, nlh, nlh->nlmsg_len ) < 0 )
+    {
+		perror("mnl_socket_sendto");
+		return CANRR_RESULT_FAILURE;
+	}
+
+	ret = mnl_socket_recvfrom( nl, buf, sizeof(buf) );
+	if( ret == -1 )
+    {
+		perror("mnl_socket_recvfrom");
+		return CANRR_RESULT_FAILURE;
+	}
+
+	ret = mnl_cb_run( buf, ret, seq, portid, NULL, NULL );
+	if( ret == -1 )
+    {
+		perror("mnl_cb_run");
+		return CANRR_RESULT_FAILURE;
+	}
+
+	mnl_socket_close( nl );
+
+    return CANRR_RESULT_SUCCESS;
+}
+
+CANRR_RESULT_T
+CANBus::configureBus()
+{
+    printf( "configureBus() - start\n" );
+
+    setBusDown();
+
+    setBusUp();
+
+    printf( "configureBus() - end\n" );
+
+    return CANRR_RESULT_SUCCESS;
+}
+
 int
 CANBus::getBusFD()
 {
     return m_busFD;
 }
+
 
 CANRR_RESULT_T
 CANBus::open()
@@ -503,6 +717,8 @@ CANBus::open()
 		perror( "Socket" );
 		return CANRR_RESULT_FAILURE;
 	}
+
+    printf( "CANBus::open - %s busFD: %d\n", m_deviceName.c_str(), m_busFD );
 
 	strcpy( ifr.ifr_name, m_deviceName.c_str() );
 	ioctl( m_busFD, SIOCGIFINDEX, &ifr );
@@ -517,37 +733,56 @@ CANBus::open()
 		return CANRR_RESULT_FAILURE;
 	}
 
+    printf( "CANBus::open - bound-addr: %d\n", m_canAddr.can_ifindex );
+
     return CANRR_RESULT_SUCCESS;
+}
+
+CNCACOMP_RESULT_T
+CANBus::registerWithEventLoop( EventLoop *loop )
+{
+    printf( "CANBus::registerWithEventLoop - start\n" );
+
+    // Open the fd for the bus.
+    if( open() != CANRR_RESULT_SUCCESS )
+    {
+        return CNCACOMP_RESULT_FAILURE;
+    }
+
+    // Register the fd with the event loop
+    loop->registerFD( m_busFD, this );
+
+    return CNCACOMP_RESULT_SUCCESS;
+}
+
+void
+CANBus::eventFD( int fd )
+{
+    printf( "CANBus::eventFD - start: %d\n", fd );
+
+    if( fd == m_busFD )
+    {
+        receiveFrame();
+    }
 }
 
 CANRR_RESULT_T
 CANBus::receiveFrame()
 {
-   	int nbytes;
-    struct sockaddr_can addr;
-    struct ifreq ifr;
-    struct can_frame frame;
+    CANFrame frame;
 
-    nbytes = read( m_busFD, &frame, sizeof(struct can_frame) );
+    frame.readFrame( m_busFD );
 
-    if( nbytes < 0 )
+    printf( "CANBus::receiveFrame - bytes read: %d, m_curRR: 0x%x\n", frame.getDataLength(), m_curRR );
+
+    for( std::set< CANBusEventSink* >::iterator it = m_eventSinks.begin(); it != m_eventSinks.end(); it++ ) 
     {
-        perror( "Read" );
-        return CANRR_RESULT_FAILURE;
+        (*it)->processFrame( &frame );
     }
-
-    //printf("Process Response\n");
-
-
-    // 
-    //parseResponse();
-
-    //return CANRR_RESULT_SUCCESS;
-
-
+/*    
     if( m_curRR )
     {
-//        m_curRR->processResponse( &frame );
+        m_curRR->processResponse( &frame );
 
         CANReqRsp *doneRR = m_curRR;
 
@@ -555,10 +790,12 @@ CANBus::receiveFrame()
 
         doneRR->finish();
     }
+*/
 
     return CANRR_RESULT_SUCCESS;
 }
 
+/*
 CANReqRsp*
 CANBus::allocateRequest()
 {
@@ -581,7 +818,7 @@ CANBus::makeRequest( CANReqRsp *rrObj, CANBusRequestSink *sinkCB )
     CANFrame *frame = rrObj->getTxFramePtr();
     return frame->sendFrame( m_busFD );
 }
-
+*/
 
 CANRR_RESULT_T
 CANBus::sendFrame( CANFrame *frame )
@@ -714,6 +951,8 @@ CANDevice::removeEventSink( CANDeviceEventSink *sink )
 void
 CANDevice::setBusConnection( CANBus *bus, uint deviceID, uint groupID )
 {
+    printf("CANDevice::setBusConnection: 0x%x, %d, %d\n", bus, deviceID, groupID );
+
     m_bus     = bus;
     m_nodeID  = deviceID;
     m_groupID = groupID;
@@ -739,15 +978,31 @@ CANDevice::getBusID( uint &deviceID, uint &groupID )
     groupID  = m_groupID;
 }
 
+CANRR_RESULT_T
+CANDevice::sendFrame( CANFrame *frame )
+{
+    printf("CANDevice::sendFrame\n");
+    
+    return m_bus->sendFrame( frame );
+}
+
 void
 CANDevice::processFrame( CANFrame *frame )
 {
     printf("CANDevice::processFrame\n");
+
+    for( std::set< CANDeviceEventSink* >::iterator it = m_eventSinks.begin(); it != m_eventSinks.end(); it++ )
+    {
+        (*it)->processFrame( frame );
+    }
 }
 
+/*
 CANReqRsp*
 CANDevice::allocateRequest()
 {
+    printf( "CANDevice::allocateRequest - bus: 0x%x\n", m_bus );
+
     if( m_bus == NULL )
         return NULL;
 
@@ -777,3 +1032,4 @@ CANDevice::requestComplete( CANReqRsp *rrObj )
     printf("CANDevice::requestComplete\n");
 
 }
+*/

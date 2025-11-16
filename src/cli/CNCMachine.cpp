@@ -5,12 +5,24 @@
 
 CNCSequencer::CNCSequencer()
 {
-
+    m_hwIntf = NULL;
 }
 
 CNCSequencer::~CNCSequencer()
 {
 
+}
+
+void
+CNCSequencer::setHardwareIntf( CSHardwareInterface *hwIntf )
+{
+    m_hwIntf = hwIntf;
+}
+
+CSHardwareInterface*
+CNCSequencer::getHardwareIntf()
+{
+    return m_hwIntf;
 }
 
 CNCM_RESULT_T
@@ -54,9 +66,11 @@ CNCSequencer::startSequence( std::string seqID, CmdSeqParameters *params, std::s
     m_curSeq = it->second;
 
     // Allocate an execution context
-    m_curSeqExec = new CmdSeqExecution( "s1" );
+    m_curSeqExec = new CmdSeqExecution( "s1", this );
 
     m_activeSequences.insert(std::pair<std::string, CmdSeqExecution*>( m_curSeqExec->getID(), m_curSeqExec ) );
+
+    m_curSeqExec->setHardwareIntf( getHardwareIntf() );
 
     m_curSeqExec->setCmdParams( params );
 
@@ -163,6 +177,28 @@ CNCSequencer::eventFD( int fd )
     //}
 }
 
+void
+CNCSequencer::event()
+{
+
+}
+
+void
+CNCSequencer::SEQEVReadyToSchedule()
+{
+    printf( "CNCSequencer::SEQEVReadyToSchedule\n" );
+    m_pendingFD->signalEvent();
+}
+
+void
+CNCSequencer::processFrame( CANFrame *frame )
+{
+    printf( "CNCSequencer::processFrame\n" );
+
+    if( m_curSeq )
+        m_curSeq->processFrame( m_curSeqExec, frame );
+}
+
 CNCMachine::CNCMachine()
 {
     //m_curSeq = NULL;
@@ -177,11 +213,42 @@ CNCMachine::~CNCMachine()
 
 }
 
+void
+CNCMachine::addAxis( std::string axisID, CNCAxis *axisObj )
+{
+    m_axes.insert( std::pair< std::string, CNCAxis* >( axisID, axisObj ) );
+}
+
+void
+CNCMachine::removeAxis( std::string axisID )
+{
+
+}
+
+CNCM_RESULT_T
+CNCMachine::getAxis( std::string axisID, CNCAxis **axisPtr )
+{
+    // Lookup the axis
+    std::map< std::string, CNCAxis* >::iterator it = m_axes.find( axisID );
+    
+    if( it == m_axes.end() )
+    {
+        printf( "CNCMachine::lookupCANDevice - failed no-axis\n" );
+        return CNCM_RESULT_FAILURE;
+    }
+
+    *axisPtr = it->second;
+    return CNCM_RESULT_SUCCESS;
+}
+
 CNCM_RESULT_T
 CNCMachine::prepareBeforeRun( CmdSeqParameters *params )
 {
     // Init the event loop
     m_eventLoop.init();
+
+    // Tell the sequence where to lookup hardware
+    m_sequencer.setHardwareIntf( this );
 
     // Have the sequencer add itself
     m_sequencer.registerWithEventLoop( &m_eventLoop );
@@ -198,6 +265,7 @@ CNCMachine::prepareBeforeRun( CmdSeqParameters *params )
 CNCM_RESULT_T
 CNCMachine::start( CmdSeqParameters *params )
 {
+    // Start running.
     m_eventLoop.run();
 
     return CNCM_RESULT_SUCCESS;
@@ -207,6 +275,12 @@ void
 CNCMachine::stop()
 {
     m_eventLoop.signalQuit();
+}
+
+CANDeviceEventSink*
+CNCMachine::getSequencerCANEventSink()
+{
+    return (CANDeviceEventSink*) &m_sequencer;
 }
 
 CNCM_RESULT_T
@@ -491,11 +565,14 @@ CNCMachine::lookupAxisByID( std::string axisID )
 CS_RESULT_T
 CNCMachine::lookupCANDevice( std::string axisID, std::string deviceFunc, CANDevice **device )
 {
+    printf( "CNCMachine::lookupCANDevice - %s, %s\n", axisID.c_str(), deviceFunc.c_str() );
+
     // Lookup the axis
     std::map< std::string, CNCAxis* >::iterator it = m_axes.find( axisID );
     
     if( it == m_axes.end() )
     {
+        printf( "CNCMachine::lookupCANDevice - failed no-axis\n" );
         return CS_RESULT_FAILURE;
     }
 

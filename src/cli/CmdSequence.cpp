@@ -450,15 +450,6 @@ CmdStep::processFrame( CmdSeqExecution *exec, CANFrame *frame )
     return CS_STEPACTION_NOP;
 }
 
-void
-CmdStep::stepComplete()
-{
-    printf( "CmdStep::stepComplete()\n" );
-
-    if( m_parent )
-        m_parent->StepCompleteNotify();
-}
-
 bool
 CmdStep::isComplete()
 {
@@ -481,15 +472,6 @@ void
 CmdStep::closeout( CmdSeqExecution *exec )
 {
     printf( "CmdStep::closeout\n" );
-}
-
-void
-CmdStep::updateAxis( std::string axisID, std::string name, std::string value )
-{
-    //printf( "CmdStep::updateAxis - axisID: %s,  name: %s,  value: %s\n", axisID.c_str(), name.c_str(), value.c_str() );
-
-    //if( m_parent )
-    //    m_parent->updateAxis( axisID, name, value );
 }
 
 CmdStepExecuteCANRR::CmdStepExecuteCANRR()
@@ -638,20 +620,9 @@ CmdSequence::setupBeforeExecution( CmdSeqExecution *exec )
 {
     //printf( "CmdSequence::setupBeforeExecution\n" );
 
-    //m_curStep = NULL;
-    //m_curStepIndex = 0;
-
     exec->setSeqState( CS_STATE_INIT );
 
     return CS_RESULT_SUCCESS;
-}
-
-void
-CmdSequence::StepCompleteNotify()
-{
-    //printf( "CmdSequence::StepCompleteNotify\n" );
-
-    //setState( CS_STATE_FINISHED );
 }
 
 CS_RESULT_T
@@ -768,9 +739,6 @@ void
 CmdSequence::processFrame( CmdSeqExecution *exec, CANFrame *frame )
 {
     CmdStep *curStep = NULL;
-
-    //if( m_curStep )
-    //    m_curStep->processFrame( exec, frame );
 
     printf( "CmdSequence::processFrame - state: %s\n", exec->getSeqStateAsStr().c_str() );
 

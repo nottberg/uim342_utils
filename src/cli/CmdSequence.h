@@ -166,8 +166,6 @@ class CmdStep
         CmdStep();
        ~CmdStep();
 
-        void stepComplete();
-
         bool isComplete();
 
         CS_RESULT_T takeNextAction( CmdSeqExecution *exec, CS_STEPACTION_T &rtnAction );
@@ -183,8 +181,6 @@ class CmdStep
 
         virtual void closeout( CmdSeqExecution *exec );
         
-        void updateAxis( std::string axisID, std::string name, std::string value );
-
     private:
 
         CmdSequence *m_parent;
@@ -227,8 +223,6 @@ class CmdSequence
         virtual CS_RESULT_T setupBeforeExecution( CmdSeqExecution *exec );
 
         CS_RESULT_T takeNextAction( CmdSeqExecution *exec, CS_ACTION_T &rtnAction );
-    
-        virtual void StepCompleteNotify();
 
         bool hasError();
 

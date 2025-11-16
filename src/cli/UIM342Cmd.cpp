@@ -13,11 +13,11 @@ UIM342GetMotorSNStep::~UIM342GetMotorSNStep()
 }
 
 CS_RESULT_T
-UIM342GetMotorSNStep::formatRequest( CmdSeqExecution *exec, CANReqRsp *rrObj )
+UIM342GetMotorSNStep::formatRequest( CmdSeqExecution *exec, CANFrame *frame )
 {
     printf( "UIM342GetMotorSNStep::initCANTXFrame\n" );
     
-    CANFrame *frame = rrObj->getTxFramePtr();
+    //CANFrame *frame = rrObj->getTxFramePtr();
     
     frame->setCmd( 0x8C );
 
@@ -25,7 +25,7 @@ UIM342GetMotorSNStep::formatRequest( CmdSeqExecution *exec, CANReqRsp *rrObj )
 }
 
 CS_RESULT_T
-UIM342GetMotorSNStep::parseResponse( CmdSeqExecution *exec, CANReqRsp *rrObj, CANFrame *frame )
+UIM342GetMotorSNStep::parseResponse( CmdSeqExecution *exec, CANFrame *frame )
 {
     //CANFrame *frame = rrObj->getRxFramePtr();
 
@@ -61,9 +61,9 @@ UIM342GetMotorModelStep::~UIM342GetMotorModelStep()
 }
 
 CS_RESULT_T
-UIM342GetMotorModelStep::formatRequest( CmdSeqExecution *exec, CANReqRsp *rrObj )
+UIM342GetMotorModelStep::formatRequest( CmdSeqExecution *exec, CANFrame *frame )
 {
-    CANFrame *frame = rrObj->getTxFramePtr();   
+    //CANFrame *frame = rrObj->getTxFramePtr();   
 
     frame->setCmd( 0x8B );
 
@@ -71,7 +71,7 @@ UIM342GetMotorModelStep::formatRequest( CmdSeqExecution *exec, CANReqRsp *rrObj 
 }
 
 CS_RESULT_T
-UIM342GetMotorModelStep::parseResponse( CmdSeqExecution *exec, CANReqRsp *rrObj, CANFrame *frame )
+UIM342GetMotorModelStep::parseResponse( CmdSeqExecution *exec, CANFrame *frame )
 {
     uint8_t  tmp;
     uint8_t  buf[3];
@@ -117,9 +117,9 @@ UIM342GetMotorCANBitrateStep::~UIM342GetMotorCANBitrateStep()
 }
 
 CS_RESULT_T
-UIM342GetMotorCANBitrateStep::formatRequest( CmdSeqExecution *exec, CANReqRsp *rrObj )
+UIM342GetMotorCANBitrateStep::formatRequest( CmdSeqExecution *exec, CANFrame *frame )
 {
-    CANFrame *frame = rrObj->getTxFramePtr();
+    //CANFrame *frame = rrObj->getTxFramePtr();
 
     frame->setCmd( 0x81 );
     frame->append8( 5 );
@@ -128,7 +128,7 @@ UIM342GetMotorCANBitrateStep::formatRequest( CmdSeqExecution *exec, CANReqRsp *r
 }
 
 CS_RESULT_T
-UIM342GetMotorCANBitrateStep::parseResponse( CmdSeqExecution *exec, CANReqRsp *rrObj, CANFrame *frame )
+UIM342GetMotorCANBitrateStep::parseResponse( CmdSeqExecution *exec, CANFrame *frame )
 {
     uint8_t PIndex;
     uint8_t PValue;
@@ -198,9 +198,9 @@ UIM342GetMotorCANNodeIDStep::~UIM342GetMotorCANNodeIDStep()
 }
 
 CS_RESULT_T
-UIM342GetMotorCANNodeIDStep::formatRequest( CmdSeqExecution *exec, CANReqRsp *rrObj )
+UIM342GetMotorCANNodeIDStep::formatRequest( CmdSeqExecution *exec, CANFrame *frame )
 {
-    CANFrame *frame = rrObj->getTxFramePtr();
+    //CANFrame *frame = rrObj->getTxFramePtr();
     
     frame->setCmd( 0x81 );
     frame->append8( 7 );
@@ -209,7 +209,7 @@ UIM342GetMotorCANNodeIDStep::formatRequest( CmdSeqExecution *exec, CANReqRsp *rr
 }
 
 CS_RESULT_T
-UIM342GetMotorCANNodeIDStep::parseResponse( CmdSeqExecution *exec, CANReqRsp *rrObj, CANFrame *frame )
+UIM342GetMotorCANNodeIDStep::parseResponse( CmdSeqExecution *exec, CANFrame *frame )
 {
     uint8_t PIndex;
     uint8_t PValue;
@@ -249,9 +249,9 @@ UIM342GetMotorCANGroupIDStep::~UIM342GetMotorCANGroupIDStep()
 }
 
 CS_RESULT_T
-UIM342GetMotorCANGroupIDStep::formatRequest( CmdSeqExecution *exec, CANReqRsp *rrObj )
+UIM342GetMotorCANGroupIDStep::formatRequest( CmdSeqExecution *exec, CANFrame *frame )
 {
-    CANFrame *frame = rrObj->getTxFramePtr();
+    //CANFrame *frame = rrObj->getTxFramePtr();
     
     frame->setCmd( 0x81 );
     frame->append8( 8 );
@@ -260,7 +260,7 @@ UIM342GetMotorCANGroupIDStep::formatRequest( CmdSeqExecution *exec, CANReqRsp *r
 }
 
 CS_RESULT_T
-UIM342GetMotorCANGroupIDStep::parseResponse( CmdSeqExecution *exec, CANReqRsp *rrObj, CANFrame *frame )
+UIM342GetMotorCANGroupIDStep::parseResponse( CmdSeqExecution *exec, CANFrame *frame )
 {
     uint8_t PIndex;
     uint8_t PValue;
@@ -303,9 +303,9 @@ UIM342GetInitialConfigurationStep::~UIM342GetInitialConfigurationStep()
 }
 
 CS_RESULT_T
-UIM342GetInitialConfigurationStep::formatRequest( CmdSeqExecution *exec, CANReqRsp *rrObj )
+UIM342GetInitialConfigurationStep::formatRequest( CmdSeqExecution *exec, CANFrame *frame )
 {
-    CANFrame *frame = rrObj->getTxFramePtr();
+    //CANFrame *frame = rrObj->getTxFramePtr();
     
     frame->setCmd( 0x86 );
     frame->append8( m_paramID );
@@ -314,7 +314,7 @@ UIM342GetInitialConfigurationStep::formatRequest( CmdSeqExecution *exec, CANReqR
 }
 
 CS_RESULT_T
-UIM342GetInitialConfigurationStep::parseResponse( CmdSeqExecution *exec, CANReqRsp *rrObj, CANFrame *frame )
+UIM342GetInitialConfigurationStep::parseResponse( CmdSeqExecution *exec, CANFrame *frame )
 {
     uint8_t  PIndex;
     uint16_t PValue;
@@ -409,9 +409,9 @@ UIM342GetInformationEnableStep::~UIM342GetInformationEnableStep()
 }
 
 CS_RESULT_T
-UIM342GetInformationEnableStep::formatRequest( CmdSeqExecution *exec, CANReqRsp *rrObj )
+UIM342GetInformationEnableStep::formatRequest( CmdSeqExecution *exec, CANFrame *frame )
 {
-    CANFrame *frame = rrObj->getTxFramePtr();
+    //CANFrame *frame = rrObj->getTxFramePtr();
   
     frame->setCmd( 0x87 );
     frame->append8( m_paramID );
@@ -420,7 +420,7 @@ UIM342GetInformationEnableStep::formatRequest( CmdSeqExecution *exec, CANReqRsp 
 }
 
 CS_RESULT_T
-UIM342GetInformationEnableStep::parseResponse( CmdSeqExecution *exec, CANReqRsp *rrObj, CANFrame *frame )
+UIM342GetInformationEnableStep::parseResponse( CmdSeqExecution *exec, CANFrame *frame )
 {
     uint8_t  PIndex;
     uint16_t PValue;
@@ -487,9 +487,9 @@ UIM342GetQuadratureEncoderStep::~UIM342GetQuadratureEncoderStep()
 }
 
 CS_RESULT_T
-UIM342GetQuadratureEncoderStep::formatRequest( CmdSeqExecution *exec, CANReqRsp *rrObj )
+UIM342GetQuadratureEncoderStep::formatRequest( CmdSeqExecution *exec, CANFrame *frame )
 {
-    CANFrame *frame = rrObj->getTxFramePtr();
+    //CANFrame *frame = rrObj->getTxFramePtr();
     
     frame->setCmd( 0xBD );
     frame->append8( m_paramID );
@@ -498,7 +498,7 @@ UIM342GetQuadratureEncoderStep::formatRequest( CmdSeqExecution *exec, CANReqRsp 
 }
 
 CS_RESULT_T
-UIM342GetQuadratureEncoderStep::parseResponse( CmdSeqExecution *exec, CANReqRsp *rrObj, CANFrame *frame )
+UIM342GetQuadratureEncoderStep::parseResponse( CmdSeqExecution *exec, CANFrame *frame )
 {
     uint8_t  PIndex;
     uint16_t PValue;
@@ -565,10 +565,10 @@ UIM342GetMotorDriverStep::~UIM342GetMotorDriverStep()
 }
 
 CS_RESULT_T
-UIM342GetMotorDriverStep::formatRequest( CmdSeqExecution *exec, CANReqRsp *rrObj )
+UIM342GetMotorDriverStep::formatRequest( CmdSeqExecution *exec, CANFrame *frame )
 {
     uint canID;
-    CANFrame *frame = rrObj->getTxFramePtr();
+    //CANFrame *frame = rrObj->getTxFramePtr();
 
     frame->setCmd( 0x90 );
     frame->append8( m_paramID );
@@ -577,7 +577,7 @@ UIM342GetMotorDriverStep::formatRequest( CmdSeqExecution *exec, CANReqRsp *rrObj
 }
 
 CS_RESULT_T
-UIM342GetMotorDriverStep::parseResponse( CmdSeqExecution *exec, CANReqRsp *rrObj, CANFrame *frame )
+UIM342GetMotorDriverStep::parseResponse( CmdSeqExecution *exec, CANFrame *frame )
 {
     uint8_t  PIndex;
     uint16_t PValue;
@@ -638,9 +638,9 @@ UIM342GetMTStateStep::~UIM342GetMTStateStep()
 }
 
 CS_RESULT_T
-UIM342GetMTStateStep::formatRequest( CmdSeqExecution *exec, CANReqRsp *rrObj )
+UIM342GetMTStateStep::formatRequest( CmdSeqExecution *exec, CANFrame *frame )
 {
-    CANFrame *frame = rrObj->getTxFramePtr();
+    //CANFrame *frame = rrObj->getTxFramePtr();
     
     frame->setCmd( 0x95 );
 
@@ -648,7 +648,7 @@ UIM342GetMTStateStep::formatRequest( CmdSeqExecution *exec, CANReqRsp *rrObj )
 }
 
 CS_RESULT_T
-UIM342GetMTStateStep::parseResponse( CmdSeqExecution *exec, CANReqRsp *rrObj, CANFrame *frame )
+UIM342GetMTStateStep::parseResponse( CmdSeqExecution *exec, CANFrame *frame )
 {
     uint8_t PValue;
 
@@ -685,9 +685,9 @@ UIM342GetRelativePositionStep::~UIM342GetRelativePositionStep()
 }
 
 CS_RESULT_T
-UIM342GetRelativePositionStep::formatRequest( CmdSeqExecution *exec, CANReqRsp *rrObj )
+UIM342GetRelativePositionStep::formatRequest( CmdSeqExecution *exec, CANFrame *frame )
 {
-    CANFrame *frame = rrObj->getTxFramePtr();
+    //CANFrame *frame = rrObj->getTxFramePtr();
   
     frame->setCmd( 0x9F );
 
@@ -695,7 +695,7 @@ UIM342GetRelativePositionStep::formatRequest( CmdSeqExecution *exec, CANReqRsp *
 }
 
 CS_RESULT_T
-UIM342GetRelativePositionStep::parseResponse( CmdSeqExecution *exec, CANReqRsp *rrObj, CANFrame *frame )
+UIM342GetRelativePositionStep::parseResponse( CmdSeqExecution *exec, CANFrame *frame )
 {
     uint PValue;
 
@@ -732,9 +732,9 @@ UIM342GetAbsolutePositionStep::~UIM342GetAbsolutePositionStep()
 }
 
 CS_RESULT_T
-UIM342GetAbsolutePositionStep::formatRequest( CmdSeqExecution *exec, CANReqRsp *rrObj )
+UIM342GetAbsolutePositionStep::formatRequest( CmdSeqExecution *exec, CANFrame *frame )
 {
-    CANFrame *frame = rrObj->getTxFramePtr();
+    //CANFrame *frame = rrObj->getTxFramePtr();
     
     frame->setCmd( 0xA0 );
 
@@ -742,7 +742,7 @@ UIM342GetAbsolutePositionStep::formatRequest( CmdSeqExecution *exec, CANReqRsp *
 }
 
 CS_RESULT_T
-UIM342GetAbsolutePositionStep::parseResponse( CmdSeqExecution *exec, CANReqRsp *rrObj, CANFrame *frame )
+UIM342GetAbsolutePositionStep::parseResponse( CmdSeqExecution *exec, CANFrame *frame )
 {
     uint PValue;
 
@@ -779,9 +779,9 @@ UIM342SetMDEnableStep::~UIM342SetMDEnableStep()
 }
 
 CS_RESULT_T
-UIM342SetMDEnableStep::formatRequest( CmdSeqExecution *exec, CANReqRsp *rrObj )
+UIM342SetMDEnableStep::formatRequest( CmdSeqExecution *exec, CANFrame *frame )
 {
-    CANFrame *frame = rrObj->getTxFramePtr();
+    //CANFrame *frame = rrObj->getTxFramePtr();
     
     frame->setCmd( 0x95 );
 
@@ -800,7 +800,7 @@ UIM342SetMDEnableStep::formatRequest( CmdSeqExecution *exec, CANReqRsp *rrObj )
 }
 
 CS_RESULT_T
-UIM342SetMDEnableStep::parseResponse( CmdSeqExecution *exec, CANReqRsp *rrObj, CANFrame *frame )
+UIM342SetMDEnableStep::parseResponse( CmdSeqExecution *exec, CANFrame *frame )
 {
     uint PValue;
 
@@ -839,10 +839,10 @@ UIM342SetMotionSpeedStep::~UIM342SetMotionSpeedStep()
 }
 
 CS_RESULT_T
-UIM342SetMotionSpeedStep::formatRequest( CmdSeqExecution *exec, CANReqRsp *rrObj )
+UIM342SetMotionSpeedStep::formatRequest( CmdSeqExecution *exec, CANFrame *frame )
 {
     int speed;
-    CANFrame *frame = rrObj->getTxFramePtr();
+    //CANFrame *frame = rrObj->getTxFramePtr();
     
     frame->setCmd( 0x9E );
 
@@ -855,7 +855,7 @@ UIM342SetMotionSpeedStep::formatRequest( CmdSeqExecution *exec, CANReqRsp *rrObj
 }
 
 CS_RESULT_T
-UIM342SetMotionSpeedStep::parseResponse( CmdSeqExecution *exec, CANReqRsp *rrObj, CANFrame *frame )
+UIM342SetMotionSpeedStep::parseResponse( CmdSeqExecution *exec, CANFrame *frame )
 {
     uint PValue;
 
@@ -892,10 +892,10 @@ UIM342SetMotionRelativePositionStep::~UIM342SetMotionRelativePositionStep()
 }
 
 CS_RESULT_T
-UIM342SetMotionRelativePositionStep::formatRequest( CmdSeqExecution *exec, CANReqRsp *rrObj )
+UIM342SetMotionRelativePositionStep::formatRequest( CmdSeqExecution *exec, CANFrame *frame )
 {
     int increment;
-    CANFrame *frame = rrObj->getTxFramePtr();
+    //CANFrame *frame = rrObj->getTxFramePtr();
     
     frame->setCmd( 0x9F );
 
@@ -908,7 +908,7 @@ UIM342SetMotionRelativePositionStep::formatRequest( CmdSeqExecution *exec, CANRe
 }
 
 CS_RESULT_T
-UIM342SetMotionRelativePositionStep::parseResponse( CmdSeqExecution *exec, CANReqRsp *rrObj, CANFrame *frame )
+UIM342SetMotionRelativePositionStep::parseResponse( CmdSeqExecution *exec, CANFrame *frame )
 {
     uint PValue;
 
@@ -945,9 +945,9 @@ UIM342SetBeginMotionStep::~UIM342SetBeginMotionStep()
 }
 
 CS_RESULT_T
-UIM342SetBeginMotionStep::formatRequest( CmdSeqExecution *exec, CANReqRsp *rrObj )
+UIM342SetBeginMotionStep::formatRequest( CmdSeqExecution *exec, CANFrame *frame )
 {
-    CANFrame *frame = rrObj->getTxFramePtr();
+    //CANFrame *frame = rrObj->getTxFramePtr();
     
     frame->setCmd( 0x96 );
 
@@ -955,7 +955,7 @@ UIM342SetBeginMotionStep::formatRequest( CmdSeqExecution *exec, CANReqRsp *rrObj
 }
 
 CS_RESULT_T
-UIM342SetBeginMotionStep::parseResponse( CmdSeqExecution *exec, CANReqRsp *rrObj, CANFrame *frame )
+UIM342SetBeginMotionStep::parseResponse( CmdSeqExecution *exec, CANFrame *frame )
 {
     uint PValue;
 
@@ -992,9 +992,9 @@ UIM342WaitMotionCompleteStep::~UIM342WaitMotionCompleteStep()
 }
 
 CS_RESULT_T
-UIM342WaitMotionCompleteStep::formatRequest( CmdSeqExecution *exec, CANReqRsp *rrObj )
+UIM342WaitMotionCompleteStep::formatRequest( CmdSeqExecution *exec, CANFrame *frame )
 {
-    CANFrame *frame = rrObj->getTxFramePtr();
+    //CANFrame *frame = rrObj->getTxFramePtr();
 
     // Temporary sleep for 10 seconds to facilitate testing.
     sleep(10);
@@ -1006,7 +1006,7 @@ UIM342WaitMotionCompleteStep::formatRequest( CmdSeqExecution *exec, CANReqRsp *r
 }
 
 CS_RESULT_T
-UIM342WaitMotionCompleteStep::parseResponse( CmdSeqExecution *exec, CANReqRsp *rrObj, CANFrame *frame )
+UIM342WaitMotionCompleteStep::parseResponse( CmdSeqExecution *exec, CANFrame *frame )
 {
     uint PValue;
 
@@ -1043,9 +1043,9 @@ UIM342SetStopMotionStep::~UIM342SetStopMotionStep()
 }
 
 CS_RESULT_T
-UIM342SetStopMotionStep::formatRequest( CmdSeqExecution *exec, CANReqRsp *rrObj )
+UIM342SetStopMotionStep::formatRequest( CmdSeqExecution *exec, CANFrame *frame )
 {
-    CANFrame *frame = rrObj->getTxFramePtr();
+    //CANFrame *frame = rrObj->getTxFramePtr();
 
     frame->setCmd( 0x97 );
 
@@ -1053,7 +1053,7 @@ UIM342SetStopMotionStep::formatRequest( CmdSeqExecution *exec, CANReqRsp *rrObj 
 }
 
 CS_RESULT_T
-UIM342SetStopMotionStep::parseResponse( CmdSeqExecution *exec, CANReqRsp *rrObj, CANFrame *frame )
+UIM342SetStopMotionStep::parseResponse( CmdSeqExecution *exec, CANFrame *frame )
 {
     uint PValue;
     //CANFrame *frame = rrObj->getRxFramePtr();

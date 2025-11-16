@@ -168,13 +168,6 @@ CNCSequencer::eventFD( int fd )
         return;
     }
 
-    //for( std::map<std::string, CANBus*>::iterator it = m_canBuses.begin(); it != m_canBuses.end(); it++ )
-    //{
-    //    if( fd == it->second->getBusFD())
-    //    {
-    //        it->second->receiveFrame();
-    //    }
-    //}
 }
 
 void
@@ -201,10 +194,6 @@ CNCSequencer::processFrame( CANFrame *frame )
 
 CNCMachine::CNCMachine()
 {
-    //m_curSeq = NULL;
-
-    //m_pendingFD = 0;
-
     m_sequencer.registerCallback( this );
 }
 
@@ -333,88 +322,6 @@ CNCMachine::CNCSCSequenceComplete( std::string execID )
     notifySequenceComplete();
 }
 
-/*
-void
-CNCMachine::setCanBus( std::string id, CANBus *bus )
-{
-    m_canBuses.insert( std::pair<std::string, CANBus*>( id, bus ) );
-}
-
-void
-CNCMachine::setAxis( CNCAxis *axisObj )
-{
-    m_axes.insert( std::pair<std::string, CNCAxis*>( axisObj->getID(), axisObj ) );
-}
-*/
-/*
-CNCM_RESULT_T
-CNCMachine::openFileDescriptors()
-{
-    m_pendingFD = eventfd(0, EFD_SEMAPHORE);
-
-    for( std::map<std::string, CANBus*>::iterator it = m_canBuses.begin(); it != m_canBuses.end(); it++ )
-    {
-        it->second->open();
-    }
-
-    return CNCM_RESULT_SUCCESS;
-}
-
-CNCM_RESULT_T
-CNCMachine::attachToEventLoop( EventLoop *evlp )
-{
-    // Add the pending work fd
-    //evlp->registerFD( m_pendingFD, this );
-
-    // Add fds associated with the CAN buses
-    //for( std::map<std::string, CANBus*>::iterator it = m_canBuses.begin(); it != m_canBuses.end(); it++ )
-    //{
-     //   evlp->registerFD( it->second->getBusFD(), this );
-    //}
-
-    return CNCM_RESULT_SUCCESS;
-}
-*/
-
-/*
-CNCM_RESULT_T
-CNCMachine::sendCanBus( std::string busID, CANReqRsp *rrObj )
-{
-    // Look up the target bus
-    std::map< std::string, CANBus* >::iterator it = m_canBuses.find( busID );
-
-    if( it == m_canBuses.end() )
-    {
-        return CNCM_RESULT_FAILURE;
-    }
-
-    if( it->second->sendFrame( rrObj ) != CANRR_RESULT_SUCCESS )
-    {
-        return CNCM_RESULT_FAILURE;
-    }
-
-    return CNCM_RESULT_SUCCESS;
-}
-
-CNCM_RESULT_T
-CNCMachine::getCANBusForAxis( std::string id, CANBus **busPtr )
-{
-    std::string busID;
-
-    std::map< std::string, CNCAxis* >::iterator ait = m_axes.find( id );
-
-    ait->second->getBusID( busID );
-
-    std::map< std::string, CANBus* >::iterator bit = m_canBuses.find( busID );
-
-    if( bit == m_canBuses.end() )
-        return CNCM_RESULT_FAILURE;
-
-    *busPtr = bit->second;
-    return CNCM_RESULT_SUCCESS;
-}
-*/
-
 void
 CNCMachine::getBusID( uint &deviceID, uint &groupID )
 {
@@ -433,134 +340,12 @@ CNCMachine::requestComplete()
 
 }
 
-/*
-void
-CNCMachine::startCANRequest()
-{
-    std::string  axisID;
-    CANDevice   *busPtr;
-    CANReqRsp   *rrObj;
-
-    //printf( "CNCMachine::startCANRequest - begin\n" );
-
-    m_curSeq->getStepTargetAxisID( axisID ); 
-
-    //printf( "CNCMachine::startCANRequest - axisID: %s\n", axisID.c_str() );
-
-    getDeviceForAxis( axisID, &busPtr );
-
-    //printf( "CNCMachine::startCANRequest - bus aquired\n" );
-
-    //m_curSeq->getCANRR( &rrObj );
-    //rrObj = busPtr->allocateReqRspObj( 5 );
-    //rrObj->setEventsCB( this );
-
-    m_curSeq->setupCANRequest( rrObj );
-
-    busPtr->sendFrame( rrObj );
-
-    //printf( "CNCMachine::startCANRequest - end\n" );
-}
-
-void
-CNCMachine::completeCANResponse( CANReqRsp *rrObj )
-{
-    std::string  axisID;
-    CANBus *busPtr;
-    
-    //printf("CNCMachine::completeCANResponse - begin\n");
-    m_curSeq->getStepTargetAxisID( axisID ); 
-    getCANBusForAxis( axisID, &busPtr );
-
-    // If there is a sequence running, let it know a request has finished.
-    if( m_curSeq == NULL )
-    {
-        printf("ERROR: CAN response with no sequence active.\n");
-        return;
-    }
-
-    switch( m_curSeq->completeCANResponse( rrObj ) )
-    {
-        case CS_ACTION_SCHEDULE:
-            signalPendingWork();
-        break;
-
-        default:
-        case CS_ACTION_ERROR:
-            m_curSeq->setErrorState(); 
-            signalPendingWork();
-        break;
-    }
-
-    busPtr->freeReqRspObj( rrObj );
-}
-*/
-
 void
 CNCMachine::addSequence( std::string seqID, CmdSequence *seqObj )
 {
     m_sequencer.addSequence( seqID, seqObj );
     //m_cmdSequences.insert( std::pair<std::string, CmdSequence*>( seqID, seqObj ) );
 }
-
-/*
-CNCM_RESULT_T
-CNCMachine::startSequence( std::string seqID, CmdSeqParameters *params )
-{
-    //printf( "CNCMachine::startSequence - begin\n" );
-
-    if( m_curSeq != NULL )
-    {
-        fprintf( stderr, "ERROR: Sequence already running, can't start new sequence.\n" );
-        return CNCM_RESULT_FAILURE;
-    }
-
-    // Lookup the desired sequence
-    std::map<std::string, CmdSequence*>::iterator it = m_cmdSequences.find( seqID );
-
-    if( it == m_cmdSequences.end() )
-    {
-        fprintf( stderr, "ERROR: Sequence %s not supported\n", seqID.c_str() );
-        return CNCM_RESULT_FAILURE;
-    }
-
-    m_curSeq = it->second;
-
-    m_curSeq->setupBeforeExecution( params );
-
-    signalPendingWork();
-
-    return CNCM_RESULT_SUCCESS;
-}
-*/
-/*
-void
-CNCMachine::signalPendingWork()
-{
-    uint64_t u = 1;
-    write( m_pendingFD, &u, sizeof(u) );
-}
-
-void
-CNCMachine::clearPendingWork()
-{
-    // Clear the pending fd
-    uint64_t u = 0;
-    read( m_pendingFD, &u, sizeof(u) );
-}
-*/
-/*
-CNCAxis*
-CNCMachine::lookupAxisByID( std::string axisID )
-{
-    std::map< std::string, CNCAxis* >::iterator it = m_axes.find( axisID );
-    
-    if( it == m_axes.end() )
-        return NULL;
-
-    return it->second;
-}
-*/
 
 CS_RESULT_T
 CNCMachine::lookupCANDevice( std::string axisID, std::string deviceFunc, CANDevice **device )
@@ -584,81 +369,6 @@ CNCMachine::lookupCANDevice( std::string axisID, std::string deviceFunc, CANDevi
 
     return CS_RESULT_SUCCESS;
 }
-
-/*
-void
-CNCMachine::updateAxis( std::string axisID, std::string name, std::string value )
-{
-    //printf( "CNCMachine::updateAxis - axisID: %s,  name: %s,  value: %s\n", axisID.c_str(), name.c_str(), value.c_str() );
-
-    // Lookup the axis.
-    //CNCAxis *axis = lookupAxisByID( axisID);
-
-    //if( axis == NULL )
-    //    return;
-
-    // Apply the parameter update
-    //axis->updateParameter( name, value );
-}
-*/
-
-/*
-void
-CNCMachine::eventFD( int fd )
-{
-    if( fd == m_pendingFD )
-    {
-        clearPendingWork();
-        
-        //printf("CNCMachine::processing pending...\n");
-
-        // If a sequence is running then call its pending work call
-        if( m_curSeq != NULL )
-        {
-            if( m_curSeq->hasError() )
-            {
-                // Process the error and end the sequence
-                return;
-            }
-
-            switch( m_curSeq->processPendingWork() )
-            {
-                case CS_ACTION_CANREQ:
-                    //startCANRequest();
-                break;
-
-                case CS_ACTION_WAIT:
-                break;
-
-                case CS_ACTION_SCHEDULE:
-                    signalPendingWork();
-                break;
-
-                case CS_ACTION_DONE:
-                    // Notify that sequence is complete
-                    m_curSeq = NULL;
-                    notifySequenceComplete();
-                break;
-
-                case CS_ACTION_ERROR:
-                    // Notify that sequence had error
-                    m_curSeq = NULL;
-                    notifySequenceComplete();
-                break;
-            }
-        }
-        return;
-    }
-
-    for( std::map<std::string, CANBus*>::iterator it = m_canBuses.begin(); it != m_canBuses.end(); it++ )
-    {
-        if( fd == it->second->getBusFD())
-        {
-            it->second->receiveFrame();
-        }
-    }
-}
-*/
 
 void
 CNCMachine::debugPrint()

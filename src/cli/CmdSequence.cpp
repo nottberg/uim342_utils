@@ -408,49 +408,6 @@ CmdStep::~CmdStep()
 {
 
 }
-/*
-void
-CmdStep::setState( CS_STEPSTATE_T newState )
-{
-    m_state = newState;
-}
-
-CS_STEPSTATE_T
-CmdStep::getState()
-{
-    return m_state;
-}
-
-void
-CmdStep::setParent( CmdSequence *parent )
-{
-    m_parent = parent;
-}
-*/
-
-/*
-typedef enum CommandSequenceStepStates
-{
-    CS_STEPSTATE_NOTSET,
-    CS_STEPSTATE_READY,
-    CS_STEPSTATE_WAITRSP,
-    CS_STEPSTATE_PROCESSRSP,
-    CS_STEPSTATE_POST_PROCESS,
-    CS_STEPSTATE_DONE
-}CS_STEPSTATE_T;
-
-typedef enum CommandSequenceStepActions
-{
-    CS_STEPACTION_NOP,
-    CS_STEPACTION_WAIT,
-    CS_STEPACTION_RESCHEDULE,
-    CS_STEPACTION_PROCESS_RSP,
-    CS_STEPACTION_START_POST,
-    CS_STEPACTION_DONE,
-    CS_STEPACTION_ERROR
-}CS_STEPACTION_T;
-*/
-
 
 CS_RESULT_T
 CmdStep::takeNextAction( CmdSeqExecution *exec, CS_STEPACTION_T &rtnAction )
@@ -493,14 +450,6 @@ CmdStep::processFrame( CmdSeqExecution *exec, CANFrame *frame )
     return CS_STEPACTION_NOP;
 }
 
-/*
-void
-CmdStep::addUpdateTarget( CMModelUpdateInterface *upObj )
-{
-    m_updateList.push_back( upObj );
-}
-*/
-
 void
 CmdStep::stepComplete()
 {
@@ -518,15 +467,6 @@ CmdStep::isComplete()
 
     return false;
 }
-
-/*
-CS_RESULT_T
-CmdStep::getTargetAxisID( std::string &id )
-{
-    id = "X";
-    return CS_RESULT_SUCCESS;
-}
-*/
 
 void 
 CmdStep::readyStep( CmdSeqExecution *exec )
@@ -554,8 +494,7 @@ CmdStep::updateAxis( std::string axisID, std::string name, std::string value )
 
 CmdStepExecuteCANRR::CmdStepExecuteCANRR()
 {
-    //m_RR     = NULL;
-    m_activeRR = NULL;
+
 }
 
 CmdStepExecuteCANRR::~CmdStepExecuteCANRR()
@@ -563,75 +502,12 @@ CmdStepExecuteCANRR::~CmdStepExecuteCANRR()
 
 }
 
-/*
-void
-CmdStepExecuteCANRR::setTargetBus( std::string busID )
-{
-    m_busID = busID;
-}
-
-void
-CmdStepExecuteCANRR::setRR( CANReqRsp *rrObj )
-{
-    m_RR = rrObj;
-}
-*/
-//CANReqRsp*
-//CmdStepExecuteCANRR::getRR()
-//{
-//    return &m_RR;
-//}
-/*
-CS_STEPACTION_T
-CmdStepExecuteCANRR::completeRR( CANReqRsp *rrObj )
-{
-    if( m_RR != rrObj )
-        return CS_STEPACTION_ERROR;
-
-    printf( "CmdStepExecuteCANRR::completeRR: 0x%x\n", rrObj );
-
-    m_RR->debugPrint();
-
-    setState(CS_STEPSTATE_POST_PROCESS);
-
-    return CS_STEPACTION_START_POST;
-}
-*/
-
 CS_RESULT_T
 CmdStepExecuteCANRR::initCANRR()
 {
     //printf( "CmdStepExecuteCANRR::initCANRR: 0x%x\n", this );
 
     return CS_RESULT_SUCCESS;
-}
-
-CS_STEPACTION_T
-CmdStepExecuteCANRR::setupCANRequest( CmdSeqParameters *params, CANReqRsp *rrObj )
-{
-    //printf( "CmdStepExecuteCANRR::setupCANRequest - begin\n" );
-
-    //initTXFrame( params, rrObj->getTxFramePtr() );
-
-    //setState(CS_STEPSTATE_WAITRSP);
-
-    return CS_STEPACTION_WAIT;
-}
-
-CS_STEPACTION_T
-CmdStepExecuteCANRR::completeCANResponse( CmdSeqParameters *params, CANReqRsp *rrObj )
-{
-    //if( m_RR != rrObj )
-    //    return CS_STEPACTION_ERROR;
-
-    printf( "CmdStepExecuteCANRR::completeCANResponse: 0x%x\n", this );
-
-    //parseRXFrame( params, rrObj->getRxFramePtr() );
-    //debugPrint();
-
-    //setState(CS_STEPSTATE_POST_PROCESS);
-
-    return CS_STEPACTION_START_POST;
 }
 
 CS_STEPACTION_T
@@ -650,17 +526,12 @@ CmdStepExecuteCANRR::startStep( CmdSeqExecution *exec )
 
     printf( "CmdStepExecuteCANRR::startStep - lookupCANDevice: 0x%x\n", device );
 
-    // Allocate the rr object
-    m_activeRR = new CANReqRsp;
-
-    printf( "CmdStepExecuteCANRR::startStep - rrObj: 0x%x\n", m_activeRR );
-
-    m_activeRR->setUserData( exec );
+    CANFrame *frame = new CANFrame;
 
     printf( "CmdStepExecuteCANRR::startStep - formatRequest\n" );
     
     // Build a CAN Request-Response
-    if( formatRequest( exec, m_activeRR ) != CS_RESULT_SUCCESS )
+    if( formatRequest( exec, frame ) != CS_RESULT_SUCCESS )
     {
         exec->setStepState( CS_STEPSTATE_ERROR );
         return CS_STEPACTION_ERROR;
@@ -669,7 +540,7 @@ CmdStepExecuteCANRR::startStep( CmdSeqExecution *exec )
     printf( "CmdStepExecuteCANRR::startStep - makeRequest\n" );
 
     // Submit it to the device
-    if( device->sendFrame( m_activeRR->getTxFramePtr() ) != CANRR_RESULT_SUCCESS )
+    if( device->sendFrame( frame ) != CANRR_RESULT_SUCCESS )
     {
         exec->setStepState( CS_STEPSTATE_ERROR );
         return CS_STEPACTION_ERROR;
@@ -723,69 +594,24 @@ CmdStepExecuteCANRR::processFrame( CmdSeqExecution *exec, CANFrame *frame )
 {
     printf( "CmdStepExecuteCANRR::processFrame\n");
 
-    if( m_activeRR == NULL )
-        return CS_STEPACTION_ERROR;
-
-    if( parseResponse( exec, m_activeRR, frame ) != CS_RESULT_SUCCESS )
+    if( parseResponse( exec, frame ) != CS_RESULT_SUCCESS )
     {
         exec->setStepState( CS_STEPSTATE_ERROR );
         return CS_STEPACTION_ERROR;
     }
-    
-    delete m_activeRR;
-    m_activeRR = NULL;
 
     exec->setStepState( CS_STEPSTATE_DONE );
     return CS_STEPACTION_DONE;
 }
 
-/*
-void
-CmdStepExecuteCANRR::distributeResult( CmdSeqExecution *exec )
-{
-    printf( "CmdStepExecuteCANRR::distributeResult()\n" );
-}
-*/
-
-void
-CmdStepExecuteCANRR::requestComplete( CANReqRsp *rrObj )
-{
-    printf( "CmdStepExecuteCANRR::requestComplete()\n" );
-}
-
 CmdSequence::CmdSequence()
 {
-    //m_pendingFD =  eventfd(0, EFD_SEMAPHORE);
 
-    //m_state = CS_STATE_NOTSET;
-
-    //m_hwIntf = NULL;
-
-    //m_curStep = NULL;
-
-    //m_curStepIndex = 0;
 }
 
 CmdSequence::~CmdSequence()
 {
 }
-
-/*
-void
-CmdSequence::setHardwareInterface( CSHardwareInterface *hwIntf )
-{
-    m_hwIntf = hwIntf;
-}
-
-void
-CmdSequence::updateAxis( std::string axisID, std::string name, std::string value )
-{
-    //printf( "CmdSequence::updateAxis - axisID: %s,  name: %s,  value: %s\n", axisID.c_str(), name.c_str(), value.c_str() );
-
-    if( m_hwIntf )
-        m_hwIntf->updateAxis( axisID, name, value );
-}
-*/
 
 void
 CmdSequence::calculateTimeout( uint curTime )
@@ -924,74 +750,6 @@ CmdSequence::takeNextAction( CmdSeqExecution *exec, CS_ACTION_T &rtnAction )
 
     return CS_RESULT_FAILURE;
 }
-
-/*
-CS_RESULT_T
-CmdSequence::getStepTargetAxisID( std::string &id )
-{
-    if( m_curStep == NULL )
-        return CS_RESULT_FAILURE;
-
-    return m_curStep->getTargetAxisID( id );
-}
-*/
-
-/*
-CS_RESULT_T
-CmdSequence::getCANRR( CANReqRsp **rrObj )
-{
-    if( m_curStep == NULL )
-        return CS_RESULT_FAILURE;
-
-    *rrObj = ( (CmdStepExecuteCANRR*) m_curStep )->getRR();
-
-    return CS_RESULT_SUCCESS;
-}
-*/
-
-/*
-CS_ACTION_T
-CmdSequence::setupCANRequest( CANReqRsp *rrObj )
-{
-    if( m_curStep == NULL )
-        return CS_ACTION_ERROR;
-
-    //printf( "CmdSequence::setupCANRequest: 0x%x\n", m_curStep );
-
-    switch( ((CmdStepExecuteCANRR*) m_curStep)->setupCANRequest( m_cmdParams, rrObj ) )
-    {
-        case CS_STEPACTION_START_POST:
-            return CS_ACTION_SCHEDULE;
-        break;
-
-        case CS_STEPACTION_ERROR:
-        break;
-    }
-
-    return CS_ACTION_ERROR;
-}
-
-CS_ACTION_T
-CmdSequence::completeCANResponse( CANReqRsp *rrObj )
-{
-    if( m_curStep == NULL )
-        return CS_ACTION_ERROR;
-
-    //printf( "CmdSequence::completeCANResponse: 0x%x\n", m_curStep );
-
-    switch( ((CmdStepExecuteCANRR*) m_curStep)->completeCANResponse( m_cmdParams, rrObj ) )
-    {
-        case CS_STEPACTION_START_POST:
-            return CS_ACTION_SCHEDULE;
-        break;
-
-        case CS_STEPACTION_ERROR:
-        break;
-    }
-
-    return CS_ACTION_ERROR;
-}
-*/
 
 bool
 CmdSequence::hasError()

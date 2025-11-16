@@ -64,15 +64,7 @@ class CSHardwareInterface
     public:
         virtual CS_RESULT_T lookupCANDevice( std::string axisID, std::string deviceFunc, CANDevice **device ) = 0;
 
-        //virtual void updateAxis( std::string axisID, std::string name, std::string value ) = 0;
 };
-
-//class CmdStepEventsCB
-//{
-//    public:
-//        virtual void StepCompleteNotify() = 0;
-//
-//};
 
 #define CSPID_AXIS_ID  "axisID"
 
@@ -174,16 +166,9 @@ class CmdStep
         CmdStep();
        ~CmdStep();
 
-        //void setState( CS_STEPSTATE_T newState );
-        //CS_STEPSTATE_T getState();
-
-        //void setParent( CmdSequence *parent );
-
         void stepComplete();
 
         bool isComplete();
-
-        //CS_RESULT_T getTargetAxisID( std::string &id );
 
         CS_RESULT_T takeNextAction( CmdSeqExecution *exec, CS_STEPACTION_T &rtnAction );
 
@@ -195,8 +180,6 @@ class CmdStep
         virtual CS_STEPACTION_T continueStep( CmdSeqExecution *exec ) = 0;
 
         virtual CS_STEPACTION_T processFrame( CmdSeqExecution *exec, CANFrame *frame );
-
-        //virtual void distributeResult( CmdSeqExecution *exec ) = 0;
 
         virtual void closeout( CmdSeqExecution *exec );
         
@@ -215,16 +198,7 @@ class CmdStepExecuteCANRR : public CmdStep
         CmdStepExecuteCANRR();
        ~CmdStepExecuteCANRR();
 
-        //void setTargetBus( std::string busID );
-        //void setRR( CANReqRsp *rrObj );
-
-        //CANReqRsp *getRR();
-
         CS_RESULT_T initCANRR();
-
-        CS_STEPACTION_T setupCANRequest( CmdSeqParameters *params, CANReqRsp *rrObj );
-
-        CS_STEPACTION_T completeCANResponse( CmdSeqParameters *params, CANReqRsp *rrObj );
 
         virtual CS_STEPACTION_T startStep( CmdSeqExecution *exec );
 
@@ -232,21 +206,11 @@ class CmdStepExecuteCANRR : public CmdStep
 
         virtual CS_STEPACTION_T processFrame( CmdSeqExecution *exec, CANFrame *frame );
 
-        //virtual void distributeResult( CmdSeqExecution *exec );
-
-        virtual void requestComplete( CANReqRsp *rrObj );
-
     private:
 
-        virtual CS_RESULT_T formatRequest( CmdSeqExecution *exec, CANReqRsp *rrObj ) = 0;
+        virtual CS_RESULT_T formatRequest( CmdSeqExecution *exec, CANFrame *frame ) = 0;
 
-        virtual CS_RESULT_T parseResponse( CmdSeqExecution *exec, CANReqRsp *rrObj, CANFrame *frame ) = 0;
-
-        CANReqRsp *m_activeRR;
-
-        //CANReqRsp    m_RR;
-
-        //std::string  m_busID;
+        virtual CS_RESULT_T parseResponse( CmdSeqExecution *exec, CANFrame *frame ) = 0;
 };
 
 class CmdSequence
@@ -255,32 +219,16 @@ class CmdSequence
         CmdSequence();
        ~CmdSequence();
 
-        //void setState( CS_STATE_T newState );
-
-        //void setHardwareInterface( CSHardwareInterface *hwIntf );
-
         void calculateTimeout( uint curTime );
         uint getTimeout();
 
         CS_RESULT_T appendStep( CmdStep *step );
 
-
-        //CS_RESULT_T getStepTargetAxisID( std::string &id );
-
-
         virtual CS_RESULT_T setupBeforeExecution( CmdSeqExecution *exec );
 
         CS_RESULT_T takeNextAction( CmdSeqExecution *exec, CS_ACTION_T &rtnAction );
-        //CS_ACTION_T processPendingWork();
-
     
         virtual void StepCompleteNotify();
-
-        //CS_RESULT_T getCANRR( CANReqRsp **rrObj );
-
-        //CS_ACTION_T setupCANRequest( CANReqRsp *rrObj );
-
-        //CS_ACTION_T completeCANResponse( CANReqRsp *rrObj );
 
         bool hasError();
 
@@ -288,21 +236,7 @@ class CmdSequence
 
         void processFrame( CmdSeqExecution *exec, CANFrame *frame );
 
-        //void updateAxis( std::string axisID, std::string name, std::string value );
-
     private:
-
-        //CmdSeqParameters *m_cmdParams;
-
-        //CS_STATE_T m_state;
-
-        //CmdStep *m_curStep;
-
-        //uint m_curStepIndex;
-
-        //CmdSeqExecution *m_curExec;
-
-        //CSHardwareInterface *m_hwIntf;
 
         std::vector< CmdStep* > m_stepList;
 };

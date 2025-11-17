@@ -25,26 +25,19 @@ UIM342GetMotorSNStep::formatRequest( CmdSeqExecution *exec, CANFrame *frame )
 CS_RESULT_T
 UIM342GetMotorSNStep::parseResponse( CmdSeqExecution *exec, CANFrame *frame )
 {
-    frame->read32( m_serialNumber );
+    uint sn;
+    char tmpBuf[64];
 
-    printf( "UIM342GetMotorSNStep::parseResponse - %d\n", m_serialNumber );
+    frame->read32( sn );
+
+    printf( "UIM342GetMotorSNStep::parseResponse - %d\n", sn );
+
+    sprintf( tmpBuf, "%d", sn );
+
+    exec->getResultData()->updateString("Serial Number", tmpBuf );
 
     return CS_RESULT_SUCCESS;
 }
-
-/*
-void
-UIM342GetMotorSNStep::distributeResult( CmdSeqParameters *params )
-{
-    char tmpBuf[64];
-
-    printf("UIM342GetMotorSNStep::distributeResult\n");
-
-    sprintf( tmpBuf, "%d", m_serialNumber );
-
-    updateAxis( params->getAxisID(), "SerialNumber", tmpBuf );
-}
-*/
 
 UIM342GetMotorModelStep::UIM342GetMotorModelStep()
 {
@@ -79,24 +72,15 @@ UIM342GetMotorModelStep::parseResponse( CmdSeqExecution *exec, CANFrame *frame )
     printf("model: 0x%x, 0x%x, 0x%x, fwVer: 0x%x\n", buf[0], buf[1], buf[2], fwVer );
 
     sprintf( tmpStr, "model_%x_%x_%x", buf[0], buf[1], buf[2] );
-    m_model = tmpStr;
+
+    exec->getResultData()->updateString( "Model", tmpStr );
 
     sprintf( tmpStr, "%d", fwVer );
-    m_fwVer = tmpStr;
+
+    exec->getResultData()->updateString( "FirmwareVersion", tmpStr );
 
     return CS_RESULT_SUCCESS;
 }
-
-/*
-void
-UIM342GetMotorModelStep::distributeResult( CmdSeqParameters *params )
-{
-    printf("UIM342GetMotorModelStep::distributeResult\n");
-
-    updateAxis( params->getAxisID(), "Model", m_model );
-    updateAxis( params->getAxisID(), "FWVersion", m_fwVer );
-}
-*/
 
 UIM342GetMotorCANBitrateStep::UIM342GetMotorCANBitrateStep()
 {
@@ -122,6 +106,7 @@ UIM342GetMotorCANBitrateStep::parseResponse( CmdSeqExecution *exec, CANFrame *fr
 {
     uint8_t PIndex;
     uint8_t PValue;
+    uint bitrate;
 
     frame->read8(PIndex);
     frame->read8(PValue);
@@ -131,49 +116,34 @@ UIM342GetMotorCANBitrateStep::parseResponse( CmdSeqExecution *exec, CANFrame *fr
     switch(PValue)
     {
         case 0:
-            m_bitrate = 1000;
+            bitrate = 1000;
         break;
 
         case 1:
-            m_bitrate = 800;
+            bitrate = 800;
         break;
 
         case 2:
-            m_bitrate = 500;
+            bitrate = 500;
         break;
 
         case 3:
-            m_bitrate = 250;
+            bitrate = 250;
         break;
 
         case 4:
-            m_bitrate = 125;
+            bitrate = 125;
         break;
 
         default:
-            m_bitrate = 0;
+            bitrate = 0;
         break;
     }
 
+    exec->getResultData()->updateUINT( "Bitrate", bitrate );
+
     return CS_RESULT_SUCCESS;
 }
-
-/*
-void
-UIM342GetMotorCANBitrateStep::distributeResult( CmdSeqParameters *params )
-{
-    char tmpBuf[64];
-
-    printf("UIM342GetMotorCANBitrateStep::distributeResult\n");
-
-    if( m_bitrate == 0 )
-        sprintf( tmpBuf, "Unknown" );
-    else
-        sprintf( tmpBuf, "%dK", m_bitrate );
-
-    updateAxis( params->getAxisID(), "CAN_Bitrate", tmpBuf );
-}
-*/
 
 UIM342GetMotorCANNodeIDStep::UIM342GetMotorCANNodeIDStep()
 {
@@ -203,24 +173,10 @@ UIM342GetMotorCANNodeIDStep::parseResponse( CmdSeqExecution *exec, CANFrame *fra
     frame->read8(PIndex);
     frame->read8(PValue);
 
-    m_nodeID = PValue;
+    exec->getResultData()->updateUINT( "DeviceCANID", PValue );
 
     return CS_RESULT_SUCCESS;
 }
-
-/*
-void
-UIM342GetMotorCANNodeIDStep::distributeResult( CmdSeqParameters *params )
-{
-    char tmpBuf[16];
-
-    printf("UIM342GetMotorCANNodeIDStep::distributeResult\n");
-
-    sprintf( tmpBuf, "%d", m_nodeID );
-
-    updateAxis( params->getAxisID(), "CAN_NodeID", tmpBuf );
-}
-*/
 
 UIM342GetMotorCANGroupIDStep::UIM342GetMotorCANGroupIDStep()
 {
@@ -250,24 +206,10 @@ UIM342GetMotorCANGroupIDStep::parseResponse( CmdSeqExecution *exec, CANFrame *fr
     frame->read8(PIndex);
     frame->read8(PValue);
 
-    m_groupID = PValue;
+    exec->getResultData()->updateUINT( "GroupCANID", PValue );
 
     return CS_RESULT_SUCCESS;
 }
-
-/*
-void
-UIM342GetMotorCANGroupIDStep::distributeResult( CmdSeqParameters *params )
-{    
-    char tmpBuf[16];
-
-    printf("UIM342GetMotorCANGroupIDStep::distributeResult\n");
-
-    sprintf( tmpBuf, "%d", m_groupID );
-
-    updateAxis( params->getAxisID(), "CAN_GroupID", tmpBuf );
-}
-*/
 
 UIM342GetInitialConfigurationStep::UIM342GetInitialConfigurationStep( UIM342_ICP_TYPE_T paramID )
 {
@@ -294,85 +236,76 @@ UIM342GetInitialConfigurationStep::formatRequest( CmdSeqExecution *exec, CANFram
 CS_RESULT_T
 UIM342GetInitialConfigurationStep::parseResponse( CmdSeqExecution *exec, CANFrame *frame )
 {
+    char tmpBuf[128];
     uint8_t  PIndex;
     uint16_t PValue;
 
     frame->read8(PIndex);
     frame->read16(PValue);
 
-    m_value = PValue;
-
-    return CS_RESULT_SUCCESS;
-}
-
-/*
-void
-UIM342GetInitialConfigurationStep::distributeResult( CmdSeqParameters *params )
-{    
-    char tmpBuf[128];
-
     printf( "UIM342GetInitialConfigurationStep::distributeResult - param: %d\n", m_paramID );
 
     switch( m_paramID )
     {
         case UIM342_ICP_MOTOR_DRIVER_ON_POWER:
-            if( m_value == 0 )
-                updateAxis( params->getAxisID(), "IC_MotorDriverOnAfterPowerIsOn", "disabled" );
+            if( PValue == 0 )
+                exec->getResultData()->updateBoolean( "IC_MotorDriverOnAfterPowerIsOn", false );
             else
-                updateAxis( params->getAxisID(), "IC_MotorDriverOnAfterPowerIsOn", "enabled" );
+                exec->getResultData()->updateBoolean( "IC_MotorDriverOnAfterPowerIsOn", true );
         break;
 
         case UIM342_ICP_POSITIVE_DIRECTION:
-            if( m_value == 0 )
-                updateAxis( params->getAxisID(), "IC_PositiveMotorDirection", "CW" );
+            if( PValue == 0 )
+                exec->getResultData()->updateBoolean( "IC_PositiveMotorDirectionClockwise", true );
             else
-                updateAxis( params->getAxisID(), "IC_PositiveMotorDirection", "CCW" );        
+                exec->getResultData()->updateBoolean( "IC_PositiveMotorDirectionClockwise", false );
         break;
 
         case UIM342_ICP_EXEC_USER_ON_POWER:
-            if( m_value == 0 )
-                updateAxis( params->getAxisID(), "IC_ExecuteTheUserProgramAfterPowerIsOn", "NO" );
+            if( PValue == 0 )
+                exec->getResultData()->updateBoolean( "IC_ExecuteTheUserProgramAfterPowerIsOn", false );
             else
-                updateAxis( params->getAxisID(), "IC_ExecuteTheUserProgramAfterPowerIsOn", "YES" );
+                exec->getResultData()->updateBoolean( "IC_ExecuteTheUserProgramAfterPowerIsOn", true );
         break;
 
         case UIM342_ICP_LOCK_ON_ESTOP:
-            if( m_value == 0 )
-                updateAxis( params->getAxisID(), "IC_LockDownOnEStop", "disabled" );
+            if( PValue == 0 )
+                exec->getResultData()->updateBoolean( "IC_LockDownOnEStop", false );
             else
-                updateAxis( params->getAxisID(), "IC_LockDownOnEStop", "enabled" );
+                exec->getResultData()->updateBoolean( "IC_LockDownOnEStop", true );
         break;
 
         case UIM342_ICP_UNITS_ACDC:
-            if( m_value == 0 )
-                updateAxis( params->getAxisID(), "IC_UnitsOfACAndDC", "pulse/sec^2" );
+            if( PValue == 0 )
+                exec->getResultData()->updateString( "IC_UnitsOfACAndDC", "pulse/sec^2" );
             else
-                updateAxis( params->getAxisID(), "IC_UnitsOfACAndDC", "millisecond" );
+                exec->getResultData()->updateString( "IC_UnitsOfACAndDC", "millisecond" );
         break;
 
         case UIM342_ICP_ENCODER_TYPE:
-            if( m_value == 0 )
-                updateAxis( params->getAxisID(), "IC_EncoderType", "Incremental" );
+            if( PValue == 0 )
+                exec->getResultData()->updateString( "IC_EncoderType", "Incremental" );
             else
-                updateAxis( params->getAxisID(), "IC_EncoderType", "Absolute" );
+                exec->getResultData()->updateString( "IC_EncoderType", "Absolute" );
         break;
 
         case UIM342_ICP_CONTROL_TYPE:
-            if( m_value == 0 )
-                updateAxis( params->getAxisID(), "IC_ControlType", "open-loop" );
+            if( PValue == 0 )
+                exec->getResultData()->updateString( "IC_ControlType", "open-loop" );
             else
-                updateAxis( params->getAxisID(), "IC_ControlType", "closed-loop" );
+                exec->getResultData()->updateString( "IC_ControlType", "closed-loop" );
         break;
 
         case UIM342_ICP_SOFTWARE_LIMIT:
-            if( m_value == 0 )
-                updateAxis( params->getAxisID(), "IC_SoftwareLimit", "disabled" );
+            if( PValue == 0 )
+                exec->getResultData()->updateBoolean( "IC_SoftwareLimit", false );
             else
-                updateAxis( params->getAxisID(), "IC_SoftwareLimit", "enabled" );
+                exec->getResultData()->updateBoolean( "IC_SoftwareLimit", true );
         break;
     }
+
+    return CS_RESULT_SUCCESS;
 }
-*/
 
 UIM342GetInformationEnableStep::UIM342GetInformationEnableStep( UIM342_IEP_TYPE_T paramID )
 {
@@ -396,57 +329,48 @@ UIM342GetInformationEnableStep::formatRequest( CmdSeqExecution *exec, CANFrame *
 CS_RESULT_T
 UIM342GetInformationEnableStep::parseResponse( CmdSeqExecution *exec, CANFrame *frame )
 {
+    char tmpBuf[128];
     uint8_t  PIndex;
     uint16_t PValue;
 
     frame->read8(PIndex);
     frame->read16(PValue);
 
-    m_value = PValue;
-
-    return CS_RESULT_SUCCESS;
-}
-
-/*
-void
-UIM342GetInformationEnableStep::distributeResult( CmdSeqParameters *params )
-{    
-    char tmpBuf[128];
-
     printf( "UIM342GetInformationEnableStep::distributeResult - param: %d\n", m_paramID );
 
     switch( m_paramID )
     {
         case UIM342_IEP_IN1_CHANGE_NOTIFY:
-            if( m_value == 0 )
-                updateAxis( params->getAxisID(), "IE_PIN1ChangeNotification", "disabled" );
-            else
-                updateAxis( params->getAxisID(), "IE_PIN1ChangeNotification", "enabled" );
+            if( PValue == 0 )
+                exec->getResultData()->updateBoolean( "IE_PIN1ChangeNotification", false );
+           else
+                exec->getResultData()->updateBoolean( "IE_PIN1ChangeNotification", false );
         break;
 
         case UIM342_IEP_IN2_CHANGE_NOTIFY:
-            if( m_value == 0 )
-                updateAxis( params->getAxisID(), "IE_PIN2ChangeNotification", "disabled" );
+            if( PValue == 0 )
+                exec->getResultData()->updateBoolean( "IE_PIN2ChangeNotification", false );
             else
-                updateAxis( params->getAxisID(), "IE_PIN2ChangeNotification", "enabled" );        
+                exec->getResultData()->updateBoolean( "IE_PIN2ChangeNotification", false );
         break;
 
         case UIM342_IEP_IN3_CHANGE_NOTIFY:
-            if( m_value == 0 )
-                updateAxis( params->getAxisID(), "IE_PIN3ChangeNotification", "disabled" );
+            if( PValue == 0 )
+                exec->getResultData()->updateBoolean( "IE_PIN3ChangeNotification", false );
             else
-                updateAxis( params->getAxisID(), "IE_PIN3ChangeNotification", "enabled" );
+                exec->getResultData()->updateBoolean( "IE_PIN3ChangeNotification", false );
         break;
 
         case UIM342_IEP_PTP_FINISH_NOTIFY:
-            if( m_value == 0 )
-                updateAxis( params->getAxisID(), "IE_PTPFinishNotification", "disabled" );
+            if( PValue == 0 )
+                exec->getResultData()->updateBoolean( "IE_PTPFinishNotification", false );
             else
-                updateAxis( params->getAxisID(), "IE_PTPFinishNotification", "enabled" );
+                exec->getResultData()->updateBoolean( "IE_PTPFinishNotification", false );
         break;
     }
+
+    return CS_RESULT_SUCCESS;
 }
-*/
 
 UIM342GetQuadratureEncoderStep::UIM342GetQuadratureEncoderStep( UIM342_QEP_TYPE_T paramID )
 {
@@ -470,57 +394,43 @@ UIM342GetQuadratureEncoderStep::formatRequest( CmdSeqExecution *exec, CANFrame *
 CS_RESULT_T
 UIM342GetQuadratureEncoderStep::parseResponse( CmdSeqExecution *exec, CANFrame *frame )
 {
+    char tmpBuf[128];    
     uint8_t  PIndex;
     uint16_t PValue;
 
     frame->read8(PIndex);
     frame->read16(PValue);
 
-    m_value = PValue;
-
-    return CS_RESULT_SUCCESS;
-}
-
-/*
-void
-UIM342GetQuadratureEncoderStep::distributeResult( CmdSeqParameters *params )
-{    
-    char tmpBuf[128];
-
     printf( "UIM342GetQuadratureEncoderStep::distributeResult - param: %d\n", m_paramID );
 
     switch( m_paramID )
     {
         case UIM342_QEP_LINES_PER_REV:
-            sprintf( tmpBuf, "%d", m_value );
-            updateAxis( params->getAxisID(), "QE_LinesPerRevolutionOfEncoder", tmpBuf );
+            exec->getResultData()->updateUINT( "QE_LinesPerRevolutionOfEncoder", PValue );
         break;
 
         case UIM342_QEP_STALL_TOLERANCE:
-            sprintf( tmpBuf, "%d", m_value );
-            updateAxis( params->getAxisID(), "QE_StallTolerance", tmpBuf );       
+            exec->getResultData()->updateUINT( "QE_StallTolerance", PValue );   
         break;
 
         case UIM342_QEP_SINGLE_TURN_BITS:
-            sprintf( tmpBuf, "%d", m_value );
-            updateAxis( params->getAxisID(), "QE_SingleTurnBits", tmpBuf );
+            exec->getResultData()->updateUINT( "QE_SingleTurnBits", PValue );
         break;
 
         case UIM342_QEP_BATTERY_STATUS:
-            if( m_value == 0 )
-                updateAxis( params->getAxisID(), "QE_BatteryStatus", "Low" );
+            if( PValue == 0 )
+                exec->getResultData()->updateBoolean( "QE_BatteryStatusLow", true );
             else
-                updateAxis( params->getAxisID(), "QE_BatteryStatus", "Ok" );
+                exec->getResultData()->updateBoolean( "QE_BatteryStatusLow", false );
         break;
 
         case UIM342_QEP_COUNTS_PER_REV:
-            sprintf( tmpBuf, "%d", m_value );
-            updateAxis( params->getAxisID(), "QE_CountsPerRevolution", tmpBuf );
+            exec->getResultData()->updateUINT( "QE_CountsPerRevolution", PValue );
         break;
     }
-}
-*/
 
+    return CS_RESULT_SUCCESS;
+}
 
 UIM342GetMotorDriverStep::UIM342GetMotorDriverStep( UIM342_MTP_TYPE_T paramID )
 {
@@ -546,6 +456,7 @@ UIM342GetMotorDriverStep::formatRequest( CmdSeqExecution *exec, CANFrame *frame 
 CS_RESULT_T
 UIM342GetMotorDriverStep::parseResponse( CmdSeqExecution *exec, CANFrame *frame )
 {
+    char tmpBuf[128];    
     uint8_t  PIndex;
     uint16_t PValue;
 
@@ -553,44 +464,29 @@ UIM342GetMotorDriverStep::parseResponse( CmdSeqExecution *exec, CANFrame *frame 
     frame->read16(PValue);
 
     printf( "UIM342GetMotorDriverStep::parseCANRXFrame - pindex: %d  value: %d\n", PIndex, PValue );
-
-    m_value = PValue;
-
-    return CS_RESULT_SUCCESS;
-}
-
-/*
-void
-UIM342GetMotorDriverStep::distributeResult( CmdSeqParameters *params )
-{    
-    char tmpBuf[128];
-
     printf( "UIM342GetMotorDriverStep::distributeResult - param: %d\n", m_paramID );
 
     switch( m_paramID )
     {
         case UIM342_MTP_MICROSTEP_RES:
-            sprintf( tmpBuf, "%d", m_value );
-            updateAxis( params->getAxisID(), "MT_MicrostepResolution", tmpBuf );
+            exec->getResultData()->updateUINT( "MT_MicrostepResolution", PValue );
         break;
 
         case UIM342_MTP_WORKING_CURRENT:
-            sprintf( tmpBuf, "%d", m_value );
-            updateAxis( params->getAxisID(), "MT_WorkingCurrent", tmpBuf );       
+            exec->getResultData()->updateUINT( "MT_WorkingCurrent", PValue );
         break;
 
         case UIM342_MTP_PERCENT_IDLE_OVER_WORKING:
-            sprintf( tmpBuf, "%d", m_value );
-            updateAxis( params->getAxisID(), "MT_PercentIdleCurrentOverWorkingCurrent", tmpBuf );
+            exec->getResultData()->updateUINT( "MT_PercentIdleCurrentOverWorkingCurrent", PValue );
         break;
 
         case UIM342_MTP_DELAY_TO_ENABLE:
-            sprintf( tmpBuf, "%d", m_value );
-            updateAxis( params->getAxisID(), "MT_DelayAutomaticEnableAfterPowerOn", tmpBuf );
+            exec->getResultData()->updateUINT( "MT_DelayAutomaticEnableAfterPowerOn", PValue );
         break;
     }
+
+    return CS_RESULT_SUCCESS;
 }
-*/
 
 UIM342GetMTStateStep::UIM342GetMTStateStep()
 {
@@ -617,23 +513,13 @@ UIM342GetMTStateStep::parseResponse( CmdSeqExecution *exec, CANFrame *frame )
 
     frame->read8(PValue);
 
-    m_value = PValue;
+    if( PValue == 1 )
+        exec->getResultData()->updateBoolean( "MT_State", true );
+    else
+        exec->getResultData()->updateBoolean( "MT_State", false );
 
     return CS_RESULT_SUCCESS;
 }
-
-/*
-void
-UIM342GetMTStateStep::distributeResult( CmdSeqParameters *params )
-{    
-    printf( "UIM342GetMTStateStep::distributeResult\n" );
-
-    if( m_value == 1 )
-        updateAxis( params->getAxisID(), "MT_State", "ON" );
-    else
-        updateAxis( params->getAxisID(), "MT_State", "OFF" );
-}
-*/
 
 UIM342GetRelativePositionStep::UIM342GetRelativePositionStep()
 {
@@ -660,23 +546,10 @@ UIM342GetRelativePositionStep::parseResponse( CmdSeqExecution *exec, CANFrame *f
 
     frame->read32(PValue);
 
-    m_value = PValue;
+    exec->getResultData()->updateUINT( "RelativePosition", PValue );
 
     return CS_RESULT_SUCCESS;
 }
-
-/*
-void
-UIM342GetRelativePositionStep::distributeResult( CmdSeqParameters *params )
-{
-    char tmpBuf[128];
-
-    printf( "UIM342GetRelativePositionStep::distributeResult\n" );
-
-    sprintf( tmpBuf, "%d", m_value );
-    updateAxis( params->getAxisID(), "RelativePosition", tmpBuf );
-}
-*/
 
 UIM342GetAbsolutePositionStep::UIM342GetAbsolutePositionStep()
 {
@@ -703,23 +576,10 @@ UIM342GetAbsolutePositionStep::parseResponse( CmdSeqExecution *exec, CANFrame *f
 
     frame->read32(PValue);
 
-    m_value = PValue;
+    exec->getResultData()->updateUINT( "AbsolutePosition", PValue );
 
     return CS_RESULT_SUCCESS;
 }
-
-/*
-void
-UIM342GetAbsolutePositionStep::distributeResult( CmdSeqParameters *params )
-{    
-    char tmpBuf[128];
-
-    printf( "UIM342GetAbsolutePositionStep::distributeResult\n" );
-
-    sprintf( tmpBuf, "%d", m_value );
-    updateAxis( params->getAxisID(), "AbsolutePosition", tmpBuf );
-}
-*/
 
 UIM342SetMDEnableStep::UIM342SetMDEnableStep()
 {
@@ -753,29 +613,10 @@ UIM342SetMDEnableStep::formatRequest( CmdSeqExecution *exec, CANFrame *frame )
 CS_RESULT_T
 UIM342SetMDEnableStep::parseResponse( CmdSeqExecution *exec, CANFrame *frame )
 {
-    uint PValue;
-
     printf( "UIM342SetMDEnableStep::result: \n" );
-    
-    //frame->read32(PValue);
-
-    //m_value = PValue;
 
     return CS_RESULT_SUCCESS;
 }
-
-/*
-void
-UIM342SetMDEnableStep::distributeResult( CmdSeqParameters *params )
-{    
-//    char tmpBuf[128];
-
-//    printf( "UIM342SetMotorDriverStep::distributeResult\n" );
-
-//    sprintf( tmpBuf, "%d", m_value );
-//    updateAxis( m_axisID, "AbsolutePosition", tmpBuf );
-}
-*/
 
 UIM342SetMotionSpeedStep::UIM342SetMotionSpeedStep()
 {
@@ -807,25 +648,8 @@ UIM342SetMotionSpeedStep::parseResponse( CmdSeqExecution *exec, CANFrame *frame 
 {
     uint PValue;
 
-    //frame->read32(PValue);
-
-    //m_value = PValue;
-
     return CS_RESULT_SUCCESS;
 }
-
-/*
-void
-UIM342SetMotionSpeedStep::distributeResult( CmdSeqParameters *params )
-{    
-//    char tmpBuf[128];
-
-//    printf( "UIM342GetRelativePositionStep::distributeResult\n" );
-
-//    sprintf( tmpBuf, "%d", m_value );
-//    updateAxis( m_axisID, "AbsolutePosition", tmpBuf );
-}
-*/
 
 UIM342SetMotionRelativePositionStep::UIM342SetMotionRelativePositionStep()
 {
@@ -855,27 +679,8 @@ UIM342SetMotionRelativePositionStep::formatRequest( CmdSeqExecution *exec, CANFr
 CS_RESULT_T
 UIM342SetMotionRelativePositionStep::parseResponse( CmdSeqExecution *exec, CANFrame *frame )
 {
-    uint PValue;
-
-    //frame->read32(PValue);
-
-    //m_value = PValue;
-
     return CS_RESULT_SUCCESS;
 }
-
-/*
-void
-UIM342SetMotionRelativePositionStep::distributeResult( CmdSeqParameters *params )
-{    
-//    char tmpBuf[128];
-
-//    printf( "UIM342SetMotionRelativePositionStep::distributeResult\n" );
-
-//    sprintf( tmpBuf, "%d", m_value );
-//    updateAxis( m_axisID, "AbsolutePosition", tmpBuf );
-}
-*/
 
 UIM342SetBeginMotionStep::UIM342SetBeginMotionStep()
 {
@@ -898,27 +703,8 @@ UIM342SetBeginMotionStep::formatRequest( CmdSeqExecution *exec, CANFrame *frame 
 CS_RESULT_T
 UIM342SetBeginMotionStep::parseResponse( CmdSeqExecution *exec, CANFrame *frame )
 {
-    uint PValue;
-
-    //frame->read32(PValue);
-
-    //m_value = PValue;
-
     return CS_RESULT_SUCCESS;
 }
-
-/*
-void
-UIM342SetBeginMotionStep::distributeResult( CmdSeqParameters *params )
-{    
-//    char tmpBuf[128];
-
-//    printf( "UIM342SetBeginMotionStep::distributeResult\n" );
-
-//    sprintf( tmpBuf, "%d", m_value );
-//    updateAxis( m_axisID, "AbsolutePosition", tmpBuf );
-}
-*/
 
 UIM342WaitMotionCompleteStep::UIM342WaitMotionCompleteStep()
 {
@@ -945,27 +731,8 @@ UIM342WaitMotionCompleteStep::formatRequest( CmdSeqExecution *exec, CANFrame *fr
 CS_RESULT_T
 UIM342WaitMotionCompleteStep::parseResponse( CmdSeqExecution *exec, CANFrame *frame )
 {
-    uint PValue;
-
-    //frame->read32(PValue);
-
-    //m_value = PValue;
-
     return CS_RESULT_SUCCESS;
 }
-
-/*
-void
-UIM342WaitMotionCompleteStep::distributeResult( CmdSeqParameters *params )
-{    
-//    char tmpBuf[128];
-
-//    printf( "UIM342WaitMotionCompleteStep::distributeResult\n" );
-
-//    sprintf( tmpBuf, "%d", m_value );
-//    updateAxis( m_axisID, "AbsolutePosition", tmpBuf );
-}
-*/
 
 UIM342SetStopMotionStep::UIM342SetStopMotionStep()
 {
@@ -988,26 +755,8 @@ UIM342SetStopMotionStep::formatRequest( CmdSeqExecution *exec, CANFrame *frame )
 CS_RESULT_T
 UIM342SetStopMotionStep::parseResponse( CmdSeqExecution *exec, CANFrame *frame )
 {
-    uint PValue;
-    //frame->read32(PValue);
-
-    //m_value = PValue;
-
     return CS_RESULT_SUCCESS;
 }
-
-/*
-void
-UIM342SetStopMotionStep::distributeResult( CmdSeqParameters *params )
-{    
-//    char tmpBuf[128];
-
-//    printf( "UIM342SetBeginMotionStep::distributeResult\n" );
-
-//    sprintf( tmpBuf, "%d", m_value );
-//    updateAxis( m_axisID, "AbsolutePosition", tmpBuf );
-}
-*/
 
 UIM342AxisInfoSequence::UIM342AxisInfoSequence()
 : m_getICStep_P0( UIM342_ICP_MOTOR_DRIVER_ON_POWER ),

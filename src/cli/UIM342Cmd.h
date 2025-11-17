@@ -17,11 +17,8 @@ class UIM342GetMotorSNStep : public CmdStepExecuteCANRR
         virtual CS_RESULT_T formatRequest( CmdSeqExecution *exec, CANFrame *frame );
         virtual CS_RESULT_T parseResponse( CmdSeqExecution *exec, CANFrame *frame );
 
-        //virtual void distributeResult( CmdSeqParameters *params );
-
     private:
 
-        uint m_serialNumber;
 };
 
 class UIM342GetMotorModelStep : public CmdStepExecuteCANRR
@@ -33,12 +30,8 @@ class UIM342GetMotorModelStep : public CmdStepExecuteCANRR
         virtual CS_RESULT_T formatRequest( CmdSeqExecution *exec, CANFrame *frame );
         virtual CS_RESULT_T parseResponse( CmdSeqExecution *exec, CANFrame *frame );
 
-        //virtual void distributeResult( CmdSeqParameters *params );
-
     private:
 
-        std::string m_model;
-        std::string m_fwVer;
 };
 
 class UIM342GetMotorCANBitrateStep : public CmdStepExecuteCANRR
@@ -50,11 +43,8 @@ class UIM342GetMotorCANBitrateStep : public CmdStepExecuteCANRR
         virtual CS_RESULT_T formatRequest( CmdSeqExecution *exec, CANFrame *frame );
         virtual CS_RESULT_T parseResponse( CmdSeqExecution *exec, CANFrame *frame );
 
-        //virtual void distributeResult( CmdSeqParameters *params );
-
     private:
 
-        uint m_bitrate;
 };
 
 class UIM342GetMotorCANNodeIDStep : public CmdStepExecuteCANRR
@@ -66,11 +56,8 @@ class UIM342GetMotorCANNodeIDStep : public CmdStepExecuteCANRR
         virtual CS_RESULT_T formatRequest( CmdSeqExecution *exec, CANFrame *frame );
         virtual CS_RESULT_T parseResponse( CmdSeqExecution *exec, CANFrame *frame );
 
-        //virtual void distributeResult( CmdSeqParameters *params );
-
     private:
 
-        uint m_nodeID;
 };
 
 class UIM342GetMotorCANGroupIDStep : public CmdStepExecuteCANRR
@@ -82,11 +69,8 @@ class UIM342GetMotorCANGroupIDStep : public CmdStepExecuteCANRR
         virtual CS_RESULT_T formatRequest( CmdSeqExecution *exec, CANFrame *frame );
         virtual CS_RESULT_T parseResponse( CmdSeqExecution *exec, CANFrame *frame );
 
-        //virtual void distributeResult( CmdSeqParameters *params );
-
     private:
 
-        uint m_groupID;
 };
 
 typedef enum UIM342InitialConfigurationParamID
@@ -110,13 +94,9 @@ class UIM342GetInitialConfigurationStep : public CmdStepExecuteCANRR
         virtual CS_RESULT_T formatRequest( CmdSeqExecution *exec, CANFrame *frame );
         virtual CS_RESULT_T parseResponse( CmdSeqExecution *exec, CANFrame *frame );
 
-        //virtual void distributeResult( CmdSeqParameters *params );
-
     private:
 
         UIM342_ICP_TYPE_T m_paramID;
-
-        uint m_value;
 };
 
 typedef enum UIM342InformationEnableParamID
@@ -136,13 +116,9 @@ class UIM342GetInformationEnableStep : public CmdStepExecuteCANRR
         virtual CS_RESULT_T formatRequest( CmdSeqExecution *exec, CANFrame *frame );
         virtual CS_RESULT_T parseResponse( CmdSeqExecution *exec, CANFrame *frame );
 
-        //virtual void distributeResult( CmdSeqParameters *params );
-
     private:
 
         UIM342_IEP_TYPE_T m_paramID;
-
-        uint m_value;
 };
 
 typedef enum UIM342QuadratureEncoderParamID
@@ -163,13 +139,9 @@ class UIM342GetQuadratureEncoderStep : public CmdStepExecuteCANRR
         virtual CS_RESULT_T formatRequest( CmdSeqExecution *exec, CANFrame *frame );
         virtual CS_RESULT_T parseResponse( CmdSeqExecution *exec, CANFrame *frame );
 
-        //virtual void distributeResult( CmdSeqParameters *params );
-
     private:
 
         UIM342_QEP_TYPE_T m_paramID;
-
-        uint m_value;
 };
 
 typedef enum UIM342MotorDriverParamID
@@ -189,13 +161,10 @@ class UIM342GetMotorDriverStep : public CmdStepExecuteCANRR
         virtual CS_RESULT_T formatRequest( CmdSeqExecution *exec, CANFrame *frame );
         virtual CS_RESULT_T parseResponse( CmdSeqExecution *exec, CANFrame *frame );
 
-        //virtual void distributeResult( CmdSeqParameters *params );
-
     private:
 
         UIM342_MTP_TYPE_T m_paramID;
 
-        uint m_value;
 };
 
 class UIM342GetMTStateStep : public CmdStepExecuteCANRR
@@ -207,11 +176,8 @@ class UIM342GetMTStateStep : public CmdStepExecuteCANRR
         virtual CS_RESULT_T formatRequest( CmdSeqExecution *exec, CANFrame *frame );
         virtual CS_RESULT_T parseResponse( CmdSeqExecution *exec, CANFrame *frame );
 
-        //virtual void distributeResult( CmdSeqParameters *params );
-
     private:
 
-        uint m_value;
 };
 
 class UIM342GetRelativePositionStep : public CmdStepExecuteCANRR
@@ -223,11 +189,8 @@ class UIM342GetRelativePositionStep : public CmdStepExecuteCANRR
         virtual CS_RESULT_T formatRequest( CmdSeqExecution *exec, CANFrame *frame );
         virtual CS_RESULT_T parseResponse( CmdSeqExecution *exec, CANFrame *frame );
 
-        //virtual void distributeResult( CmdSeqParameters *params );
-
     private:
 
-        uint m_value;
 };
 
 class UIM342GetAbsolutePositionStep : public CmdStepExecuteCANRR
@@ -239,11 +202,8 @@ class UIM342GetAbsolutePositionStep : public CmdStepExecuteCANRR
         virtual CS_RESULT_T formatRequest( CmdSeqExecution *exec, CANFrame *frame );
         virtual CS_RESULT_T parseResponse( CmdSeqExecution *exec, CANFrame *frame );
 
-        //virtual void distributeResult( CmdSeqParameters *params );
-
     private:
 
-        uint m_value;
 };
 
 class UIM342SetMDEnableStep : public CmdStepExecuteCANRR
@@ -254,8 +214,6 @@ class UIM342SetMDEnableStep : public CmdStepExecuteCANRR
 
         virtual CS_RESULT_T formatRequest( CmdSeqExecution *exec, CANFrame *frame );
         virtual CS_RESULT_T parseResponse( CmdSeqExecution *exec, CANFrame *frame );
-
-        //virtual void distributeResult( CmdSeqParameters *params );
 
     private:
 
@@ -270,8 +228,6 @@ class UIM342SetMotionSpeedStep : public CmdStepExecuteCANRR
         virtual CS_RESULT_T formatRequest( CmdSeqExecution *exec, CANFrame *frame );
         virtual CS_RESULT_T parseResponse( CmdSeqExecution *exec, CANFrame *frame );
 
-        //virtual void distributeResult( CmdSeqParameters *params );
-
     private:
 
 };
@@ -284,8 +240,6 @@ class UIM342SetMotionRelativePositionStep : public CmdStepExecuteCANRR
 
         virtual CS_RESULT_T formatRequest( CmdSeqExecution *exec, CANFrame *frame );
         virtual CS_RESULT_T parseResponse( CmdSeqExecution *exec, CANFrame *frame );
-
-        //virtual void distributeResult( CmdSeqParameters *params );
 
     private:
 
@@ -300,8 +254,6 @@ class UIM342SetBeginMotionStep : public CmdStepExecuteCANRR
         virtual CS_RESULT_T formatRequest( CmdSeqExecution *exec, CANFrame *frame );
         virtual CS_RESULT_T parseResponse( CmdSeqExecution *exec, CANFrame *frame );
 
-        //virtual void distributeResult( CmdSeqParameters *params );
-
     private:
 
 };
@@ -315,8 +267,6 @@ class UIM342SetStopMotionStep : public CmdStepExecuteCANRR
         virtual CS_RESULT_T formatRequest( CmdSeqExecution *exec, CANFrame *frame );
         virtual CS_RESULT_T parseResponse( CmdSeqExecution *exec, CANFrame *frame );
 
-        //virtual void distributeResult( CmdSeqParameters *params );
-
     private:
 
 };
@@ -329,8 +279,6 @@ class UIM342WaitMotionCompleteStep : public CmdStepExecuteCANRR
 
         virtual CS_RESULT_T formatRequest( CmdSeqExecution *exec, CANFrame *frame );
         virtual CS_RESULT_T parseResponse( CmdSeqExecution *exec, CANFrame *frame );
-
-        //virtual void distributeResult( CmdSeqParameters *params );
 
     private:
 

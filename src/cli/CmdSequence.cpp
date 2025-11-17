@@ -54,6 +54,33 @@ gCSStepActionAsStr( CS_STEPACTION_T action )
     return "UNKNOWN";
 }
 
+CmdSeqResults::CmdSeqResults()
+{
+
+}
+
+CmdSeqResults::~CmdSeqResults()
+{
+
+}
+
+void
+CmdSeqResults::updateString( std::string field, std::string value )
+{
+    printf( "CmdSeqResults::updateString: %s --> %s\n", field.c_str(), value.c_str() );
+}
+
+void
+CmdSeqResults::updateUINT( std::string field, uint value )
+{
+    printf( "CmdSeqResults::updateUINT: %s --> %d\n", field.c_str(), value );
+}
+
+void
+CmdSeqResults::updateBoolean( std::string field, bool value )
+{
+    printf( "CmdSeqResults::updateBoolean: %s --> %u\n", field.c_str(), value );
+}
 
 CmdSeqParameters::CmdSeqParameters()
 {
@@ -312,6 +339,12 @@ CmdSeqParameters*
 CmdSeqExecution::getCmdParams()
 {
     return m_params;
+}
+
+CmdSeqResults*
+CmdSeqExecution::getResultData()
+{
+    return &m_resultData;
 }
 
 void

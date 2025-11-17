@@ -68,6 +68,20 @@ class CSHardwareInterface
 
 #define CSPID_AXIS_ID  "axisID"
 
+class CmdSeqResults
+{
+    public:
+        CmdSeqResults();
+       ~CmdSeqResults();
+
+        void updateString( std::string field, std::string value );
+        void updateUINT( std::string field, uint value );
+        void updateBoolean( std::string field, bool value );
+
+    private:
+
+};
+
 class CmdSeqParameters
 {
     public:
@@ -123,6 +137,8 @@ class CmdSeqExecution
         void setCmdParams( CmdSeqParameters *params );
         CmdSeqParameters* getCmdParams();
 
+        CmdSeqResults* getResultData();
+
         void activateStep();
         void clearStep();
         
@@ -158,6 +174,8 @@ class CmdSeqExecution
         CSHardwareInterface *m_hwIntf;
 
         CmdSeqParameters *m_params;
+
+        CmdSeqResults m_resultData;
 };
 
 class CmdStep

@@ -68,6 +68,8 @@ CNCSequencer::startSequence( std::string seqID, CmdSeqParameters *params, std::s
     // Allocate an execution context
     m_curSeqExec = new CmdSeqExecution( "s1", this );
 
+    m_curSeqExec->getResultData()->enterContext( "testContext" );
+
     m_activeSequences.insert(std::pair<std::string, CmdSeqExecution*>( m_curSeqExec->getID(), m_curSeqExec ) );
 
     m_curSeqExec->setHardwareIntf( getHardwareIntf() );
@@ -111,6 +113,8 @@ CNCSequencer::finishCurrentSequence()
 
     m_curSeqExec = NULL;
     m_curSeq = NULL;
+
+    finishedSeq->getResultData()->printTree();
 
     for( std::set< CNCSequencerCallbacks* >::iterator cbit = m_callbacks.begin(); cbit != m_callbacks.end(); cbit++ )
         (*cbit)->CNCSCSequenceComplete( finishedSeq->getID() );

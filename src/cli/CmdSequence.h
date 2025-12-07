@@ -68,18 +68,126 @@ class CSHardwareInterface
 
 #define CSPID_AXIS_ID  "axisID"
 
+typedef enum CSRFTypeEnumeration
+{
+    CSRF_TYPE_NOTSET,
+    CSRF_TYPE_STR,
+    CSRF_TYPE_UINT,
+    CSRF_TYPE_BOOL
+}CSRF_TYPE_T;
+
+class CSResultField
+{
+    public:
+        CSResultField();
+       ~CSResultField();
+
+        void setID( std::string value );
+        std::string getID();
+
+        virtual CSRF_TYPE_T getType() = 0;
+
+        virtual void printNV( uint offset ) = 0;
+
+    private:
+
+        std::string m_id;
+};
+
+class CSRFString : public CSResultField
+{
+    public:
+        CSRFString();
+       ~CSRFString();
+
+        virtual CSRF_TYPE_T getType();
+
+        virtual void printNV( uint offset );
+
+        void setValue( std::string value );
+
+    private:
+
+        std::string m_value;
+};
+
+class CSRFUINT : public CSResultField
+{
+    public:
+        CSRFUINT();
+       ~CSRFUINT();
+
+        virtual CSRF_TYPE_T getType();
+
+        virtual void printNV( uint offset );
+
+        void setValue( uint value );
+
+    private:
+
+        uint m_value;
+};
+
+class CSRFBoolean : public CSResultField
+{
+    public:
+        CSRFBoolean();
+       ~CSRFBoolean();
+
+        virtual CSRF_TYPE_T getType();
+
+        virtual void printNV( uint offset );
+
+        void setValue( bool value );
+    private:
+
+        bool m_value;
+};
+
+class CSResultStruct
+{
+    public:
+        CSResultStruct();
+       ~CSResultStruct();
+
+        void setID( std::string id );
+        std::string getID();
+
+        void addChild( CSResultStruct* child );
+
+        void updateField( CSResultField *field );
+
+        void printTree( uint offset );
+
+    private:
+
+        std::string m_id;
+
+        std::vector< CSResultStruct* > m_childList;
+
+        std::map< std::string, CSResultField* > m_fieldList;
+};
+
 class CmdSeqResults
 {
     public:
         CmdSeqResults();
        ~CmdSeqResults();
 
+        void enterContext( std::string name );
+        void leaveContext();
+
         void updateString( std::string field, std::string value );
         void updateUINT( std::string field, uint value );
         void updateBoolean( std::string field, bool value );
 
+        void printTree();
+
     private:
 
+        CSResultStruct *m_root;
+
+        CSResultStruct *m_curStruct;
 };
 
 class CmdSeqParameters

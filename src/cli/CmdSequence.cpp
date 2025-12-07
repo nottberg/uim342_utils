@@ -54,9 +54,173 @@ gCSStepActionAsStr( CS_STEPACTION_T action )
     return "UNKNOWN";
 }
 
-CmdSeqResults::CmdSeqResults()
+CSResultField::CSResultField()
 {
 
+}
+
+CSResultField::~CSResultField()
+{
+
+}
+
+void
+CSResultField::setID( std::string value )
+{
+    m_id = value;
+}
+
+std::string
+CSResultField::getID()
+{
+    return m_id;
+}
+
+CSRFString::CSRFString()
+{
+
+}
+
+CSRFString::~CSRFString()
+{
+
+}
+
+CSRF_TYPE_T
+CSRFString::getType()
+{
+    return CSRF_TYPE_STR;
+}
+
+void
+CSRFString::setValue( std::string value )
+{
+    m_value = value;
+}
+
+void
+CSRFString::printNV( uint offset )
+{
+    printf( "%*.*s%s: %s\n", offset, offset, " ", getID().c_str(), m_value.c_str() );
+}
+
+CSRFUINT::CSRFUINT()
+{
+    m_value = 0;
+}
+
+CSRFUINT::~CSRFUINT()
+{
+
+}
+
+CSRF_TYPE_T
+CSRFUINT::getType()
+{
+    return CSRF_TYPE_UINT;
+}
+
+void
+CSRFUINT::setValue( uint value )
+{
+    m_value = value;
+}
+
+void
+CSRFUINT::printNV( uint offset )
+{
+    printf( "%*.*s%s: %u\n", offset, offset, " ", getID().c_str(), m_value );
+}
+
+CSRFBoolean::CSRFBoolean()
+{
+    m_value = false;
+}
+
+CSRFBoolean::~CSRFBoolean()
+{
+
+}
+
+CSRF_TYPE_T
+CSRFBoolean::getType()
+{
+    return CSRF_TYPE_BOOL;
+}
+
+void
+CSRFBoolean::setValue( bool value )
+{
+    m_value = value;
+}
+
+void
+CSRFBoolean::printNV( uint offset )
+{
+    printf( "%*.*s%s: %s\n", offset, offset, " ", getID().c_str(), m_value == false ? "false" : "true" );
+}
+
+CSResultStruct::CSResultStruct()
+{
+
+}
+
+CSResultStruct::~CSResultStruct()
+{
+
+}
+
+void
+CSResultStruct::setID( std::string id )
+{
+    m_id = id;
+}
+
+std::string
+CSResultStruct::getID()
+{
+    return m_id;
+}
+
+void
+CSResultStruct::addChild( CSResultStruct* child )
+{
+    m_childList.push_back( child );
+}
+
+void
+CSResultStruct::updateField( CSResultField *field )
+{
+    std::map< std::string, CSResultField* >::iterator it = m_fieldList.find( field->getID() );
+
+    if( it == m_fieldList.end() )
+    {
+        m_fieldList.insert( std::pair< std::string, CSResultField* >( field->getID(), field ) );
+        return;
+    }
+
+    if( field != it->second )
+    {
+        delete it->second;
+        it->second = field;
+        return;
+    }
+}
+
+void
+CSResultStruct::printTree( uint offset )
+{
+    for( std::map< std::string, CSResultField* >::iterator it = m_fieldList.begin(); it != m_fieldList.end(); it++ )
+    {
+        it->second->printNV( offset );
+    }
+}
+
+
+CmdSeqResults::CmdSeqResults()
+{
+    m_root = NULL;
+    m_curStruct = NULL;
 }
 
 CmdSeqResults::~CmdSeqResults()
@@ -65,22 +229,97 @@ CmdSeqResults::~CmdSeqResults()
 }
 
 void
-CmdSeqResults::updateString( std::string field, std::string value )
+CmdSeqResults::enterContext( std::string name )
 {
-    printf( "CmdSeqResults::updateString: %s --> %s\n", field.c_str(), value.c_str() );
+    printf( "CmdSeqResults::addContext: %s\n", name.c_str() );
+
+    // Allocate a new struct
+    CSResultStruct *ctxt = new CSResultStruct;
+    ctxt->setID( name );
+
+    if( m_root == NULL )
+    {
+        m_root = ctxt;
+    }
+    else
+    {
+        m_curStruct->addChild( ctxt );
+    }
+
+    m_curStruct = ctxt;
 }
 
 void
-CmdSeqResults::updateUINT( std::string field, uint value )
+CmdSeqResults::leaveContext()
 {
-    printf( "CmdSeqResults::updateUINT: %s --> %d\n", field.c_str(), value );
+    printf( "CmdSeqResults::leaveContext\n" );
+
 }
 
 void
 CmdSeqResults::updateBoolean( std::string field, bool value )
 {
     printf( "CmdSeqResults::updateBoolean: %s --> %u\n", field.c_str(), value );
+
+    if( m_curStruct == NULL )
+        return;
+
+    CSRFBoolean *fldObj = new CSRFBoolean;
+
+    fldObj->setID( field );
+    fldObj->setValue( value );
+
+    m_curStruct->updateField( (CSResultField *) fldObj );
 }
+
+void
+CmdSeqResults::updateString( std::string field, std::string value )
+{
+    printf( "CmdSeqResults::updateString: %s --> %s\n", field.c_str(), value.c_str() );
+
+    if( m_curStruct == NULL )
+        return;
+
+    CSRFString *fldObj = new CSRFString;
+
+    fldObj->setID( field );
+    fldObj->setValue( value );
+
+    m_curStruct->updateField( (CSResultField *) fldObj );
+}
+
+void
+CmdSeqResults::updateUINT( std::string field, uint value )
+{
+    printf( "CmdSeqResults::updateUINT: %s --> %d\n", field.c_str(), value );
+    
+    if( m_curStruct == NULL )
+        return;
+
+    CSRFUINT *fldObj = new CSRFUINT;
+
+    fldObj->setID( field );
+    fldObj->setValue( value );
+
+    m_curStruct->updateField( (CSResultField *) fldObj );
+}
+
+void
+CmdSeqResults::printTree()
+{
+    printf( "CmdSeqResults::printTree - start\n" );
+
+    if( m_root == NULL )
+    {
+        printf( "CmdSeqResults::printTree - end\n" );
+        return;
+    }
+
+    m_root->printTree( 2 );
+
+    printf( "CmdSeqResults::printTree - end\n" );
+}
+
 
 CmdSeqParameters::CmdSeqParameters()
 {

@@ -68,7 +68,7 @@ CNCSequencer::startSequence( std::string seqID, CmdSeqParameters *params, std::s
     // Allocate an execution context
     m_curSeqExec = new CmdSeqExecution( "s1", this );
 
-    m_curSeqExec->getResultData()->enterContext( "testContext" );
+    m_curSeqExec->getResultData()->enterContext( "sequence " + seqID );
 
     m_activeSequences.insert(std::pair<std::string, CmdSeqExecution*>( m_curSeqExec->getID(), m_curSeqExec ) );
 

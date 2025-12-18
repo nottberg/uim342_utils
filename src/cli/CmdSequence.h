@@ -147,13 +147,14 @@ class CSRFBoolean : public CSResultField
 class CSResultStruct
 {
     public:
-        CSResultStruct();
+        CSResultStruct( CSResultStruct *parent );
        ~CSResultStruct();
 
         void setID( std::string id );
         std::string getID();
 
-        void addChild( CSResultStruct* child );
+        CSResultStruct *enterContext( std::string name );
+        CSResultStruct *leaveContext();
 
         void updateField( CSResultField *field );
 
@@ -161,9 +162,11 @@ class CSResultStruct
 
     private:
 
+        CSResultStruct *m_parent;
+        
         std::string m_id;
 
-        std::vector< CSResultStruct* > m_childList;
+        std::map< std::string, CSResultStruct* > m_childList;
 
         std::map< std::string, CSResultField* > m_fieldList;
 };

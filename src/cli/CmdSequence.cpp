@@ -101,7 +101,7 @@ CSRFString::setValue( std::string value )
 void
 CSRFString::printNV( uint offset )
 {
-    printf( "%*.*s%s: %s\n", offset, offset, " ", getID().c_str(), m_value.c_str() );
+    printf( "%*.*s%-40s: %s\n", offset, offset, " ", getID().c_str(), m_value.c_str() );
 }
 
 CSRFUINT::CSRFUINT()
@@ -129,7 +129,7 @@ CSRFUINT::setValue( uint value )
 void
 CSRFUINT::printNV( uint offset )
 {
-    printf( "%*.*s%s: %u\n", offset, offset, " ", getID().c_str(), m_value );
+    printf( "%*.*s%-40s: %u\n", offset, offset, " ", getID().c_str(), m_value );
 }
 
 CSRFBoolean::CSRFBoolean()
@@ -157,12 +157,12 @@ CSRFBoolean::setValue( bool value )
 void
 CSRFBoolean::printNV( uint offset )
 {
-    printf( "%*.*s%s: %s\n", offset, offset, " ", getID().c_str(), m_value == false ? "false" : "true" );
+    printf( "%*.*s%-40s: %s\n", offset, offset, " ", getID().c_str(), m_value == false ? "false" : "true" );
 }
 
-CSResultStruct::CSResultStruct()
+CSResultStruct::CSResultStruct( CSResultStruct *parent )
 {
-
+    m_parent = parent;
 }
 
 CSResultStruct::~CSResultStruct()
@@ -182,10 +182,28 @@ CSResultStruct::getID()
     return m_id;
 }
 
-void
-CSResultStruct::addChild( CSResultStruct* child )
+CSResultStruct*
+CSResultStruct::enterContext( std::string name )
 {
-    m_childList.push_back( child );
+    // If the child already exists
+    std::map< std::string, CSResultStruct* >::iterator it = m_childList.find( name );
+
+    if( it != m_childList.end() )
+        return it->second;
+
+    // Allocate a new struct
+    CSResultStruct *ctxt = new CSResultStruct( this );
+    ctxt->setID( name );
+
+    m_childList.insert( std::pair<  std::string, CSResultStruct* >( name, ctxt ) );
+
+    return ctxt;
+}
+
+CSResultStruct*
+CSResultStruct::leaveContext()
+{
+    return NULL;
 }
 
 void
@@ -210,9 +228,16 @@ CSResultStruct::updateField( CSResultField *field )
 void
 CSResultStruct::printTree( uint offset )
 {
+    printf( "%*.*s%s\n", offset, offset, " ", getID().c_str() );
+
     for( std::map< std::string, CSResultField* >::iterator it = m_fieldList.begin(); it != m_fieldList.end(); it++ )
     {
-        it->second->printNV( offset );
+        it->second->printNV( offset + 2 );
+    }
+
+    for( std::map< std::string, CSResultStruct* >::iterator it = m_childList.begin(); it != m_childList.end(); it++  )
+    {
+        it->second->printTree( offset + 2 );
     }
 }
 
@@ -231,29 +256,28 @@ CmdSeqResults::~CmdSeqResults()
 void
 CmdSeqResults::enterContext( std::string name )
 {
-    printf( "CmdSeqResults::addContext: %s\n", name.c_str() );
-
-    // Allocate a new struct
-    CSResultStruct *ctxt = new CSResultStruct;
-    ctxt->setID( name );
+    printf( "CmdSeqResults::enterContext: %s\n", name.c_str() );
 
     if( m_root == NULL )
     {
+        // Allocate a new struct
+        CSResultStruct *ctxt = new CSResultStruct( NULL );
+        ctxt->setID( name );
+
         m_root = ctxt;
+        m_curStruct = m_root;
     }
     else
     {
-        m_curStruct->addChild( ctxt );
+        m_curStruct = m_curStruct->enterContext( name );
     }
-
-    m_curStruct = ctxt;
 }
 
 void
 CmdSeqResults::leaveContext()
 {
     printf( "CmdSeqResults::leaveContext\n" );
-
+    m_curStruct = m_curStruct->leaveContext();
 }
 
 void
@@ -315,7 +339,7 @@ CmdSeqResults::printTree()
         return;
     }
 
-    m_root->printTree( 2 );
+    m_root->printTree( 0 );
 
     printf( "CmdSeqResults::printTree - end\n" );
 }
